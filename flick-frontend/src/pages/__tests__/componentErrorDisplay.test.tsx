@@ -186,36 +186,6 @@ describe("Component-Level User-Visible API Error Handling", () => {
       });
     });
 
-    it("surfaces server error message when social login backend verification fails", async () => {
-      (window as any).google = {
-        accounts: {
-          id: {
-            initialize: vi.fn(({ callback }: any) => {
-              callback({ credential: "mock_google_id_token" });
-            }),
-            prompt: vi.fn(),
-          },
-        },
-      };
-
-      mockApiRequest.mockRejectedValueOnce(
-        new ApiError(400, { error: "Google account is not linked to any active member" })
-      );
-
-      render(
-        <MemoryRouter initialEntries={["/login"]}>
-          <LoginPage />
-        </MemoryRouter>
-      );
-
-      const googleBtn = screen.getByRole("button", { name: /Continue with Google/i });
-      fireEvent.click(googleBtn);
-
-      await waitFor(() => {
-        expect(screen.getByText("Google account is not linked to any active member")).not.toBeNull();
-      });
-    });
-
     it("uses safe generic message when a non-ApiError network failure occurs", async () => {
       mockApiRequest.mockRejectedValueOnce(new TypeError("Network down"));
 

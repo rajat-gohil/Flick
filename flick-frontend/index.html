@@ -43,38 +43,6 @@
     <meta property="og:url" content="https://flickapp.in" />
     <meta name="twitter:card" content="summary" />
 
-    <!-- ── Google Sign-In SDK (Item 14) ────────────── -->
-    <!--
-      SETUP:
-        1. Go to https://console.cloud.google.com
-        2. APIs & Services → Credentials → Create OAuth 2.0 Client ID
-        3. Application type: Web application
-        4. Authorised JavaScript origins: https://flickapp.in
-        5. Replace YOUR_GOOGLE_CLIENT_ID below with the Client ID
-    -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script>
-      window.__GOOGLE_CLIENT_ID__ = "539764712202-kg4glq07o0ka5vfbp0bo65pqma3sn619.apps.googleusercontent.com";
-    </script>
-
-    <!-- ── Apple Sign In SDK (Item 14) ─────────────── -->
-    <!--
-      SETUP:
-        1. Go to https://developer.apple.com → Certificates, Identifiers & Profiles
-        2. Identifiers → + → Services IDs
-        3. Enable "Sign In with Apple", configure domain + redirect URI
-        4. Replace YOUR_APPLE_SERVICE_ID below (looks like com.yourcompany.flick)
-        5. Add https://flickapp.in to the domains and https://flickapp.in/register to redirect URIs
-    -->
-    <script
-      type="text/javascript"
-      src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
-      async defer
-    ></script>
-    <script>
-      window.__APPLE_CLIENT_ID__ = "YOUR_APPLE_SERVICE_ID";
-    </script>
-
     <!-- ── Sentry (Item 15) ─────────────────────────── -->
     <!--
       SETUP:
