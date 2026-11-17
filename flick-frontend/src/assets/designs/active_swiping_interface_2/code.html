@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Movie Swiping Interface</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col justify-between overflow-hidden">
+<div class="flex items-center justify-center p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md z-10 relative">
+<div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-200/50 dark:bg-slate-800/50">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-300">Alex is swiping...</span>
+</div>
+</div>
+<div class="flex-grow flex items-center justify-center p-4 z-0 relative">
+<div class="relative w-full max-w-sm h-[65vh] rounded-3xl overflow-hidden shadow-2xl shadow-primary/20">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Sci-Fi movie poster with neon colors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYXgh0g-FoXbA8gZXrTiU4gBn1gyYAZf-saKql5R_DOebsSeffi-SO9LlhRJREuykMeUfmySSlFY5cQyCBtA_FGD4w2kRhMEmhLU084ZnsHyON29Q_jQ97Xm0hXvOhLJWT4VL49tLh4Fq1UFN9QOVwN3FSjU3F7RwkabULun6E1ShWVawwPrKQJu4r6x8Lc0e3CPI7ezI57nb2n29XYex64_QT8xpxGau3cFTix0wcp5ef0rY0IU43MYQaBLxat03TyTwaZGqYN40");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-6 bg-background-dark/60 backdrop-blur-md border-t border-white/10">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h1 class="text-3xl font-bold text-white mb-1 drop-shadow-md">Inception</h1>
+<p class="text-lg text-primary font-medium">2010 • <span class="text-white">8.8</span> <span class="material-symbols-outlined text-sm text-yellow-400 align-middle pb-1">star</span></p>
+</div>
+<button class="bg-primary/20 hover:bg-primary/40 text-primary rounded-full p-2 transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<div class="flex gap-2 mt-3">
+<span class="px-3 py-1 bg-white/10 rounded-full text-xs text-white/80 border border-white/5">Action</span>
+<span class="px-3 py-1 bg-white/10 rounded-full text-xs text-white/80 border border-white/5">Sci-Fi</span>
+<span class="px-3 py-1 bg-white/10 rounded-full text-xs text-white/80 border border-white/5">Thriller</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pb-6 pt-2 px-6 z-10 relative">
+<div class="flex justify-around items-center max-w-sm mx-auto">
+<button class="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shadow-lg hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-3xl">undo</span>
+</button>
+<button class="w-16 h-16 rounded-full bg-background-light dark:bg-background-dark border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-500 shadow-xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-4xl">close</span>
+</button>
+<button class="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white shadow-[0_0_20px_rgba(164,19,236,0.5)] hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-5xl fill-current">favorite</span>
+</button>
+<button class="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-primary shadow-lg hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-3xl">star</span>
+</button>
+</div>
+<p class="text-center text-sm font-medium text-slate-500 dark:text-slate-400 mt-6 mb-2">Movie 14 of 40</p>
+</div>
+</body></html>

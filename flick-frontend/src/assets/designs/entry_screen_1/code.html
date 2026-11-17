@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flick - Entry Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#895af6",
+                        "background-light": "#f6f5f8",
+                        "background-dark": "#151022",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 1,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased h-screen overflow-hidden relative">
+<div class="absolute inset-0 z-0">
+<div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4 opacity-40">
+<div class="flex flex-col gap-3">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Action movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCOQoHyt_Pq-YIOHrL7JXH8bayV91T3d1-13DevtBg6AuFf2DDDpsnz2sgs3iEvwlHXhf9YqJSOlwE3pGiSuzRqDn_GnP2hpCdX6nDYzpF1Fe7xqxB7vxP2CeeR0NqQFyk2MPgi_xU4jFKzT8J1k_hWnFSbBdgKr8i5Q26WFF7eBXKG3sXzpQpA1xtO6ayDuzaOC9QS3xPCMFxDi4F2VAXTqHwLL1frWyZCuAjUpy7-3bt0kcWwH0056-3edPwR49j5BJ5fF2cYUUc");'></div>
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Sci-fi movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAdGSfrXuBx01kAMZ5XzOGL_rfS_2yYaj10sCJG2y4dR8baWrl_MkSyrPzFfGjC0Ytv9r4YULDT5w-0RM-K6ziELEklWcT-fFKFseKj-zxmGKWTjoTPGhqKzdbV36Nm94ZaJczb9DJFWfQTsOSCKqTsjXGWuZ-AcALULn1pkpLtnWCBt_ywIEWn7BYWp8tbE9jMmc6Y7LjVgf5T97um9RAI67LAIsGxE9VUsMnrait_hymyZpNVnW0P13zeOk9CAbA826hYIqg-X0I");'></div>
+</div>
+<div class="flex flex-col gap-3 -mt-12">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Romance movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHbaBew7ZNrAHvAegZ7a8OUdSdkKglv8UuJjXpoTEPJ6VytRH-cu2RtFszSUkLUuc8UwMXCeHfuMU8IaaGxzpoT5X-3i_2lyZ3iYsNJKSj64cCquOxJ5rEZ3D-qDxK62qFZgAFLI8NpLnj_tCxXfq1oa4P6rSwl26L6V9-Xg72pU-m63Qf4Mri0PLi6U_RKe1YxLI3BNv-4p7YRjhV0COe9S0ST3Ea2G81fdo_6R5OSE6dLX0dU3SXLi_ZlAr0bjY9ov6uUUqIc4g");'></div>
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Comedy movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBM5WinkIDmSpF5cFWOXFlErq0d7g3i7J4DD_GU-JUqpH57xoRwKsFYhejY_mb3Dz7jvt2jpYRuSp19BMdc5jV8Lc9YQktvJpMRAzopSfCEJAlZ90k3sKeG27z1sGSf-mp89rvf-PNq5qGdpMK9rwuzlFrga7Q_iHsFuRiFyYO__wr0-CT9ZMC9P4anL-ccdnCUbE0GzyjFbqq3p0nx5QYfT9VRrqSJkEoiOeYTNlcluaac5DckHljbRv_zAoulSplTcJ0iQGaey6c");'></div>
+</div>
+<div class="flex flex-col gap-3 hidden sm:flex">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Horror movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB4JhpU8MtssrDPfn3tu7xrWkWFWgZ68oFpYIQtPc-AD8npofv6IHkzavz7N4mMocJCC-i2W91JI4daxGvBwGy_wKr7IeafWcfVWOm35iVTNtldYj8voAi03ia9LA2b9HzoXTahjXbm5IlOD4BPhTSuiR_a9AaDkYrOrtkT5JuDwQuG0eg6qbST6LS2_tqN_utgNWsA-WQLNdi26wb67h8KvcZrrFL2XnYftQPr2p-Df10ov8LtF0Oztv9d_h0EW-nRqUE5NNoYsnc");'></div>
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Drama movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBwJOp1bIoMSOedlC5uMiPSz-ojdH91UaS7oLb2kO4vtcmRhC_t8IKNm7oyCdmSEgCP8Vlb6ek05gch-wZpi3FuIfbzNnWgRDPyIfKSKfIIomalRUEvxJM_MZ7yAI0vdvZqkQMWdFyqDcpsq6llZ7MN7gIdVuWdnPpatisrccqLunna3F1iGZ2TiJCMfhRPneK1kv5apYV_dDtS6dEAzoNKZ9tSyAkVtE0kYWlgfzVFAM1FUsgUyW5nves29IBzEZsied7VwDaiJu0");'></div>
+</div>
+<div class="flex flex-col gap-3 -mt-12 hidden md:flex">
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Thriller movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD7IL0bafLUWzjYvcMOn1_p9oVGvL-cIha5sINoN573h_6gLxWPV7m6dqrEKxSXF68VtC-blQkfAQKnkIFCTryTqeP7SGXbwSCgs-UTGTGhkjr6lWYql8rWw3wP6cVQdBwwy5MYUoT32XuxOUR9HyvFoVbYRXwnwGMCKxOGG2Isijo8tmvH8U6VTaHOAqpxJNedQwy9K-KspQi4llocRV9xKQvgtoIF95OGnjYBxaLrNH0VW0ythfDbtS_yvg-pzpV-xBQOzAOrmWA");'></div>
+<div class="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl" data-alt="Fantasy movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCd2q297AbRqRIPZRm9RzQyzXMJCYlyON1ieu2p7_n_Jmd8JPwzo7fxFCgoIatRY3BeWPv4P0qCPejW8lUtJYo8x9cIYyhqV__E2P9W6x0URyCdz9bKjA1Weklw9VccWVo4zFP-THR7As3bC5LYf4O4EC6uwH2Cj9Ke5uGwNZtvANSRGaGAI-24EFZu5IyUgX7PTsyZoA71DtP4ZicrXou3UUTwHEK51-WyIhmkvk9CYGuRHo9uicOskLxuD9ev99rgLc1GpFT509E");'></div>
+</div>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/80 to-transparent"></div>
+</div>
+<div class="relative z-10 flex flex-col justify-end h-full pb-12 px-6">
+<div class="mb-auto mt-32 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-6xl mb-4">movie</span>
+<h1 class="text-5xl font-bold leading-tight tracking-tight mb-2 text-white">Flick</h1>
+<p class="text-lg font-normal leading-normal text-slate-300">Find your next favorite movie</p>
+</div>
+<div class="w-full max-w-md mx-auto flex flex-col gap-4">
+<button class="flex items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-gradient-to-r from-primary to-[#a881f8] text-white text-lg font-bold leading-normal tracking-wide shadow-lg shadow-primary/30 transition-transform active:scale-95 w-full">
+<span class="truncate">Get Started</span>
+</button>
+<button class="flex items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-lg font-bold leading-normal tracking-wide transition-transform active:scale-95 w-full">
+<span class="truncate">I have an account</span>
+</button>
+</div>
+<div class="mt-8 flex flex-col items-center w-full max-w-md mx-auto">
+<div class="flex items-center w-full gap-4 mb-6 opacity-60">
+<div class="h-px bg-white/30 flex-1"></div>
+<span class="text-sm text-slate-400 font-medium uppercase tracking-wider">Or continue with</span>
+<div class="h-px bg-white/30 flex-1"></div>
+</div>
+<div class="flex gap-4 w-full justify-center">
+<button class="flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex-1 transition-colors">
+<img alt="Google Logo" class="w-6 h-6" data-alt="Google logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbkilHsrojSVgVNSaPHOC12FoNaFNlC6KZpslTDwMsauNKftyN0VTiZiWACip8zzMVUxwHufqkpEQQpoAL-6nsiapqdXyN6Qt3UExSAMzdjRAlDHIHsktjldFtulXLUwbJPuTFfnUByhMbEWPBAZreIfnUWANrwOsZN_Q_3lQIYr3szMo4kiK62JB0zh4cGPqk0MfEKTHyYFUSdQFThqQaxOdMcf9c6-Ij5Ucs-oK5ADuxzx3nwjvP2l_CbaWwaCexRdNWxCcuHYY"/>
+<span class="text-sm font-medium text-slate-300">Google</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex-1 transition-colors">
+<span class="material-symbols-outlined text-white text-2xl">ios</span>
+<span class="text-sm font-medium text-slate-300">Apple</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

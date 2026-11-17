@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Match History - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen pb-20 overflow-x-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 sticky top-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md z-10">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold">Match History</h1>
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">filter_list</span>
+</button>
+</header>
+<!-- Search -->
+<div class="px-4 py-2 mb-4">
+<div class="relative flex items-center w-full h-12 rounded-xl bg-slate-200 dark:bg-slate-800/50 overflow-hidden">
+<span class="material-symbols-outlined absolute left-4 text-slate-500 dark:text-slate-400">search</span>
+<input class="w-full h-full pl-12 pr-4 bg-transparent border-none focus:ring-0 text-sm placeholder:text-slate-500 dark:placeholder:text-slate-400" placeholder="Search past matches, friends, genres..." type="text"/>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex flex-col gap-8 pb-8">
+<!-- Category: Last Week -->
+<section>
+<h2 class="px-4 text-lg font-bold mb-3 flex items-center justify-between">
+                Last Week
+                <span class="text-sm font-medium text-primary cursor-pointer">See all</span>
+</h2>
+<div class="flex overflow-x-auto gap-4 px-4 snap-x snap-mandatory [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden">
+<!-- Movie Card 1 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract movie poster gradient" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMKpRXy9cGGPe9JXQ9hSuyIcPdDMoFRbG92Nz0wrpYZwgRuyOGuQNXMeZvNsWGEibvZMY0g9Ve-DTFe-RD1dq4nTJV9AywURbHp-qrA9urrUhL1A4tGi8L5x4-ku6oQzi627GAEyTGS-t7nPXCMmKhVbzl3bKptEV2QnL6y7Q3JSPo5cgOC02lRI_rFi3OpAWCpSijSBx07JJscU3178BimklfocYUgnU8nJBW6XpWnZmy9v7ldyyYSlP_ABQjLt2P9tAQKVmVFcQ"/>
+<!-- Streaming Badges -->
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-black/80 flex items-center justify-center text-[10px] font-bold text-red-600 border border-white/20">N</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">Interstellar</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Matched with Sarah</p>
+</div>
+</div>
+<!-- Movie Card 2 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract movie poster gradient dark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiz0zTVAiN2vUd4exPbNIfX1SqrcLs-n-c6I4EJL5P18C34giGHudfUjfcNGM6AjPzqNSR4OLf1Gc2cNUSSBMTnvg9nwFrBoGOIerslk_rTQxLzSfqhgOmSpmAB5GrBLQujmGoJzx8dM6hQk7U-TYV6OR9wa8aPDufJOsn1KjFNEHpNyHvnnAUE_XtvhWjQnYM_EMLLK_9D-VQvmVnFz-LtG7fwfn3b5ctBowuDyEa2FoYkHdY-7dy1lEdzC0e-zNHDVrP_pLTSmg"/>
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white border border-white/20">P</div>
+<div class="size-5 rounded-full bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white border border-white/20">D+</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">The Matrix</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Matched with John</p>
+</div>
+</div>
+<!-- Movie Card 3 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract movie poster pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnbgRLmlEQNyKOCD28Z4R-ojh63R0P0Hbc10E4xfLpJHgrGJqKt1NPt7h4owE9020YapcPLn19bsrdSUYXa5rBFbQxKcEhESbOZZsK8HfIyFHjcQAumWyYR4JElQObwLBZ0y08w_IeDOeV8boQBZVtSfic0eTXdua1P9JMRBkuBclGgjfqwvI543sZ9fcHKdTLubHZPCAD_tQw_EeaIcVSROgg7fLqU4YLXvlWzCk8EuyKFE1wIyR8nUu8_bDJKQXPMwzPtwg3ffU"/>
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-black/80 flex items-center justify-center text-[10px] font-bold text-red-600 border border-white/20">N</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">Blade Runner 2049</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Matched with Emma</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: With Sarah -->
+<section>
+<h2 class="px-4 text-lg font-bold mb-3 flex items-center justify-between">
+                With Sarah
+                <span class="text-sm font-medium text-primary cursor-pointer">See all</span>
+</h2>
+<div class="flex overflow-x-auto gap-4 px-4 snap-x snap-mandatory [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden">
+<!-- Movie Card 4 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract photography gradient" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVKRgdjtgnI578FrE2jxHhtUIOLEqjAFxaldDOsTgRe9cgoPTdZ1iUTECWw-TN9Up0YoLHCBq0E-1yOthm0iwSfAz6dOlzgWLohN9a-ALyS3BHTfwcRavdoPrZJqXqWsKE8T8hcrtq8Q1eIp_8JphuT0eBwwy_9rCiEJNfBCkQfnziSkrBj7KFSlpF7_7NXnSxmieb5DzSQqNuv3Ym7Th9nmgN7fx0pQP2JgXePsjSj5u1qRMbzGPTQWqLT_vX_JF-_MyME54mpsI"/>
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white border border-white/20">P</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">Arrival</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Sci-Fi • 2016</p>
+</div>
+</div>
+<!-- Movie Card 5 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs4UaXLYtNPGJ6UEKCqiw4ZQ3M1Bs8LHZuXMGVfPdrLA4NJqnUoUPS-FMw5P6DTnV9mKX-ODYTXuIpC5zZaleaQ0I-NZHUHrkei7Lnln2MzZp9BDC9JOSvZ__GFpQTYdIaQzhseE_cz5N5IHTHVk8AfifhIBDEAIkb0SVnqISrfNDS0w7RDGgVZMTK2usqmM-sI5BDrQYAiqL_UyE1TjUFYbky15qyH43dlwO0fErX6azpKy20TRKZ0cvsD-bugv2nb8fAY5eS0xo"/>
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-black/80 flex items-center justify-center text-[10px] font-bold text-red-600 border border-white/20">N</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">Ex Machina</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Sci-Fi • 2014</p>
+</div>
+</div>
+<!-- Movie Card 6 -->
+<div class="snap-start flex-shrink-0 w-[140px] flex flex-col gap-2 group relative">
+<div class="w-full aspect-[2/3] bg-slate-300 dark:bg-slate-800 rounded-xl overflow-hidden relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Abstract streaming content" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFmbjIJYWQewU7RIvTbs_uCBTUeZzJgX9Ar0R-imCGfZ9001I4A4dqF_-kewDlQJNrdnmIuHcHRbMv4_ITSvtkDdHGOGRoqysY0aBGSu4HSJaTJBNmLaupYDhpFr_cuUzXROn_lAHWh_u-NNyB7qgCMmIqN09MGjmo1hrlUajRubycuGdUURZOVIjPIpBxa6am0toO4hMS1HaSP6PJ3B7cy78bp6v0sW71vi3LGEKzcTtNEcVdrouGQ2wFUYUk8xThXkUY50E6BvU"/>
+<div class="absolute bottom-2 left-2 flex gap-1">
+<div class="size-5 rounded-full bg-gradient-to-br from-blue-900 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white border border-white/20">D+</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium text-sm leading-tight truncate">Dune</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate">Sci-Fi • 2021</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav -->
+<nav class="fixed bottom-0 w-full bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 pb-safe pt-2 px-4 z-50">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors py-2 px-4" href="#">
+<span class="material-symbols-outlined text-2xl">explore</span>
+<span class="text-[10px] font-medium">Discover</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary py-2 px-4" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="text-[10px] font-medium">Matches</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors py-2 px-4" href="#">
+<span class="material-symbols-outlined text-2xl">list_alt</span>
+<span class="text-[10px] font-medium">Watchlist</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors py-2 px-4" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Movie Swiping Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col group/design-root overflow-x-hidden max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- Header -->
+<header class="flex items-center p-4 pb-2 justify-between border-b border-primary/10">
+<button class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Flick</h2>
+</header>
+<!-- Avatars -->
+<div class="flex items-center px-4 py-3 justify-center gap-2">
+<div class="overflow-visible w-[34px] relative z-10">
+<div class="bg-center bg-no-repeat aspect-square bg-cover border-background-light dark:border-background-dark bg-primary/20 text-primary rounded-full flex items-center justify-center size-11 border-4 shadow-sm" data-alt="User Avatar 1" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBoMGRtSH4IVrcdXwaG-iORWOO6Dq7ckeWp-5KTDMHeLYZPitqHDXIgLGHOAU1igHMBzhqpCzSoGTmTb5xP4I3hIx2NDEA-PJjIcsKw1VcBWhbJTFr4fCkR5qEQVHBsLbUfkqT8d8V9zy9q0EUoJfQQ3QU2DsDqpiUY3WRNQtTt0khsiNoi546eKfNAokuiW7oQsQSocJ2RTsCY8KBGkUe2HGTuF8aevridUq2vhl9PKvDUtWgQgxB-ULChoc0ACkp0BvCXviSp4OE");'></div>
+</div>
+<div class="overflow-visible w-[34px] relative z-20 -ml-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover border-background-light dark:border-background-dark bg-primary/20 text-primary rounded-full flex items-center justify-center size-11 border-4 shadow-sm" data-alt="User Avatar 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDShsJ3S47pUXimCtaI_cl_7GcGXEfRnHifVQz2_jnI2Azt5bjTiOB9K2ktcrjJDsimpR9ZRzpFYFLhZ3A3IFaSiqxMYZhY1EJ1t44W9OWZfNUMa_N51HtnBOaUbNO4cPqjF_6mcAaBS_EY9jigjtjgSYarz16_4IAhuqT78nEQBwLsoFmaBqlrrGCJOyuxFFMH0jriDKFEbz6z_dwCX987kUZvrJasLgR2v4w0CKNJwhuw8hha6zLxJ3c8ueZAhHddnt94d-MzEUg");'></div>
+</div>
+<div class="overflow-visible w-11 relative z-30 -ml-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover border-background-light dark:border-background-dark bg-primary/20 text-primary rounded-full flex items-center justify-center size-11 border-4 shadow-sm" data-alt="User Avatar 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDMfZuyB0vn43HI3ekvSxNcbLW3oHT48Uvx9kh3LQccor6NixLGm7b2d03FK0nmPmuspizFZZ3SHwDW8Kk6Oo_aAh4Jrzl12i0hoAfVSYYTf7c5lBQmqyi3ar1NZVTJWDR20gsBBGRv_57rWbBRX5GILThg9NJ3G8kIjnm-wi6PKIEIB00MJoagUER0Ciij9dOIPrgr55S-GXLHg75NgQLK3r9W0VfV3J2OwNiYCO1gCnH9wrwbPrhjV5D9x4Hi3J_0rI8RPtgGXsE");'></div>
+</div>
+</div>
+<!-- Main Swipe Card -->
+<main class="flex-1 p-4 flex flex-col justify-center">
+<div class="relative w-full aspect-[2/3] rounded-2xl overflow-hidden shadow-xl bg-slate-200 dark:bg-slate-800 border border-primary/20 flex flex-col justify-end" data-alt="Dune Part Two Movie Poster" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.9) 0%, rgba(28, 16, 34, 0) 50%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAz5u08ZE18ZdxCCRtHReVTsf7YIaRbDL3ddsB5Kc7q2S6ma-09AWszUchwRG3Cjp4mLEZDLwQiEBO76kI2s_1pJHSClPTcdXD48tEngPAqo95PT4QXtaLtg45QDEujkbRCyD81QDxFJDSVOhBQlrBW2YUHSos0c0CiwFUbrVf8PrpuAz7fAgsnugJzx-zQ2IPt43bdqd4syOsVNVehmWgU-0BEMtDQLe2ze8vKDEJRnZxvLCl420ttrof6JvNwBaEuHf50Uelmw1o"); background-size: cover; background-position: center;'>
+<!-- Movie Info -->
+<div class="relative z-10 p-6 flex flex-col gap-2">
+<h1 class="text-white text-3xl font-bold leading-tight drop-shadow-md">Dune: Part Two</h1>
+<div class="flex items-center gap-2 text-slate-200 text-base font-medium">
+<span class="bg-primary/80 px-2 py-0.5 rounded text-sm text-white shadow-sm">2024</span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px] text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+                        8.8/10
+                    </span>
+<span>•</span>
+<span>Sci-Fi</span>
+</div>
+<p class="text-slate-300 text-sm line-clamp-2 mt-1 drop-shadow-sm">Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.</p>
+</div>
+</div>
+</main>
+<!-- Action Buttons -->
+<div class="@container px-6 pb-6 pt-2">
+<div class="flex justify-center items-center gap-8">
+<button class="flex flex-col items-center gap-2 group">
+<div class="rounded-full bg-slate-200 dark:bg-slate-800 p-4 border-2 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 shadow-md transition-transform group-hover:scale-110 group-active:scale-95 group-hover:border-red-500 group-hover:text-red-500">
+<span class="material-symbols-outlined text-3xl">close</span>
+</div>
+<span class="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Pass</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="rounded-full bg-slate-200 dark:bg-slate-800 p-4 border-2 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 shadow-md transition-transform group-hover:scale-110 group-active:scale-95 group-hover:border-primary group-hover:text-primary">
+<span class="material-symbols-outlined text-3xl">info</span>
+</div>
+<span class="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Info</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="rounded-full bg-primary/10 dark:bg-primary/20 p-5 border-2 border-primary text-primary shadow-lg shadow-primary/20 transition-transform group-hover:scale-110 group-active:scale-95 group-hover:bg-primary group-hover:text-white">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<span class="text-primary text-sm font-bold uppercase tracking-wider">Like</span>
+</button>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="flex gap-2 border-t border-primary/10 bg-background-light dark:bg-background-dark px-4 pb-6 pt-3 mt-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">movie</span>
+<span class="text-[10px] font-medium">Swipe</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">group</span>
+<span class="text-[10px] font-medium">Matches</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</nav>
+</div>
+</body></html>

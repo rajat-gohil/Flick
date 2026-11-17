@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
+/* ── Art-House Theme Tokens ───────────────────────────── */
+:root, [data-theme="light"] {
+  --background: #F5F2E9;
+  --surface: #FFFFFF;
+  --surface-secondary: #EAE5D9;
+  --foreground: #20221E;
+  --foreground-secondary: #55574F;
+  --primary: #42634A;
+  --primary-hover: #35563D;
+  --primary-foreground: #FFFFFF;
+  --border: #D9D3C6;
+  --focus: #35563D;
+  --error: #A33D35;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"], .dark {
+  --background: #191C19;
+  --surface: #242923;
+  --surface-secondary: #30362F;
+  --foreground: #F3F0E7;
+  --foreground-secondary: #C1C5B9;
+  --primary: #86A58A;
+  --primary-hover: #A0B9A1;
+  --primary-foreground: #191C19;
+  --border: #41473F;
+  --focus: #B7CFB8;
+  --error: #F08A80;
+
+  color-scheme: dark;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-focus: var(--focus);
+  --color-error: var(--error);
+
+  --font-sans: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Newsreader", Georgia, Cambria, "Times New Roman", serif;
+  --font-editorial: "Newsreader", Georgia, serif;
+}
+
+/* ── Base Styles ───────────────────────────────────────── */
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Editorial Typography ─────────────────────────────── */
+.font-editorial {
+  font-family: var(--font-editorial);
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+
+h1, h2, h3, .font-editorial {
+  letter-spacing: -0.015em;
+}
+
+/* ── Accessibility: Focus visible ─────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Material Symbols ─────────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  font-display: swap;
+  vertical-align: middle;
+}
+
+/* ── Theme Safety Bridge (neutralizes hardcoded legacy colors) ── */
+.bg-\[\#151022\], .bg-\[\#0d0a18\], .bg-\[\#0F0F14\] {
+  background-color: var(--background) !important;
+}
+
+.bg-\[\#1f1b27\], .bg-\[\#1a1528\], .bg-\[\#1C1C24\], .bg-\[\#252131\] {
+  background-color: var(--surface) !important;
+}
+
+.bg-\[\#2d2839\] {
+  background-color: var(--surface-secondary) !important;
+}
+
+.border-\[\#2d2839\], .border-\[\#4A455C\], .border-white\/5, .border-white\/10 {
+  border-color: var(--border) !important;
+}
+
+.text-\[\#895af6\] {
+  color: var(--primary) !important;
+}
+
+.bg-\[\#895af6\] {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.border-\[\#895af6\] {
+  border-color: var(--primary) !important;
+}
+
+/* ── Motion & Skeleton Shimmer ─────────────────────────── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-secondary) 0%,
+    var(--border) 50%,
+    var(--surface-secondary) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── Reduced Motion Accessibility ───────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-shimmer {
+    animation: none !important;
+    background: var(--surface-secondary) !important;
+  }
+
+  .animate-pulse-subtle {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

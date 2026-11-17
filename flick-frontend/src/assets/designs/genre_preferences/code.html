@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Genre Preferences - Flick</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased flex justify-center">
+<div class="relative flex h-full min-h-screen w-full max-w-md flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<div class="flex items-center p-4 pb-2 justify-between">
+<button aria-label="Go back" class="flex size-12 shrink-0 items-center justify-center text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+</div>
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+<div class="h-2 w-2 rounded-full bg-primary/30"></div>
+</div>
+<h1 class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight px-4 text-left pb-2 pt-4">What do you love?</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-relaxed pb-6 pt-1 px-4">Select your favorite genres to get better movie recommendations.</p>
+<div class="grid grid-cols-2 sm:grid-cols-2 gap-4 p-4 pb-32">
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark transition-transform active:scale-95" data-alt="Explosion scene for Action genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCeCJW9bUJ8otWVuewjbl3-L8k6VLkPetWxGoWdqzTDDWObKMNJtZ-xv3ZY_VjyIcwHAjAIa4Z9skwJVsR5cqd7_ULeB9v5nHZpOHWejZPJhj3GwIftwoBkX6iNrImjtbKH-ENCpQhSFrRqkhlOnanNEPn53p6Uk8LXRpT9PEGHmfFmLlTDBlPO4bJ61TPESmC5humHC2GpUIAtfM152zfkglMMyuxyy4TF6N0gKIomN3gV6XWWPOoSww2AxiTu_KUO2znWvlxFEDA");'>
+<div class="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full border-2 border-white/50 bg-black/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-white hidden">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Action</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden ring-4 ring-primary focus:outline-none transition-transform active:scale-95" data-alt="Laughing people for Comedy genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBEHWCwGanPIp3qlP-Ock3Gze4VlpXXpIdsGOM6HJJiOom47JSGMCwGJfisY30TJ5yZRFRxLcw4YLPNtpVE8-DAEq7HHVVBtO_BgOsR4R0f7w5w8XYxCEMRYYItZr4Ga-i7RnGtpuqmAi2Bb84yFoznUi9k8YfZmHe1X22NJ8M2MfLGQcoFUm3ZquM7W1Wpk1UUKmAw9aIMdyboLsEju4o1v5RmB1z-dI6SBcUz2wMk9RTmzBttkq8XQeWwyQqeDSOEpOSRtWi_JzM");'>
+<div class="absolute inset-0 bg-primary/20"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center transition-all">
+<span class="material-symbols-outlined text-[16px] text-white font-bold">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Comedy</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark transition-transform active:scale-95" data-alt="Futuristic space scene for Sci-Fi genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCk6EqBqyNDQ-vOd1Tu2Bs1zK4cjkDH-W4oEykAa_zQNWYTnaltFT5GsjqYaWjyYVQrLPfxK47_V9zt8_VbJSoEkTcYUj3BGzkFQFH5ravNbD4z3z-dRgkokzA6D1F0-VRnCGcWvvWCm6i-BVJU4kvRRjcLAqVywVDrg2sY9h2YUU2nUwxU4X7TVK-MVcFmHM_iyX1nIegkMp4rKS47R6eKzUU_7EsJwbpO11Ay68Xz1h921M9rKdTjF9jyIJhcHX_rb2cskIXbUro");'>
+<div class="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full border-2 border-white/50 bg-black/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-white hidden">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Sci-Fi</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden ring-4 ring-primary focus:outline-none transition-transform active:scale-95" data-alt="Couple at sunset for Romance genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuDOJ14rjJFQFjP54xz_-1kGiDoKpRLbHSikoVDgpuM4UYjSxOKmrGuFIKh5bYvV6ZZuGtE9J9hFZVQR0WfW0AD3E3Ca0HpdIlXkBLKRH5bl90HeRXd-XIbIhcJltS8_qlBstqUaebYD0fz-TbV4JSTYrCv9_dmXwGfFKFqQkU2f_WFUS-bUKfAuZ3SHJwvt8RLFoR0qZwPOdQmn2P0WeHjUchKHAKoIIqqbCmBDTf2YDgkiFsmC4v_C3XC9ja9FWzN8YAH6GOy-mGI");'>
+<div class="absolute inset-0 bg-primary/20"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center transition-all">
+<span class="material-symbols-outlined text-[16px] text-white font-bold">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Romance</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark transition-transform active:scale-95" data-alt="Spooky dark scene for Horror genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBrxJkY_1usCbTjhqbuOQf7JDFjYhtWd4Tf3yebECnNCVW6_pmE-c1nTul-ZKL_zSk2eUtNe1-AxgT3NZsEjSUmVnhR49IisM3RGmrctbr56y4MKEaDPpDrTUT9J-aAOC3X6azKJZRiEvdHOmf--wDfW8jWsHWWYUtUN7EXSWlYwJ851A0NusNKnIeWi_q-QjbP9SEZWW_7I4ThKTGro_jdNcJK76KHMfq5kVPbBPasz-O4YhgaBCAT2fOePsOjnGmhhmlqGlVlydc");'>
+<div class="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full border-2 border-white/50 bg-black/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-white hidden">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Horror</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-[4/5] overflow-hidden group focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-dark transition-transform active:scale-95" data-alt="Suspenseful scene for Thriller genre" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 50%, rgba(28, 16, 34, 0.1) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuA7l3zqawJq2H3aLWL_QWnbMclQIEhy7IeAEihdRHZz-qKmGPEwen9t6B2Y4sWFLS_WkxiJ8N0k5PgWz3wRPsPgba9jwWInJMZVgBbaAa_pnV5ZV8aDtJnehg3ZuroGQXPVIUErrCKVCZ_d81SJgggfMm-eYyCVkyBqN6tgLRd5nz-MJN-tu2fQBHKTIKMP1a0YBdQ6-37QgK0LKWtDWLcbsYnTpPVzXAhp0K9kwYQJrjv1pVBfKrTrilJuwUQlJ5CVYDuqRFTaZhk");'>
+<div class="absolute inset-0 bg-primary/0 group-hover:bg-primary/20 transition-colors"></div>
+<div class="absolute top-3 right-3 h-6 w-6 rounded-full border-2 border-white/50 bg-black/20 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-[16px] text-white hidden">check</span>
+</div>
+<p class="text-white text-lg font-bold leading-tight relative z-10 drop-shadow-md">Thriller</p>
+</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light/90 dark:via-background-dark/90 to-transparent pt-12 flex justify-center w-full">
+<div class="w-full max-w-md pb-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-full shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 active:scale-95">
+                    Continue
+                    <span class="material-symbols-outlined text-xl">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

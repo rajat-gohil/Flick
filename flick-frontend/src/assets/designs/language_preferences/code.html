@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Language Preferences</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                        "surface-dark": "#2a1833", // Derived neutral for cards/inputs
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom Checkbox Styles */
+        .language-checkbox:checked + div {
+            background-color: theme('colors.primary');
+            border-color: theme('colors.primary');
+        }
+        .language-checkbox:checked + div .check-icon {
+            opacity: 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex justify-center">
+<!-- Mobile Container -->
+<main class="w-full max-w-md bg-background-light dark:bg-background-dark flex flex-col relative pb-24 shadow-2xl overflow-x-hidden min-h-screen">
+<!-- Top App Bar & Progress -->
+<header class="flex flex-col pt-12 pb-2 px-4 sticky top-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md z-10">
+<div class="flex items-center justify-between h-12">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-surface-dark transition-colors text-slate-900 dark:text-white">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 font-medium text-sm hover:text-primary transition-colors">
+                    Skip
+                </button>
+</div>
+<!-- Progress Dots -->
+<div class="flex w-full flex-row items-center justify-center gap-2 py-4">
+<div class="h-2 w-8 rounded-full bg-primary/30"></div>
+<div class="h-2 w-8 rounded-full bg-primary/30"></div>
+<div class="h-2 w-8 rounded-full bg-primary shadow-[0_0_8px_rgba(164,19,236,0.6)]"></div>
+</div>
+</header>
+<!-- Header Content -->
+<div class="px-6 py-4">
+<h1 class="text-3xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white">Language Preferences</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Select the languages you prefer to watch movies in to get better matches.</p>
+</div>
+<!-- Search Input -->
+<div class="px-6 pb-6">
+<div class="relative flex items-center w-full h-14 rounded-xl bg-slate-200 dark:bg-surface-dark overflow-hidden focus-within:ring-2 focus-within:ring-primary transition-shadow">
+<div class="flex items-center justify-center pl-4 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 px-3 text-base font-medium" placeholder="Search languages..." type="text"/>
+</div>
+</div>
+<!-- Lists Container -->
+<div class="flex-1 px-6 overflow-y-auto space-y-8">
+<!-- Popular Languages -->
+<section>
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 px-1">Popular</h2>
+<div class="flex flex-col bg-white dark:bg-surface-dark rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-white/5">
+<!-- Item: English -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇺🇸</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">English</span>
+</div>
+<div class="relative flex items-center">
+<input checked="" class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+<!-- Item: Spanish -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇪🇸</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">Spanish</span>
+</div>
+<div class="relative flex items-center">
+<input checked="" class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+<!-- Item: French -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇫🇷</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">French</span>
+</div>
+<div class="relative flex items-center">
+<input checked="" class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Other Languages -->
+<section>
+<h2 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 px-1">Other Languages</h2>
+<div class="flex flex-col bg-white dark:bg-surface-dark rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-white/5">
+<!-- Item: German -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇩🇪</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">German</span>
+</div>
+<div class="relative flex items-center">
+<input class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+<!-- Item: Italian -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇮🇹</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">Italian</span>
+</div>
+<div class="relative flex items-center">
+<input class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+<!-- Item: Japanese -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇯🇵</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">Japanese</span>
+</div>
+<div class="relative flex items-center">
+<input class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+<!-- Item: Korean -->
+<label class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-4">
+<span aria-hidden="true" class="text-2xl">🇰🇷</span>
+<span class="font-medium text-lg text-slate-900 dark:text-white">Korean</span>
+</div>
+<div class="relative flex items-center">
+<input class="language-checkbox sr-only" type="checkbox"/>
+<div class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-500 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px] text-white opacity-0 transition-opacity check-icon">check</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Bottom spacer for sticky button -->
+<div class="h-8"></div>
+</div>
+<!-- Sticky Bottom Action -->
+<div class="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto p-6 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark dark:to-transparent z-20">
+<button class="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/30 transition-transform active:scale-[0.98]">
+                Complete Profile
+                <span class="material-symbols-outlined text-xl">rocket_launch</span>
+</button>
+</div>
+</main>
+</body></html>

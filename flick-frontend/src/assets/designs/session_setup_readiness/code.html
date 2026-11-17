@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Session Setup Readiness</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                        "surface-dark": "#2a1b33",
+                        "surface-dark-alt": "#3a2647"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden max-w-md mx-auto shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- Top App Bar -->
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-200 dark:hover:bg-surface-dark transition-colors">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-300">close</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Flick Session</h2>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+<!-- Session Participants -->
+<div class="flex p-4 @container mt-4">
+<div class="flex w-full flex-col gap-6 items-center">
+<div class="flex gap-4 items-center justify-center relative">
+<!-- User 1 Avatar -->
+<div class="relative z-10 w-24 h-24 rounded-full border-4 border-background-light dark:border-background-dark shadow-lg bg-cover bg-center overflow-hidden" data-alt="Young woman portrait avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBKDGX-xvR5QQnZqkrvO8_gUsnlMkzvq2zu3o5ltl9DCCPE5U-5sQxiVRsT8X1xfRgwHqos4o_ILkvUx71XlHl-LpXeF5BsFqVEWFuixROoCtJbJGVhwagqzbCMbJ6lqSRuFWlg3nzRYMFsA-5gr7JzOCU2nevfkhhNOM-dN8R1XUS95J3UtzX6oDOBBB0EBDr6xZh7uzcmgbCiRS8upCK5GBwhjlWK23bYOd4bxLr18lTCq-wiwkUCl1-9gfWtR6RnWzdmj8BRPA8");'>
+</div>
+<!-- Intersection Icon -->
+<div class="absolute z-20 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md transform -translate-x-1/2 left-1/2">
+<span class="material-symbols-outlined text-white text-sm">favorite</span>
+</div>
+<!-- User 2 Avatar -->
+<div class="relative z-0 -ml-8 w-24 h-24 rounded-full border-4 border-background-light dark:border-background-dark shadow-lg bg-cover bg-center overflow-hidden" data-alt="Young man portrait avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAitpRrSoDIVX6nplAJZ21Ecqc96HnUUw65k-6zb2C0Le5o69tfhYlcXuqtXGyppnU-pdt2NChO-bhVHpinUYKkhCb0Uf9cLx9wZAPz_FBvMw9StLOUsKCmEO_4FTJ5YYbmryiz5VEggWOcS2b05K05Hq3-viZDOSnv4021L7rAhl7r-484ytdoVjLwcV9jZ_Oc0c9knmK2oTSjTYspMaM16v-W5B7yudedfJLAGS9NqY5MCmBEZ7getqsB2XDCKt1Wvhzbc-bFNp8");'>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center">
+<h1 class="text-2xl font-bold leading-tight tracking-tight mb-1">You &amp; Alex</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-medium leading-normal flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                        Both Ready to swipe!
+                    </p>
+</div>
+</div>
+</div>
+<!-- Countdown Timer -->
+<div class="flex flex-col items-center justify-center my-8">
+<div class="relative w-32 h-32 flex items-center justify-center">
+<!-- Outer ring -->
+<svg class="absolute inset-0 w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle class="text-slate-200 dark:text-surface-dark" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-primary" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-dasharray="283" stroke-dashoffset="70" stroke-width="4"></circle>
+</svg>
+<!-- Number -->
+<span class="text-5xl font-bold text-primary">3</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-4 font-medium uppercase tracking-wider">Starting soon</p>
+</div>
+<!-- Shared Preferences Section -->
+<div class="px-6 py-4 mt-auto">
+<h3 class="text-lg font-bold leading-tight tracking-tight mb-3">Shared Preferences</h3>
+<div class="bg-slate-100 dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-surface-dark-alt">
+<div class="flex flex-wrap gap-2 mb-4">
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 px-4">
+<span class="material-symbols-outlined text-primary text-sm">rocket_launch</span>
+<p class="text-primary text-sm font-semibold leading-normal">Sci-Fi</p>
+</div>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 px-4">
+<span class="material-symbols-outlined text-primary text-sm">local_fire_department</span>
+<p class="text-primary text-sm font-semibold leading-normal">Action</p>
+</div>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 px-4">
+<span class="material-symbols-outlined text-primary text-sm">movie</span>
+<p class="text-primary text-sm font-semibold leading-normal">90s Classics</p>
+</div>
+</div>
+<div class="flex items-center justify-between py-2 border-t border-slate-200 dark:border-surface-dark-alt">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400">timer</span>
+<span class="text-sm text-slate-600 dark:text-slate-300">Max runtime</span>
+</div>
+<span class="text-sm font-bold">120 mins</span>
+</div>
+<div class="flex items-center justify-between py-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-500 dark:text-slate-400">star</span>
+<span class="text-sm text-slate-600 dark:text-slate-300">Min rating</span>
+</div>
+<span class="text-sm font-bold">7.0+</span>
+</div>
+</div>
+</div>
+<!-- Bottom Actions (Optional/Cancel) -->
+<div class="px-6 pb-8 pt-4">
+<button class="w-full py-4 rounded-xl bg-slate-200 dark:bg-surface-dark hover:bg-slate-300 dark:hover:bg-surface-dark-alt text-slate-800 dark:text-slate-200 font-bold transition-colors">
+                Cancel Session
+            </button>
+</div>
+</div>
+</body></html>

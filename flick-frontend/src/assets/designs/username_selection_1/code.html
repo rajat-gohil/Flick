@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Username Selection - Flick</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex justify-center">
+<div class="relative flex h-auto min-h-screen w-full max-w-[480px] flex-col overflow-x-hidden pb-6">
+<!-- Top App Bar -->
+<div class="flex items-center p-4 pb-2 justify-end">
+<button class="flex items-center justify-end text-slate-500 dark:text-slate-400 text-base font-bold leading-normal tracking-wide shrink-0 hover:text-primary transition-colors">
+                Skip
+            </button>
+</div>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col p-4 @container">
+<!-- Avatar & Title -->
+<div class="flex w-full flex-col gap-6 items-center mt-4 mb-8">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-slate-200 dark:border-slate-800 shadow-sm" data-alt="Default user avatar placeholder portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDeGSypiZ_1wSJ95Il1y9nmNZdy9N8iGrRvadY0akiaNr5DDpmenCF3dp60AAWJr_7j-w_I7wshZE1Av9GpujBhXz7GmO0RifYhGxjFRQ-Pydi9VFfNuNw1ZMbYDDmMtPNxI8WL-jIAztU_79OyzsdKhUu3ca3_zXFr6x9GKHGjmAlmGWawkqV9-wjDJWeKIP0teo4rjY-T1OzhVL1T_GA31oc8i46i7hOy-DRu6TEVanLQgehptSBMC08xb12J_Ee6HZRtrhswcfw");'></div>
+<button class="absolute bottom-0 right-0 bg-primary text-white rounded-full p-2 shadow-lg hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+</div>
+<h1 class="text-2xl font-bold leading-tight tracking-tight text-center">Choose your username</h1>
+</div>
+<!-- Input Field -->
+<div class="flex flex-col w-full gap-2 mb-8">
+<label class="flex flex-col w-full">
+<span class="text-sm font-medium leading-normal pb-2 text-slate-600 dark:text-slate-300">Username</span>
+<div class="flex w-full items-center rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm overflow-hidden h-14">
+<span class="text-slate-400 pl-4 font-medium">@</span>
+<input class="flex w-full min-w-0 flex-1 resize-none bg-transparent border-none focus:outline-0 focus:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400 px-2 text-base font-normal leading-normal h-full" placeholder="your_name" value="flickfan_99"/>
+<div class="text-green-500 flex items-center justify-center pr-4" title="Username available">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</div>
+</label>
+<p class="text-xs text-slate-500 dark:text-slate-400 pl-1">This will be your unique handle on Flick.</p>
+</div>
+<!-- Suggestions -->
+<div class="flex flex-col w-full">
+<h2 class="text-sm font-bold leading-tight tracking-wide text-slate-700 dark:text-slate-200 text-left pb-3 uppercase">Suggested</h2>
+<div class="flex gap-2 flex-wrap">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors px-4 border border-slate-200 dark:border-slate-700">
+<span class="text-sm font-medium leading-normal">flickfan123</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors px-4 border border-slate-200 dark:border-slate-700">
+<span class="text-sm font-medium leading-normal">flick_fan</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors px-4 border border-slate-200 dark:border-slate-700">
+<span class="text-sm font-medium leading-normal">theflickfan</span>
+</button>
+</div>
+</div>
+<div class="flex-1"></div>
+</div>
+<!-- Bottom Action -->
+<div class="p-4 mt-auto">
+<button class="w-full flex h-14 items-center justify-center rounded-xl bg-primary text-white text-lg font-bold shadow-lg hover:bg-primary/90 transition-colors active:scale-[0.98]">
+                Next
+            </button>
+</div>
+</div>
+</body></html>

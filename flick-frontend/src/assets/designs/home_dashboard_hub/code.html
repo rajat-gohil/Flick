@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Home Dashboard Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#895af6",
+                        "background-light": "#f6f5f8",
+                        "background-dark": "#151022",
+                        "surface-dark": "#1f1b27",
+                        "surface-darker": "#2d2839",
+                        "text-muted": "#a59cba",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+<!-- Header -->
+<header class="flex items-center p-4 justify-between bg-background-light dark:bg-background-dark sticky top-0 z-10 shadow-sm dark:shadow-none">
+<h1 class="text-2xl font-bold text-primary tracking-tight">Flick</h1>
+<button class="w-10 h-10 rounded-full bg-surface-darker flex items-center justify-center text-slate-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto pb-24 @container">
+<!-- Start New Session Card -->
+<div class="p-4">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-lg bg-gradient-to-br from-primary to-purple-900 overflow-hidden relative">
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
+<div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-purple-400 opacity-20 rounded-full blur-xl"></div>
+<div class="flex w-full flex-col items-stretch justify-center gap-2 p-6 z-10">
+<div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-2xl">style</span>
+</div>
+<h2 class="text-white text-2xl font-bold leading-tight tracking-tight">Start New Session</h2>
+<p class="text-purple-100 text-base font-medium opacity-90 mb-4">Swipe through movies together with friends</p>
+<button class="flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-white text-primary text-base font-bold shadow-md hover:bg-slate-50 transition-colors w-full sm:w-auto self-start mt-2">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+<span>Start Swiping</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Join Session -->
+<div class="px-4 py-2">
+<h3 class="text-lg font-bold mb-3">Join a Session</h3>
+<div class="flex w-full items-stretch rounded-xl shadow-sm">
+<input class="form-input flex-1 resize-none overflow-hidden rounded-l-xl border border-surface-darker bg-white dark:bg-surface-dark text-slate-900 dark:text-white focus:outline-0 focus:ring-1 focus:ring-primary focus:border-primary h-14 placeholder:text-text-muted px-4 text-base font-medium" placeholder="Enter session code..." value=""/>
+<button class="flex items-center justify-center px-5 bg-surface-darker hover:bg-primary transition-colors rounded-r-xl border-y border-r border-surface-darker text-white">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Recent Activity -->
+<div class="mt-6">
+<div class="flex items-center justify-between px-4 mb-3">
+<h3 class="text-lg font-bold">Recent Activity</h3>
+<a class="text-sm font-medium text-primary hover:underline" href="#">See all</a>
+</div>
+<div class="flex overflow-x-auto gap-4 px-4 pb-4 snap-x hide-scrollbar">
+<!-- Activity Card 1 -->
+<div class="flex-none w-64 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-surface-darker p-4 snap-start shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<div class="flex -space-x-2">
+<img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a young woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCubIDZcb-rmNe3imv9sHmSInr2cENJ0SxoNfAWVPaRfG7GrUseLe3y5dyprwTrYTzjvmwbnsofBK7_t74z3PYz-v_k6biZ47BOoNkrSR0JHRS32f7BiBUAnon8-TqRzGNhJJnAxF0f1y_UjHBhoHQWSL-l9ZRsMYONDngMgvvzMiQIpiDBYmzRaMF5wuzwD2_vY4cUDSKCs3bUkb1ty7ovAsp2tyt-pmWxq2Es3rOcezAdoRYJmApiR4s_QqrjcMpIzTKQCr8uyiI"/>
+<img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9JlZpVHSPyupKbMM4KKMAHcSYCx9mqlYZk4Vy102wAIeJ_JPp3vSmK2onU8vsrsZo7mq87ADfVLs8Q_jzWGYbMWOkV9GCbx12UpNDnM1uMd7yj1nuIZeu8WuVHB3ykhQuORmtAsoVmkx7W3_yJwLAtXTPyZHSnwB6a0QbiAqI-uhQoKeA9IMImuQ8Jl4VCQUMdmlCE6BEwYsm-mcw9IPfcoKAahKjEe2rnVFPl-uczhA11_E62JbsCu8K8kj48lnan0bTm-0uFu8"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface-dark bg-surface-darker flex items-center justify-center text-xs font-bold text-white">+2</div>
+</div>
+<span class="text-xs font-medium text-text-muted bg-surface-darker px-2 py-1 rounded-md">Yesterday</span>
+</div>
+<h4 class="font-bold text-base mb-1 truncate">Sci-Fi Night</h4>
+<div class="flex items-center gap-1 text-sm text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+<span>4 Matches</span>
+</div>
+</div>
+<!-- Activity Card 2 -->
+<div class="flex-none w-64 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-surface-darker p-4 snap-start shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<div class="flex -space-x-2">
+<img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a smiling woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeL44Yp-i27P3FV4RyQ_icJ6AqZeU06uus4kChXHD3tUT2uwQKN-OiEvQsW__9xSEexHAX6Xof8qC5RyVWNniZen57ul4pHs6niUoAuMuukJFEtehalIe2-lbLSbT9XR4K_qx9OtLSI8VfBBuaLoqpW5b1nSCQbg5wtrjsYl9QHASedOo6w35_LncQJjb7YXH37GAle1XP9g_j8vJGHQ_gVneKORdssg0NOqWjZTxmPHxuQ0shPmzkl3tvZhfM99jXwUw0p_roK0o"/>
+<img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a man with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4ltnbw82SZUbnXOjpB-ANUP8QR4b1UyvJE5C0Pnj-kFf7u7o_mg5NfykAZIBR8pvQwLQ0lvVQ6kv77epjvW2Ntayo-ryAIlZK52vYS_Bravf2IKxLmAwsYKiBvcZ3_QR9mqeXMhYWFaIXaTqSB_nUdrgwy8RJ3IfCaijeNEB5Gx2cMszF2j_jbonBAgCmp-2Km1-VOYdpGDwL6MxgHZY_SdLK22WMcpCLJ7XS6eIrFG0hi591Rkt5yE_HehR16rsQ_XEyLc1iMD4"/>
+</div>
+<span class="text-xs font-medium text-text-muted bg-surface-darker px-2 py-1 rounded-md">Oct 24</span>
+</div>
+<h4 class="font-bold text-base mb-1 truncate">Horror Movie Marathon</h4>
+<div class="flex items-center gap-1 text-sm text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]">favorite</span>
+<span>1 Match</span>
+</div>
+</div>
+<!-- Activity Card 3 -->
+<div class="flex-none w-64 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-surface-darker p-4 snap-start shadow-sm">
+<div class="flex justify-between items-start mb-3">
+<div class="flex -space-x-2">
+<img alt="User avatar" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a man smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTYcXz_GI8hUq6mM9bE7H3M7KWwdDs5n6_WWkaoqjnpkkrcfnc_W-vUS8nFIbUmGuJC7kgDLwrntDm7OVMLKHZ41ldpn8ha9bmg3p2mcOSq1H3s0ewWExLQDN4Zy38UQz1tdWgehfuukD-ZBFkgEklGqMUTag7F6XHD1ZQ85ocfENbk6I8ap_C4QiJtfD9Utvz7V6k8LBr1SBeu1CzHUkTg6Xoifqn6LjzzpV84t3TXKL_rZeg8sdNzuDNm6NnlXGjpe3S_R4TB7Q"/>
+</div>
+<span class="text-xs font-medium text-text-muted bg-surface-darker px-2 py-1 rounded-md">Oct 20</span>
+</div>
+<h4 class="font-bold text-base mb-1 truncate">Solo Watchlist</h4>
+<div class="flex items-center gap-1 text-sm text-text-muted font-medium">
+<span class="material-symbols-outlined text-[16px]">bookmark</span>
+<span>12 Saved</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 flex gap-2 border-t border-slate-200 dark:border-surface-darker bg-white dark:bg-surface-dark px-4 pb-6 pt-3 z-50">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<p class="text-xs font-semibold leading-normal tracking-wide">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-text-muted hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">movie</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-wide">Sessions</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-text-muted hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-wide">Profile</p>
+</a>
+</nav>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

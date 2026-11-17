@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "systematic-debugging": {
+      "source": "matt-riley/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/systematic-debugging/SKILL.md",
+      "computedHash": "46aa3229b4465771a76918d82f559b5e3e611fe422a0447f8601f9d8be1e822f"
+    }
+  }
+}

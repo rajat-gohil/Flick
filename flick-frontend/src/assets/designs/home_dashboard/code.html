@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flick - Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#a413ec",
+            "background-light": "#f7f6f8",
+            "background-dark": "#1c1022",
+            "surface-light": "#ffffff",
+            "surface-dark": "#2a1b33",
+            "border-light": "#e5e0e8",
+            "border-dark": "#432b52",
+            "text-muted-light": "#7c6c85",
+            "text-muted-dark": "#b8a3c4",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 pb-2 sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md z-10 border-b border-border-light dark:border-border-dark">
+<div class="flex size-10 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 border-2 border-primary" data-alt="User profile avatar portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBGYptkWxVFUjee1Jc0qzHcdVJ0ixL70hOKRKZijQuAEx5BD4oe9kiaCFSBSYf9VpJ2kW3ipWT0iy_yAJKuSGlYxBl5-lDeMXcuEyKPP6KlTjy5cuFDhF4iIU4vGQ-Gg_mjyt-oEdqjR1pBy7QBcWk5qh3z4nB-ThhK-zJzzKB2MLHhIyxRvU_mO0-KSIMtayu0mJtFss6xsYA_oTW3_uP11kVh5NvHsWRpl_716SmlvLdmlus75bDhmQfy9KAs6zqkVE_IdWycLtU");'></div>
+</div>
+<h1 class="text-xl font-bold leading-tight tracking-tight text-primary">Flick</h1>
+<div class="size-10 flex items-center justify-end">
+<button class="text-text-muted-light dark:text-text-muted-dark hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Start Session Card -->
+<div class="p-4">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-surface-light dark:bg-surface-dark p-4 shadow-sm border border-border-light dark:border-border-dark overflow-hidden relative group cursor-pointer hover:border-primary transition-colors">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50 pointer-events-none"></div>
+<div class="flex flex-[2_2_0px] flex-col gap-4 relative z-10">
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Start a Session</h2>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-normal leading-normal">Swipe with friends to find a match</p>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-9 px-4 bg-primary text-white gap-2 text-sm font-semibold leading-normal w-fit shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-[20px]">play_arrow</span>
+<span>Start</span>
+</button>
+</div>
+<div class="w-full bg-center bg-no-repeat aspect-square sm:aspect-video bg-cover rounded-lg flex-1 relative z-10 shadow-inner" data-alt="Abstract colorful neon lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCY5nGIaE04MbKSZSm2JMooUcIQX87vOVKddeCdiMHqq1MBBZyHeSCPOSBWKB7UwBYLMt0a9UAQ2MzSRChH0-tCBS9WecIkWTmsqwcJcWeKgGJTOhjlBM1-qoaCNtjwJCb-9X6ZtNVwnhU677F8GgD-lbiXC-PztHRxYqzc-ArlAw5dhsDWA5gdiaZ-kYk3pBw1JyggZxAdTJLY0RfO8BepXWPcLjaG6PjCXCYhmmYcdqFeudcV1uCElckd2PC_bmoDgGmS_LqQhtw");'></div>
+</div>
+</div>
+<!-- Join Session -->
+<div class="px-4 py-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal pb-3">Join with Code</h3>
+<div class="flex gap-3">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light dark:text-text-muted-dark">dialpad</span>
+<input class="form-input w-full rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark text-slate-900 dark:text-slate-100 focus:border-primary focus:ring-1 focus:ring-primary h-12 pl-10 pr-4 placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark text-base font-medium transition-colors" placeholder="Enter 6-digit code" type="text"/>
+</div>
+<button class="flex shrink-0 cursor-pointer items-center justify-center rounded-xl h-12 px-6 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark text-primary font-semibold hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors">
+          Join
+        </button>
+</div>
+</div>
+<!-- Recent Sessions -->
+<div class="mt-6 px-4">
+<div class="flex items-center justify-between pb-4">
+<h3 class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal">Recent Sessions</h3>
+<button class="text-primary text-sm font-medium hover:underline">View All</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Session Item 1 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex -space-x-3 shrink-0">
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-surface-light dark:border-surface-dark z-20" data-alt="User avatar 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCVZtMxNDcfebhAty3Bx7hOFm7IPl8T0kcy_IAimP70k9cwYrJsUcXaMaAcFaLvQBkaa1cOHlPu9H1P0OvMK7aXIoYm6QwVtIjZOZsfF4egKS2yKExUd4DvPm4zenX8rQlZ8ErTMIun2rlnY42D7YP16SAgvNXJmIzyTL7TpwGTQch5SumYpxYn9Dtk3pS0imSduqlI0a3iJUS5as0cdvYcUpIyo4GMIkpI3EL-tTUopAbb5nZdOl4M4DyDGYalvhSOcByUKDv0LD0')"></div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-surface-light dark:border-surface-dark z-10" data-alt="User avatar 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDNeiv0NwEp8N5YS1RmRaal41oRRXyXPf9ILilTXMsKeNMMkr8bYc1dYE9vBpZtOEko4dkXmIFqV3ij7z4tN7L3t366aGrNM7-tAEQDn6Em7uSqd6NiUkD6Tjrfp6T-MQHKYDU_cU3T5glFnvjE24-nzjM2wwCkBWlTZgPQQjx9678gAEFzfGE48K3FNPuKxXSsqVMc0rejP01i7hyIA1bUouYzd_Br7Bzlxel7ojc88Yj2eERX9XhnDq-AuViUH7z_16mOKQoWkv0')"></div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">Movie Night w/ Alex</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-xs truncate">Sci-Fi • Thriller • 2 days ago</p>
+</div>
+<div class="shrink-0 flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[18px]">movie</span>
+</div>
+</div>
+<!-- Session Item 2 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark cursor-pointer hover:border-primary/50 transition-colors">
+<div class="flex -space-x-3 shrink-0">
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-surface-light dark:border-surface-dark z-30" data-alt="User avatar 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6n3tiUB54-aJvW-uSH276aeK9STTUM99hgtN8RB1k3tNJi7Y7Cytq6GKKi-FHaqb2vw1SbiRgd8JTGXSjbo_sE21XETXLhaTBHXDANcU7LbexQdmCmbHEgt01H51xnmXLsh7jQH4t6P8EJVPOqPt7YJ6TGkuAh6w_TmmLQhTecwsORubzqpx5ZeG7ex_T9DOhxvuKlgzuSBfC4aIMVJU9aqe5dnI2PiJ46-D4It7YUzSh0s9zMmpPbv0X-9LS3eUxcLCzFQZHgwk')"></div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-surface-light dark:border-surface-dark z-20" data-alt="User avatar 3" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZ32_RqQ7gd3OSc-xS822kG1I-keKkG47jcDhoIkBFOPsb0yol_jWyFMeyzMuGk38DqfrdPJHiRts58h1hi5x_VlgiG-Sb9Th5uVGznu0Pvc7OuX3JHIQRfgOq9LWX9zodaDuhevTsWMzVc37Ue7LsMpBS-AGiNGvYMn_UADSK1JsxZDEvYzoM9YwLEr3on0XhQ9tJtjcJjEZQ-ufGRAGw-3nfiQpUTZh3N_YCLPdmkpv1BhJAh2-9PX1L9eXBCY-SLcdXJ1Hv3Ig')"></div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-surface-light dark:border-surface-dark z-10" data-alt="User avatar 4" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCcOr_UXm_vyYJxfPJVCtT5sJ5qjLgPy6v3CkaRN-9ly3XXHUTWQbWkXfnfsRQnYx-MIcPQg5UWg8Aw3sYJgD3qkF11cJlTUbbYgqdvcVia44-735Tv2SUzm3nMrEsic22JY-g40clgfOl51u4xicBdEieYCFKFlU3tMxroGiiU8xCFRcmspAWVuId4yWKFjjuy29M3Layj7Vm1Y080tl5-UW4d2YM-06QgU5sZ4rvd2gVgoNxJHQNbK2MfTBWt_TuRbBlQth06gM4')"></div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold truncate">Weekend Binge</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-xs truncate">Comedy • 1 week ago</p>
+</div>
+<div class="shrink-0 flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[18px]">movie</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 flex gap-2 border-t border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-4 pb-safe pt-2 z-50">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-lg text-primary p-2 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<p class="text-[10px] font-semibold leading-none tracking-wide">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">movie_filter</span>
+<p class="text-[10px] font-medium leading-none tracking-wide">Sessions</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<p class="text-[10px] font-medium leading-none tracking-wide">Friends</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-text-muted-light dark:text-text-muted-dark hover:text-primary p-2 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<p class="text-[10px] font-medium leading-none tracking-wide">Profile</p>
+</a>
+</nav>
+</body></html>

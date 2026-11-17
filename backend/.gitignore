@@ -1,0 +1,37 @@
+# Environments & Secrets
+.env
+.env.*
+!.env.example
+*.key
+*.crt
+*.pem
+*client_secret*.json
+
+# Virtual Environments & Dependencies
+venv/
+.venv/
+.venv*/
+node_modules/
+
+# Build artifacts
+dist/
+build/
+staticfiles/
+media/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Databases & local runtimes
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-shm
+db.sqlite3-wal
+*.sqlite3
+
+# OS & Logs
+.DS_Store
+*.log

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Match History - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="flex items-center p-4 pb-2 justify-between sticky top-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur z-10 border-b border-primary/10">
+<button class="flex size-12 shrink-0 items-center justify-center text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold leading-tight flex-1 text-center pr-12">Match History</h1>
+</header>
+<!-- Search Bar -->
+<div class="px-4 py-3">
+<label class="flex flex-col h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full bg-primary/5 dark:bg-primary/10 border border-primary/10 focus-within:border-primary/30 transition-colors">
+<div class="flex items-center justify-center pl-4 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 px-4 text-base font-normal" placeholder="Search matched movies..." value=""/>
+</div>
+</label>
+</div>
+<!-- Match List -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Item 1 -->
+<a class="flex items-center gap-4 px-4 py-3 justify-between hover:bg-primary/5 transition-colors border-b border-primary/5" href="#">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-[2/3] bg-cover rounded-lg w-16 shadow-md" data-alt="Abstract movie poster thumbnail 1" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_TMPpRR1KPC0p_Z3FSDPjtK2oxuScn3qm-o3zS83e99UgHQAtunyVeUZqebJd4m3m6hWzPU5FiH68P3toxsN604kIw4v9a7Ktq8NMRbAp6Quk60g4qMPgO41k6vQ7eEFiPMEBpEj2FzVfrh9r61hnjqILklc6gceKiRix8DPcL4KRF5uUN2aHZn7JfFrIXDOjR06PQkLLwkmmJDnbAShhrAwiZYW2JQ_TycIGoJ88ek71GqolfuvAqHTimFd9Tyzi2TG70WwtU7w");'></div>
+<div class="flex flex-col justify-center">
+<h3 class="text-base font-semibold leading-normal line-clamp-1">Inception</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">live_tv</span> Netflix, HBO Max
+                    </p>
+</div>
+</div>
+<div class="shrink-0 text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</a>
+<!-- Item 2 -->
+<a class="flex items-center gap-4 px-4 py-3 justify-between hover:bg-primary/5 transition-colors border-b border-primary/5" href="#">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-[2/3] bg-cover rounded-lg w-16 shadow-md" data-alt="Abstract movie poster thumbnail 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC581EcPmhz_myh_2E50LM2qybCLQW766bLvYM0HnbIxu-NfP9Vx9CTkW2mbQz4Py_Hc1mOiGZ5uBFGEf3soIk8OEb4KF39X-UCPQB5ZgBHDoGPlXi0tHTV4k42CDOpNtvWQr6A40PJIYDdr1PCS_M_BA1gd5uafIa6VImODHX1UWr5dr-JZG6wMxOJsLVnYt6CvIBNJIvsU0y4ZMQgyhDUcQHexphzo_SdqZHSxCbybT0Dcf33Z9cKSczDv31VDCqftwLYF3x7QdA");'></div>
+<div class="flex flex-col justify-center">
+<h3 class="text-base font-semibold leading-normal line-clamp-1">The Matrix</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">live_tv</span> Hulu
+                    </p>
+</div>
+</div>
+<div class="shrink-0 text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</a>
+<!-- Item 3 -->
+<a class="flex items-center gap-4 px-4 py-3 justify-between hover:bg-primary/5 transition-colors border-b border-primary/5" href="#">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-[2/3] bg-cover rounded-lg w-16 shadow-md bg-primary/20" data-alt="Abstract movie poster thumbnail 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCu4cTTVYHldHgyVmCQBg9_DVcoUJxkYjlDarsC2nbgj6dFd98zbo3Y2D2H7M__Ji2wmnD5ob-7Y9gQw2ZeNKLJJt5YRNzzSubUtQ0DK5ZBBxHpqJ_v3uXusoTzBgJT2PcVeRrCCoB9_uqB_m8-nK9J7nYmQar7aFXlkaXYsBKcRDBaTUpk3RmLpi1pwdw-cRZ8DtKVPishbNh-4EPbevtyPpUOMil9np0EM8o5QmwCniQ7MEH6vr_yimc5AQiFp9s9c2uu-ohaTmA");'></div>
+<div class="flex flex-col justify-center">
+<h3 class="text-base font-semibold leading-normal line-clamp-1">Interstellar</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">live_tv</span> Prime Video
+                    </p>
+</div>
+</div>
+<div class="shrink-0 text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</a>
+<!-- Item 4 -->
+<a class="flex items-center gap-4 px-4 py-3 justify-between hover:bg-primary/5 transition-colors border-b border-primary/5" href="#">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-[2/3] bg-cover rounded-lg w-16 shadow-md bg-primary/30" data-alt="Abstract movie poster thumbnail 4" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCOPPiT_b4GkkyEuFyUTvyJqG0xvra-1x6rLvyuVYXqC1JBnkngazxp4MthcGUorDHaxE4kpjYDknEtzGlmPTLnkrZVIYBmdb9oihxKQQvmcT0q_CnnQ6yBOWd9QPlPfwD32cCIenfSllBt5MapBIgad8pAQ-EDJMXRcFtTbN8Sy4sRjOmCEf9rR2WgkBdlhoe1ZLhUwXFlxaN-a7KElktM9nqkm5IWg5vyG-0KpgfXaDCFYOt3YX4oTjMWShgjWvJL47md2I0BUEA");'></div>
+<div class="flex flex-col justify-center">
+<h3 class="text-base font-semibold leading-normal line-clamp-1">Dune</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-normal mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">live_tv</span> HBO Max
+                    </p>
+</div>
+</div>
+<div class="shrink-0 text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</a>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 w-full flex gap-2 border-t border-primary/10 bg-background-light dark:bg-background-dark px-4 pb-6 pt-3 z-20">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">home</span>
+</div>
+<span class="text-xs font-medium leading-normal">Discover</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<span class="text-xs font-bold leading-normal">Matches</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="text-xs font-medium leading-normal">Profile</span>
+</a>
+</nav>
+</body></html>

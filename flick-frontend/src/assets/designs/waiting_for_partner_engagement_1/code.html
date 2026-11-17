@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Waiting for Partner Engagement - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex justify-center">
+<div class="relative flex h-auto min-h-screen w-full max-w-md flex-col overflow-x-hidden bg-background-light dark:bg-background-dark">
+<!-- Top Bar -->
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="flex size-12 shrink-0 items-center justify-center text-slate-900 dark:text-slate-100 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Flick</h2>
+</div>
+<!-- Main Content -->
+<div class="flex flex-col px-4 py-8 flex-1 justify-center">
+<div class="flex flex-col items-center gap-8">
+<!-- Waiting Animation/Image Placeholder -->
+<div class="bg-primary/20 aspect-square rounded-full w-full max-w-[240px] flex items-center justify-center relative shadow-[0_0_40px_rgba(164,19,236,0.2)]">
+<span class="material-symbols-outlined text-[80px] text-primary">theaters</span>
+<div class="absolute -top-4 -right-4 bg-primary text-white p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-[24px]">hourglass_empty</span>
+</div>
+</div>
+<!-- Waiting Text -->
+<div class="flex max-w-[480px] flex-col items-center gap-3">
+<h1 class="text-2xl font-bold leading-tight tracking-[-0.015em] text-center">Waiting for your movie twin...</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-relaxed text-center px-4">
+                    Hang tight while your partner finishes swiping. We'll notify you when you have a match!
+                </p>
+</div>
+</div>
+</div>
+<!-- Trivia Card -->
+<div class="p-4">
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-white/5 p-5 shadow-sm border border-black/5 dark:border-white/5">
+<div class="flex flex-col gap-2 flex-[2_2_0px]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">lightbulb</span>
+<p class="text-base font-bold leading-tight text-primary">Did you know?</p>
+</div>
+<p class="text-sm font-normal leading-relaxed text-slate-600 dark:text-slate-300">
+                    The sound of the velociraptors communicating in Jurassic Park was actually the sound of mating tortoises.
+                </p>
+</div>
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-lg flex-1 shadow-inner opacity-80 mix-blend-luminosity" data-alt="Abstract dinosaur eye texture close up" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAV8eVt1quWH01j1CPbgHKmi86-IkYH-4S3NokrQgD6QbmSZ33uHkPmh_6lzdU1Qy9Jfgg08Hj8iLbZdAiuOtaPZ6RjPKGpPGs2Ivcj2z2VdvhkuJQYUJkG3Ef00JN0uznOF2niwpsla_t9cgeiizO-PzXW9kplQg9Yr1YalOjDAB_sjs9C88aOjPJ_2D2S8E532KffV2TcQnTpGT-MchhJ1eMN9WkmPkflTQkKXs-ewhi4waLa4FnGfQIjGjmRSsS2psGk-bYVRpk");'></div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex px-4 py-4 pb-6">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white gap-2 font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[24px]">notifications_active</span>
+<span class="text-lg">Nudge Partner</span>
+</button>
+</div>
+<!-- Bottom Nav Bar -->
+<div class="flex gap-2 border-t border-black/10 dark:border-white/10 bg-white dark:bg-[#231c27] px-4 pb-6 pt-3 mt-auto">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 rounded-full text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">style</span>
+</div>
+<p class="text-[11px] font-medium leading-normal tracking-[0.015em]">Swipe</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center bg-primary/10 rounded-full w-12">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<p class="text-[11px] font-medium leading-normal tracking-[0.015em]">Matches</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">person</span>
+</div>
+<p class="text-[11px] font-medium leading-normal tracking-[0.015em]">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

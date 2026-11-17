@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mood Preferences - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#a413ec",
+          "background-light": "#f7f6f8",
+          "background-dark": "#1c1022",
+        },
+        fontFamily: {
+          "display": ["Inter", "sans-serif"]
+        },
+        borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+      },
+    },
+  }
+</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen antialiased">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+<div class="flex items-center p-4 pb-2 justify-between sticky top-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-sm z-10">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex-1 flex flex-col items-center">
+<h2 class="text-[17px] font-semibold tracking-[-0.41px] leading-tight">Mood Preferences</h2>
+<p class="text-[13px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Step 2 of 3</p>
+</div>
+<div class="w-10"></div> 
+</div>
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5 px-4">
+<div class="h-2 w-full max-w-[40px] rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="h-2 w-full max-w-[40px] rounded-full bg-primary shadow-[0_0_10px_rgba(164,19,236,0.5)]"></div>
+<div class="h-2 w-full max-w-[40px] rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+<div class="px-6 pb-4 pt-2">
+<h1 class="text-3xl font-bold leading-tight pb-2 tracking-tight">What's your mood?</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">Select a few moods to help us recommend the perfect flicks for tonight.</p>
+</div>
+<div class="grid grid-cols-2 gap-4 px-6 py-2 pb-24">
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-primary shadow-[0_0_20px_rgba(164,19,236,0.6)] ring-1 ring-primary ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark transition-all transform scale-[1.02]" data-alt="Vibrant concert crowd with lights" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuB4U7idttqB-QjcYBzu3WRJtAuZA6rgcC2Zfklv2aiRJLxnwq_bLUAUrSqCvCvU61373IF4x0_NyTstkp84Av-rwL22abBdUpeSqnOHShvAwqrFJuBPF9qGctIobYbPQYP7d5PFTb9QeXopeO7aCGSQ5kAagCI8I3dUdT7_XMNQ_0z8FhSN7CJTq1zMBWq0R8ClCDtLlEgfJWubMz0p92zP5xPJ_9Eg00z1ANZAAOX4lku3ynwHuBL7-L1_n7UM1u9YgeQvo0UtI5E");'>
+<div class="absolute top-3 right-3 bg-primary rounded-full p-1 text-white shadow-md">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">✨ Vibrant</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all opacity-80 hover:opacity-100" data-alt="Person looking thoughtfully at scenery" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuB0WqHTqlud05j4qpv2Njf8OyJ-76Z4C8ECXJJoodpoavFIHBIRXIxKcTQoLQJcaT--6vLxGF5AFSJkIXMSLjp90CI6Zy3OdHvq2QJzMqMgFskDDmemUsEiE-qcvQXH44vqdhfRn1DEeChm81bDLttS0V9LF57iP0h_l3PTQt8mkVJsjtgreeE315iiTp6MJwTL4qly8dTGVbNEuqrx_6smR0sRa7M-fMdgMKZIzymdJzN8CkEYKo_irgZYbG624Koj5AoepNYoeiI");'>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">🤔 Thoughtful</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all opacity-80 hover:opacity-100" data-alt="Action packed sports or movement scene" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZedkM8IuqmSdCBiA0ZVwPRtCkol-7dH5-qia1C_x79BY1A7mnFAoVSHb1l3jjVqKMFoc9tfyBvNAw4a-8dp8-u9Cue5gXx4Hkx78_t6OatLYPCZmLOgXIwJEyRfiN2be6ZluszMpQliNtUOMenwjeNeyyvcgDbm2ds_kalZ8W4lzo7J2lfKGhsdfmAyaajDcXjzU-SW8TWkAASQM2AApJ0-0jprzlBOcqCgFX_HVlc5ozymHlM0CgrAEHk9UHl363CxtoaP8TNGY");'>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">💥 Action-packed</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-primary shadow-[0_0_20px_rgba(164,19,236,0.6)] ring-1 ring-primary ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark transition-all transform scale-[1.02]" data-alt="People laughing together" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAaEosvzVnGgfCa_UvEeJVeCWBY4ClBf5YhuQXXI5M6xgPUZyMJ2ow0RqfZu3EwCJWeu2t8gGgi_XVJNQwy2_K5JkfT8_DpWP_0hLIiXYlgoj-TpIZYmr71C84tYCaj8YOXe5ElakMcWNRcy5xcv3ezjgXvP8OJ5ix83YqDZy3KY5ei6d3kRJixDZWNeEUPZHz-Z64cczXNwyk65UdLyo1pKqE0mqZigydQo6HUAJJEe5WTLv2pbyUO2JiYcLbuS_OWA0mC9IkADps");'>
+<div class="absolute top-3 right-3 bg-primary rounded-full p-1 text-white shadow-md">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</div>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">😂 Hilarious</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all opacity-80 hover:opacity-100" data-alt="Dark spooky misty forest" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBDsoCgxUu7dtUtpgHWRwuAmzgRYjcM30Uo4N81Rq6j8-e-04SE4WBttmCyZHD32hUl9CN24UOjiUVSg5AsoqkNiT0ibm0xBjbGgOAylmFq2tqOdeJ4LkM1NBJmys_mr6Ewg3aID5-DGSIdH822sy4z0aHlpVPpb60qfBu3brnFpMG6AXQBWvDX-YpQRn0I0szyV-jEjhzZcbrqt6EpQAJptT5JC4yST2g9mkjNycdhYoxWVxrJisV5dslSCKxh1wUe7pSgRqu7QBY");'>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">👻 Spooky</p>
+</button>
+<button class="relative bg-cover bg-center flex flex-col gap-3 rounded-xl justify-end p-4 aspect-square overflow-hidden border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all opacity-80 hover:opacity-100" data-alt="Romantic couple holding hands" style='background-image: linear-gradient(0deg, rgba(28, 16, 34, 0.8) 0%, rgba(28, 16, 34, 0.2) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVHbi-KIfwj_Fkfqrf6vXS0m9-AA7pVdaGB7D9TtrOBgrpEAy0LWi85Ls78VSR6AzMkFe--NUgPlZVTg1fvEDJn8fsn60tPBQ0gRx9oftc3ESI-r9TsF0UpuI-lTw8dcdOZcrsCDmDhioAjIoPXTi8e9gl8Bps-gdacKr65gDufrFp-ybKBIO1E9kvNPqmeBN284XQFEVZCcLX7_hG2C_6hxKvlGzV65Hhy6Qxzt2c4lOyZKkf4nySC2-vn-DlSlZrQXDwXVgYQOE");'>
+<p class="text-white text-[17px] font-semibold tracking-[-0.41px] leading-tight text-left drop-shadow-md">💕 Romantic</p>
+</button>
+</div>
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark dark:to-transparent pt-12">
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-primary hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 text-white text-[17px] font-semibold tracking-[-0.41px] leading-normal">
+<span>Continue</span>
+<span class="material-symbols-outlined ml-2">arrow_forward</span>
+</button>
+</div>
+</div>
+
+</body></html>

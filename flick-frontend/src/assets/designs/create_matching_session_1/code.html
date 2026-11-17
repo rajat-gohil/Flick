@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Matching Session - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#895af6",
+                        "background-light": "#f6f5f8",
+                        "background-dark": "#151022",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display selection:bg-primary/30">
+<!-- Header -->
+<div class="flex items-center p-4 pb-2 justify-between sticky top-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md z-10 border-b border-slate-200 dark:border-white/10">
+<button class="flex size-12 shrink-0 items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Create Session</h2>
+</div>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Industry Segmented Control -->
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Select Industry</h3>
+<div class="flex px-4 py-2 mb-4">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-slate-200 dark:bg-white/5 p-1 border border-slate-300 dark:border-white/10 shadow-sm">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-primary dark:has-[:checked]:text-white text-slate-600 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Hollywood</span>
+<input checked="" class="invisible w-0" name="industry-toggle" type="radio" value="Hollywood"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-primary dark:has-[:checked]:text-white text-slate-600 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Bollywood</span>
+<input class="invisible w-0" name="industry-toggle" type="radio" value="Bollywood"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-primary dark:has-[:checked]:text-white text-slate-600 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Mixed</span>
+<input class="invisible w-0" name="industry-toggle" type="radio" value="Mixed"/>
+</label>
+</div>
+</div>
+<!-- Language Filters -->
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Language Filters</h3>
+<div class="flex flex-wrap gap-2 px-4 py-2 mb-4">
+<button class="px-4 py-2 rounded-full border-2 border-primary bg-primary text-white text-sm font-medium transition-all shadow-sm">English</button>
+<button class="px-4 py-2 rounded-full border border-slate-300 dark:border-white/20 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-white/5 transition-all">Spanish</button>
+<button class="px-4 py-2 rounded-full border border-slate-300 dark:border-white/20 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-white/5 transition-all">Hindi</button>
+<button class="px-4 py-2 rounded-full border border-slate-300 dark:border-white/20 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-white/5 transition-all">Korean</button>
+<button class="px-4 py-2 rounded-full border border-slate-300 dark:border-white/20 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-white/5 transition-all">French</button>
+</div>
+<!-- Genre Quick Filters -->
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Genre Quick-Filters</h3>
+<div class="flex overflow-x-auto gap-3 px-4 py-2 pb-6 no-scrollbar snap-x">
+<div class="flex-shrink-0 w-24 h-24 rounded-xl relative overflow-hidden group cursor-pointer snap-start border border-primary">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 z-10"></div>
+<img alt="Action movie poster scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Action movie scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfx61c_nsWxT2oKPJH4kE8FLkE55M3SQU_doA5FPnGVEKnZv80-XNh1Y6VtuYEJ5VSacnOXPHepTOWOAr3iWdqW448JoXjRzrscYsoWZLMWOYBMm7p9mWGsh7_1--NH2WqiedVILRfUjLPwBp9qk1gQ92f97iRBWgJgrDVlYb_vlsLpuuRqfFDh6vJklXQIjc_npI2IpgGdcqkxdVQ8lKWKZ3WxTiRlgh93pMXe3WIApAdf3hI7I9E5uPXiNe7D2Hvh5rxznuYaMY"/>
+<span class="absolute bottom-2 left-2 text-white font-bold text-sm z-20">Action</span>
+<div class="absolute top-2 right-2 z-20 bg-primary rounded-full size-5 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[14px]">check</span>
+</div>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl relative overflow-hidden group cursor-pointer snap-start border border-transparent dark:border-white/10 hover:border-slate-300">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 z-10"></div>
+<img alt="Comedy movie poster scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Comedy movie scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeypZssk187fm6q9VMwHWxH_6z6Ed-OYGJ41A5aqB-RIMV0NuvD5tHEHivjRGpSwkuWFtYmEFp5CHDhEgL2UGox1OPqAjkgFB_bo2tVxJN8GG0Pfb099JhwAm5ZLpeCWsFq4E91jVEykj-o6PiFeBM-PoV1gBf6Je8IgeuOB5hSOlulBHqmkVTIU7kwBnN-donNInUKVFBMYO_gsUL88RoghasZ6smcWK6i_1AWJP_sIxoHuVuRV41PWcxhAJwyKzddZJfMU-716o"/>
+<span class="absolute bottom-2 left-2 text-white font-bold text-sm z-20">Comedy</span>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl relative overflow-hidden group cursor-pointer snap-start border border-transparent dark:border-white/10 hover:border-slate-300">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 z-10"></div>
+<img alt="Romance movie poster scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Romance movie scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0hrPCPlMEiDUdEqkGxUQTzGkfFv5umgiiGHnum4YRLs3rK4M8uVuxyCWpsBsMZRWCKFOgNb1F2k8N4UJFlfMRjAU1cLqnUa7dvcboXdcm2tXnAibIRsCvrVWlVldk0yBC5LnUdZgmFdrV62CzHWUbHZTW2Ck8hJIK9VmWDCTgoo29VtvU2msskRg2mGb1uQ0SqLbwLGCyAGl_MgYbPY2xK-jfMhoSbIvRakRIRGzCYQe5S4Gu1XYo9VaiEdANzbnNaV4zCw1SpQM"/>
+<span class="absolute bottom-2 left-2 text-white font-bold text-sm z-20">Romance</span>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl relative overflow-hidden group cursor-pointer snap-start border border-transparent dark:border-white/10 hover:border-slate-300">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 z-10"></div>
+<img alt="Horror movie poster scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Horror movie scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB31gZjlj-mJg9hhlt9eFChfLaFZ22mlYcBK4CNphrUSHxjklKGdqPC-Uzzmt1KTPOQPOSkznN7RvCBeZ_aIVfF3iB8x0atWs0qNRiVEtAxUwyfViXCGYuy20GxWkEaqNLl3PSj_IxCahpXfTaxSarnwEADNMvt1NA8TboJOzo11kkHPhn9Q3cWpx23k3t-3hfs01Yir4y2DNwF3KA4E_bS9C0unYdPm6kZ-daZVHgO_p5-Wj3ugizeOy0WRGvYGKO1uKBELKUjovo"/>
+<span class="absolute bottom-2 left-2 text-white font-bold text-sm z-20">Horror</span>
+</div>
+<div class="flex-shrink-0 w-24 h-24 rounded-xl relative overflow-hidden group cursor-pointer snap-start border border-transparent dark:border-white/10 hover:border-slate-300">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20 z-10"></div>
+<img alt="Sci-Fi movie poster scene" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Sci-Fi movie scene" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSmS_MoJ_KMtlW50vlqPFFwzDjMOsRtkh9xTh9H6JH-42LaAi4C-Br_g2ryLJ7csxwtjdYEJqN3Cv9fE6YVPA8sxtJ5RxFJrkNP15Sud2FOAci5yDazWp1jbzJcszgCY3QosBAtw5d54t5EUuDRvM-54_kFwtnQRYDiidJ6wZQXrZ5ThyV4QSieAEtVPgksyxTcVx982HZNfNz4jmfp6d3Zrqjclw5UVtSTu7JhUV4VJc1cAyDk-n-0xFnAw8Nh-NNs03tpkvj440"/>
+<span class="absolute bottom-2 left-2 text-white font-bold text-sm z-20">Sci-Fi</span>
+</div>
+</div>
+<!-- Invite Code Area (Pre-generation placeholder style) -->
+<div class="px-4 mt-4">
+<div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
+<div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-[32px]">group_add</span>
+</div>
+<h4 class="text-xl font-bold mb-2">Invite Friends to Swipe</h4>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Generate a code to share with your friends and start matching on movies together.</p>
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined">qr_code</span>
+                    Generate Invite Code
+                </button>
+</div>
+</div>
+<!-- Generated Code State Example (Hidden normally, shown for design purposes) -->
+<div class="px-4 mt-6 hidden">
+<div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-purple-400"></div>
+<h4 class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Session Code</h4>
+<div class="text-4xl font-black tracking-[0.2em] text-slate-900 dark:text-white mb-6 font-mono bg-slate-100 dark:bg-black/20 py-3 px-6 rounded-xl border border-slate-200 dark:border-white/10">
+                    X7K9P2
+                </div>
+<div class="size-48 bg-white p-2 rounded-xl border border-slate-200 shadow-sm mb-6 flex items-center justify-center">
+<!-- Placeholder for QR Code -->
+<div class="w-full h-full border-4 border-dashed border-slate-300 flex items-center justify-center text-slate-400 rounded-lg">
+<span class="material-symbols-outlined text-[48px]">qr_code_2</span>
+</div>
+</div>
+<div class="flex gap-3 w-full">
+<button class="flex-1 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-800 dark:text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+                        Copy
+                    </button>
+<button class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">share</span>
+                        Share
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 w-full border-t border-slate-200 dark:border-white/10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-lg px-4 pb-safe pt-2 z-50">
+<div class="flex gap-2 max-w-md mx-auto mb-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors py-2" href="#">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<p class="text-[10px] font-semibold tracking-wide">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary py-2" href="#">
+<div class="relative">
+<span class="material-symbols-outlined text-[32px]">add_circle</span>
+<div class="absolute inset-0 bg-primary/20 blur-md rounded-full -z-10"></div>
+</div>
+<p class="text-[10px] font-semibold tracking-wide">Create</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors py-2" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<p class="text-[10px] font-semibold tracking-wide">Profile</p>
+</a>
+</div>
+</div>
+<!-- Safe area spacing for mobile -->
+<style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</body></html>

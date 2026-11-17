@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Join Session - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen antialiased selection:bg-primary/30">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- App Bar -->
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="flex size-12 shrink-0 items-center text-slate-900 dark:text-slate-100 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Join Session</h2>
+</div>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col items-center justify-center px-6">
+<h1 class="text-[28px] font-bold leading-tight tracking-[-0.015em] text-center pb-8">Enter 6-digit code</h1>
+<!-- Code Input Fields -->
+<div class="flex justify-center w-full mb-8">
+<fieldset class="relative flex gap-2 sm:gap-4 w-full justify-center">
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value="4"/>
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value="8"/>
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value=""/>
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value=""/>
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value=""/>
+<input class="flex h-14 w-12 sm:w-14 text-center text-2xl font-semibold [appearance:textfield] focus:outline-0 focus:ring-0 [&amp;::-webkit-inner-spin-button]:appearance-none [&amp;::-webkit-outer-spin-button]:appearance-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-2 focus:border-primary dark:focus:border-primary text-slate-900 dark:text-slate-100 transition-all shadow-sm" max="9" maxlength="1" min="0" type="number" value=""/>
+</fieldset>
+</div>
+<!-- Host Preview Card (Shown when typing/valid code) -->
+<div class="w-full bg-white dark:bg-slate-800 rounded-xl p-4 flex items-center gap-4 mb-8 shadow-sm border border-slate-200 dark:border-slate-700 opacity-50">
+<div class="h-12 w-12 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+<img alt="User avatar" class="h-full w-full object-cover" data-alt="Profile picture of host Alex" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrN6atl--4MNrWGBIA_lVj_RGa-E_eoY-CU4nOSiwAugG30wGiOnDdk8Vr5MJOo9ZcazqrvLYlPuMRbiYUkOQzWdH5gKCaoZZPKmW1uKd9AhP878ohcCWUueINZ_4fAb8CmGQ-ecwey0JaRYYgFz5JorbQN30TBhwyJpRWYHczwVYi5cZ9PL0Y_-93XXIqMqrQo2jae36w8sBg0vTFEbUmk_00I8EkSoIQfZ00pof6RcoCFnqYc1GH8Fyx_p2e0QXiZgPxKTMQ9lw"/>
+</div>
+<div class="flex-1">
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Host Found</p>
+<p class="font-semibold text-slate-900 dark:text-slate-100">Alex's Movie Night</p>
+</div>
+<button class="bg-primary text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-primary/90 transition-colors shadow-md shadow-primary/20">
+                    Join
+                </button>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3 w-full max-w-xs">
+<button class="flex items-center justify-center gap-2 rounded-xl h-12 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-semibold text-sm border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-lg">content_paste</span>
+<span>Paste from Clipboard</span>
+</button>
+<button class="flex items-center justify-center gap-2 rounded-xl h-12 px-4 bg-primary/10 text-primary hover:bg-primary/20 transition-colors font-semibold text-sm">
+<span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+<span>Scan QR Code</span>
+</button>
+</div>
+</div>
+<!-- Numeric Keypad -->
+<div class="bg-white dark:bg-slate-900 pb-8 pt-4 px-4 border-t border-slate-200 dark:border-slate-800 rounded-t-3xl shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.5)]">
+<div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-sm mx-auto">
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">1</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">2</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">3</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">4</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">5</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">6</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">7</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">8</button>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">9</button>
+<div class="h-14"></div>
+<button class="h-14 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-2xl font-medium flex items-center justify-center transition-colors">0</button>
+<button class="h-14 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+<span class="material-symbols-outlined text-2xl">backspace</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

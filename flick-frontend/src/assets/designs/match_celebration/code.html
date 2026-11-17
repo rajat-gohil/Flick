@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Match Celebration</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#a413ec",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#1c1022",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-hidden">
+<!-- Celebration Overlay Container -->
+<div class="flex-1 flex flex-col w-full max-w-md mx-auto relative z-10 h-full justify-between pb-8">
+<!-- Header -->
+<div class="pt-20 px-6 text-center z-30">
+<h1 class="text-5xl font-bold tracking-tight text-primary drop-shadow-lg italic">It's a Match!</h1>
+<p class="mt-3 text-lg text-slate-600 dark:text-slate-300 font-medium">You both want to watch this tonight.</p>
+</div>
+<!-- Overlapping Posters Area -->
+<div class="flex-1 flex items-center justify-center relative w-full px-4 my-8 z-20">
+<div class="relative w-full max-w-[300px] aspect-[3/4]">
+<!-- Poster 1 (Left/Back) -->
+<div class="absolute top-[10%] left-0 w-3/5 h-[80%] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform -rotate-6 z-10 bg-cover bg-center border-4 border-background-light dark:border-background-dark" data-alt="Movie poster with dramatic lighting and characters" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTZzsRe8MfVd203IjBhPqa6mWIQb8NzW1S99ChJ2qboYaUAzzL01NTyUXi9vID5aaRP8dfa-Ae4OQyHZ3Fi__aP2QKiV1ylyQ_cflgD5W4AzCwUhSfjxTIHlgXWcZjTS1Ap6cd8zM40R9coLMU9hceuT_J-g-JLmYvV-KnHWaklYOuUxYbORpg_EVbx6eXLRxgCcP25SErTAKBpabZYnJvnR2FkfCaVLHgz6elsXaPZpeW1vwh5UYU4gsYzfyYCtOp6NMXLDVE2zU');">
+</div>
+<!-- Poster 2 (Right/Front) -->
+<div class="absolute top-[5%] right-0 w-[65%] h-[90%] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] transform rotate-3 z-20 bg-cover bg-center border-4 border-primary" data-alt="Movie poster featuring a sci-fi landscape" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8BfVWVTu8jTqZImd4-2moBxZoHtTm95-aO00Ru7LC719x8UWxUWsdJycFFmY6c2sHFqwX-2uHWJNHfHHnTYu6YJmi3527Jycy49QbpuBluqCzvpCkrops41Y7apacFJqig-fuISXWdhSXEaQ7jMlrHR_xh1ZI90rRDBJ7hQQdSqOsYbcc8hpvDvEs_i21kvFtjREbjBfCQ1Sorjb_Tfp94bGSGVxhDVK2k7RHEsHxzs3tX7ESrWfTvBWlxF_7rwHX9yiTaaH2Qvw');">
+<!-- Match Badge -->
+<div class="absolute -top-4 -right-4 bg-primary text-white rounded-full p-2 shadow-lg border-2 border-background-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">favorite</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="px-6 w-full flex flex-col gap-4 z-30 mt-auto">
+<button class="w-full h-14 bg-primary text-white rounded-full font-bold text-lg flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(164,19,236,0.4)]">
+<span class="material-symbols-outlined">play_arrow</span>
+                Watch Now
+            </button>
+<button class="w-full h-14 bg-transparent border-2 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-full font-bold text-lg flex items-center justify-center">
+                Keep Swiping
+            </button>
+</div>
+</div>
+<!-- Decorative Background Elements -->
+<div class="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
+<div class="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] rounded-full bg-primary/20 blur-[100px]"></div>
+<div class="absolute bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[80px]"></div>
+</div>
+</body></html>

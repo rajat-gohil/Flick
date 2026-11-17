@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Waiting for Partner - Flick</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#a413ec",
+              "background-light": "#f7f6f8",
+              "background-dark": "#1c1022",
+              "surface-light": "#ffffff",
+              "surface-dark": "#2a1b33",
+              "surface-dark-alt": "#382444"
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen flex justify-center">
+<div class="relative flex h-[812px] max-h-screen w-full max-w-[375px] flex-col bg-background-light dark:bg-background-dark shadow-xl overflow-hidden">
+<!-- Top Bar -->
+<div class="flex items-center p-4 pb-2 justify-between shrink-0">
+<button class="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight flex-1 text-center pr-12">Waiting</h2>
+</div>
+<!-- Main Content -->
+<div class="flex-1 overflow-y-auto pb-24 flex flex-col items-center justify-center px-6">
+<!-- Illustration/Graphic -->
+<div class="mb-8 relative w-48 h-48 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary/20 dark:bg-primary/10 rounded-full animate-pulse blur-xl"></div>
+<div class="relative bg-surface-light dark:bg-surface-dark p-6 rounded-full shadow-lg border border-primary/10">
+<span class="material-symbols-outlined text-6xl text-primary animate-bounce">hourglass_empty</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-2 mb-10">
+<h1 class="text-slate-900 dark:text-white text-2xl font-bold text-center">Waiting for Partner</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm text-center max-w-[280px]">
+                You've swiped through your stack. We'll let you know as soon as your partner finishes!
+            </p>
+</div>
+<!-- Partner Status -->
+<div class="w-full bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-slate-200 dark:border-white/5 mb-6">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-14 w-14 border-2 border-primary/50" data-alt="Partner profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkijnMH5QjKgP3aKy0iveJfGj_GpfDxRUOsOjJr7hW3i4xwJnrMYGQBooEtOxIv9665dbHvz_iTQT3pNVBDAokHBJj9TgUukeMtqud0wds5Pq1lfeQydnmL1aYVXffjwa0fazTK-WLpjhfMM4UsHNKP7Zd4wpKplAOxF0OMGFpIO7NDVYoOEr0xlGsOTli-CewenG0bQshOCR1GA-h75c0G01iRBkhEWV3WrutjiaUmtv76xtpxw5A1tUgKkglOc2_ZW-mkFg4mm4');">
+</div>
+<div class="absolute bottom-0 right-0 w-4 h-4 bg-yellow-400 border-2 border-surface-light dark:border-surface-dark rounded-full"></div>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white font-semibold">Sarah</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+                        Still Deciding...
+                    </p>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full h-12 rounded-full bg-primary/10 dark:bg-primary/20 text-primary font-semibold flex items-center justify-center gap-2 hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+            Nudge Partner
+        </button>
+</div>
+<!-- Bottom Navigation -->
+<div class="absolute bottom-0 left-0 w-full flex gap-2 border-t border-slate-200 dark:border-white/5 bg-surface-light/90 dark:bg-surface-dark/90 backdrop-blur-md px-4 pb-6 pt-3 shrink-0">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">favorite</span>
+<span class="text-[10px] font-medium">Matches</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">style</span>
+<span class="text-[10px] font-medium">Swipe</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</div>
+</body></html>

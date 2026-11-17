@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Session Results Summary</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#a413ec",
+            "background-light": "#f7f6f8",
+            "background-dark": "#1c1022",
+            "surface-light": "#ffffff",
+            "surface-dark": "#2a1c31",
+            "text-main-light": "#1e1324",
+            "text-main-dark": "#f0eef3",
+            "text-muted-light": "#6d5c7a",
+            "text-muted-dark": "#a092ab",
+          },
+          fontFamily: {
+            "display": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-text-main-dark min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-md mx-auto overflow-x-hidden">
+<!-- Top App Bar -->
+<div class="flex items-center sticky top-0 z-10 bg-background-light dark:bg-background-dark p-4 pb-2 border-b border-surface-dark/20 dark:border-surface-dark justify-between">
+<h2 class="text-text-main-light dark:text-text-main-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pl-12">Session Results</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="text-primary text-base font-bold leading-normal tracking-[0.015em] shrink-0">Done</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- Title -->
+<h1 class="text-text-main-light dark:text-text-main-dark text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 text-center pb-3 pt-5">It's a Match!</h1>
+<p class="text-text-muted-light dark:text-text-muted-dark text-center px-4 pb-6 text-sm">Here are the movies you both swiped right on.</p>
+<!-- Matches Grid -->
+<div class="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-4 p-4">
+<!-- Movie Card 1 -->
+<div class="flex flex-col gap-3 pb-3">
+<div class="w-full bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl shadow-md" data-alt="Inception movie poster showing falling city" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGFTLPgZwrzCP1hNapuc1urwP9CGzbHYW2nNcw2qe3RKfeuJuJri2vVEXBSDgh8hvgJc6tvUCe0OefwKRwB7aYeZLGZkIn7eXyIoloze-0aSVd2lyqW_O_8_wh69auixloicbweUBu0frajcNiaMAYse5EQZRAbQSGWz3ToP1925Sf-i_W-BuDMDVF7FX56AO6tnzCpuUaW7UjD2hUxqz_ifa9qHVyhKLqom8yOJ9PrLKBX7dyY0a8Un4wWcWtk2DVbQrwX-jn8uU");'></div>
+<div>
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-normal">Inception</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal">Sci-Fi • 148 min</p>
+</div>
+</div>
+<!-- Movie Card 2 -->
+<div class="flex flex-col gap-3 pb-3">
+<div class="w-full bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl shadow-md" data-alt="The Matrix movie poster with digital rain" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAUOuMq6dijtKFoVD-PPywlyRDkOsnKM-0WTJVOfyrlVtmcDPaCK4z1usZseuGVzJK0TKZCY2DqQkMnVmhCdvYPgGEk68PmBhtt_T0iQtGwst-UNeU-oTTKzhu5XXDpCydG9hmQixcr5rKAbup6fg2PeWStFWzAOS6w2MbhIDw6ra5whhOvYhbb1XAiJ2G_4LDlbUszncy9m4dHfmqtMzFDhKKRTAY4tsW7TSbr7sGKvwXDXRs9CqfptDOYumhECVYWmQuuXtz95OM");'></div>
+<div>
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-normal">The Matrix</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal">Action • 136 min</p>
+</div>
+</div>
+<!-- Movie Card 3 -->
+<div class="flex flex-col gap-3 pb-3">
+<div class="w-full bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl shadow-md" data-alt="Interstellar movie poster with space background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBzCPT5EDJZOJTpAu9WVkp7D4J0Rq_gxr3aJc9NwrEN1YvNi6FkjDGqrR8iHDlvUuKrk-vTCXdO3_PMtYqe9y_VR4ToEKmcS0qZ18WPnWKXp-DwG-W0Zs5pQZ3YPTUCwnZQch4A_dfBLmJpuWMV2HlTvBG8k5ANfCt3PGyWRzRTqUqtqZAD1wehlQKXvS3KGVEVucDLetnJ8FS9z8foVSvUG7GFpE6Do-xXfiH6JIPcjxlhYHvVtUAbYAL4lMG2_I6r8PLtwVPPPNk");'></div>
+<div>
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-normal">Interstellar</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal">Sci-Fi • 169 min</p>
+</div>
+</div>
+<!-- Movie Card 4 -->
+<div class="flex flex-col gap-3 pb-3">
+<div class="w-full bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl shadow-md" data-alt="Dune movie poster desert landscape" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvtiba9qpElJudVH-_22TPYuDV7tR_51DZJp93v5AtpU_yQGVQY6-VRkvqD_FwqyhgyHxQ3yUVikz4r7bRrKpRMF3vuLJzU_MdI1-XSf_f1PFsex5BSkV9bMZAocjwuU252rr4S1FjKHT6SBTEk7GBQwMVSuiyV42A8uhxhNp6zjyLO_klAOkmFOEwED4fX-rGE4BcE4jxeFnNmEhAzs06Jbd7u47rzk4IsSI4kr03gWPzyILNE_9o9LhzXZ38R_3AeZfYsev1oeU");'></div>
+<div>
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold leading-normal">Dune</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-medium leading-normal">Adventure • 155 min</p>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="px-4 py-6 flex flex-col gap-3">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined">play_circle</span>
+          Stream All Matches
+        </button>
+<button class="w-full bg-surface-light dark:bg-surface-dark border border-primary/20 text-text-main-light dark:text-text-main-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined">ios_share</span>
+          Share Summary
+        </button>
+</div>
+<!-- Individual Swipes Comparison -->
+<div class="mt-4 border-t border-surface-dark/20 dark:border-surface-dark pt-6">
+<h3 class="text-text-main-light dark:text-text-main-dark text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-4">Other movies you swiped right on:</h3>
+<!-- List Item 1 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-surface-light dark:hover:bg-surface-dark transition-colors">
+<div class="bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-lg w-14" data-alt="Blade Runner movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC8OtsEouCkZUzQvn9AvmkAnr1dFWRVNh9Yegdqrmy50m7ODqOvWOa4aEe1xZsu8_281a6wR8w0aE93Zp1_xO4qQBtZ_p5EZDseNxs1BQ252wyHbxoCXJayZpHRT3lbmFfltSkn-hQXyuVwiP0BgPhL2dOh5HEx6n_uyW52Wd9CdTyzzOk36WiYVBWRB54czIhZTMEQyVPdGBty7TfEj3SyX2ofXYCE7LtI2ME2S0AlZtTTVdT-QNI4pGWAWk4txj6qikF5TAk86E8");'></div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-medium leading-normal line-clamp-1">Blade Runner 2049</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-normal leading-normal line-clamp-1">Only you liked this</p>
+</div>
+<div class="shrink-0 flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs border-2 border-background-light dark:border-background-dark">You</div>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center gap-4 px-4 py-3 hover:bg-surface-light dark:hover:bg-surface-dark transition-colors">
+<div class="bg-surface-dark bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-lg w-14" data-alt="Arrival movie poster" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAmulCuXskSQzu0CpeqSq_mSO5L0VUs3Egbx-e2WDUua6G5lFWGsWF3kHmVFSCW4EnhNLbzQD-tbyTzboJZRNT1KJ9GT6bps_j7GGII4mZyEHoHzasWZqUpbrOlJjFNcOU2IxbnM7-t5sFdorqi2J7cK0saFSVquEJGozKSWQ5cLLYghP9_ukFk2Ppgtey9qS3YYf2vRy6P__fpnAuIrwPCMbry8SQiFzXr1h3arw4AGphtItrBe-Ix96YzxrZO-mdecYFWdkrQsFk");'></div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-medium leading-normal line-clamp-1">Arrival</p>
+<p class="text-text-muted-light dark:text-text-muted-dark text-sm font-normal leading-normal line-clamp-1">Only Alex liked this</p>
+</div>
+<div class="shrink-0 flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-surface-dark border-2 border-background-light dark:border-background-dark flex items-center justify-center text-text-muted-dark text-xs overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Profile picture of Alex" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzdKCK8O7vv4EHUvV1syytiigEkKIr4l-BeOdxD829XBtXt-jkjfdInWL8PXd0Sy02FPbP4m9wsIGAJT6hh69S-bZ1F8o5bleQQhMHZ5LTfhqW7eavDxx_Vi_wDslFNLahjUC2g64C8htnyLVY11zY01PnE5D1IVe9o4R-Uaql_uDXhtUMIhgjpd0UulYnv0KwHmKcA6mVWsmvz5SJuAngCLLVyWQFx2arnx7zoKMU8un2rxV41x6TcK_eicIM2_1Kqo2GH8bWdug"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Rating Section -->
+<div class="mt-8 px-4 pb-8 flex flex-col items-center border-t border-surface-dark/20 dark:border-surface-dark pt-8">
+<p class="text-text-main-light dark:text-text-main-dark text-base font-bold mb-4">How was your matching session?</p>
+<div class="flex gap-2">
+<button class="text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-surface-dark hover:text-primary/50 transition-colors">
+<span class="material-symbols-outlined text-3xl">star</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>
