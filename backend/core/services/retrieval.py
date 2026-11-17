@@ -7,7 +7,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from django.conf import settings
 from django.core.cache import cache
@@ -61,6 +61,98 @@ ERA_DEFINITIONS = {
     "2010s": {"min_year": 2010, "max_year": 2019},
     "recent": {"min_year": 2020},
 }
+
+TMDB_TO_STREAMING_PROVIDER_MAP = {
+    8: ["Netflix"],
+    119: ["Amazon Prime Video", "Amazon Video", "Amazon Prime Video with Ads", "Amazon Prime Video Free with Ads", "Prime Video"],
+    122: ["Disney+ Hotstar", "Hotstar", "JioHotstar"],
+    350: ["Apple TV", "Apple TV+", "Apple TV Plus", "Apple TV Amazon Channel", "Apple TV Store"],
+    220: ["JioCinema"],
+    237: ["SonyLIV", "Sony Liv"],
+    232: ["Zee5", "ZEE5"],
+}
+
+DEFAULT_STREAMING_PROVIDERS_META = {
+    8: {"name": "Netflix", "logo_url": "https://image.tmdb.org/t/p/original/rK1KljqmbvO9HQa1PBFLILWah72.png", "country_code": "IN"},
+    119: {"name": "Amazon Prime Video", "logo_url": "https://image.tmdb.org/t/p/original/gMZdpavHmxFNnLpMHwVxfqeux2g.png", "country_code": "IN"},
+    122: {"name": "JioHotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
+    350: {"name": "Apple TV+", "logo_url": "https://image.tmdb.org/t/p/original/9icYBfYFcwgCbky5VdGUIKJ4C5i.png", "country_code": "IN"},
+    220: {"name": "JioCinema", "logo_url": "", "country_code": "IN"},
+    237: {"name": "Sony Liv", "logo_url": "https://image.tmdb.org/t/p/original/coM4QWbmIOa0xJ5cGR9BRmoV25B.png", "country_code": "IN"},
+    232: {"name": "Zee5", "logo_url": "https://image.tmdb.org/t/p/original/uQvhdtB8skccsGHmvKi3y5bqBsX.png", "country_code": "IN"},
+}
+
+def resolve_streaming_provider_ids(provider_ids: Sequence[Union[int, str]]) -> List[int]:
+    """
+    Resolves TMDB watch provider IDs or local provider IDs to matching
+    StreamingProvider primary keys in the local database.
+    """
+    if not provider_ids:
+        return []
+    from core.models import StreamingProvider
+    from django.db.models import Q
+
+    provider_id_ints: List[int] = []
+    for pid in provider_ids:
+        try:
+            provider_id_ints.append(int(pid))
+        except (ValueError, TypeError):
+            pass
+
+    if not provider_id_ints:
+        return []
+
+    q = Q(id__in=provider_id_ints)
+    for pid in provider_id_ints:
+        names = TMDB_TO_STREAMING_PROVIDER_MAP.get(pid, [])
+        for name in names:
+            q |= Q(name__iexact=name)
+
+    matched = list(StreamingProvider.objects.filter(q).values_list("id", flat=True))
+    if not matched:
+        for pid in provider_id_ints:
+            meta = DEFAULT_STREAMING_PROVIDERS_META.get(pid)
+            if meta:
+                prov, _ = StreamingProvider.objects.get_or_create(
+                    name=meta["name"],
+                    country_code=meta.get("country_code", "IN"),
+                    defaults={
+                        "logo_url": meta.get("logo_url", ""),
+                        "is_active": True,
+                    }
+                )
+                if prov.id not in matched:
+                    matched.append(prov.id)
+
+    return matched
+
+def _link_streaming_availability(results: List[Dict[str, Any]], streaming_provider_ids: Sequence[Union[int, str]]) -> None:
+    """
+    Links newly replenished TMDB movies to the requested streaming providers
+    in MovieStreamingAvailability so they satisfy local availability checks.
+    """
+    if not results or not streaming_provider_ids:
+        return
+    from core.models import Movie, MovieStreamingAvailability, StreamingProvider
+
+    target_provider_pks = resolve_streaming_provider_ids(streaming_provider_ids)
+    if not target_provider_pks:
+        return
+
+    tmdb_ids = [item.get("id") for item in results if isinstance(item, dict) and item.get("id")]
+    if not tmdb_ids:
+        return
+
+    movies = list(Movie.objects.filter(tmdb_id__in=tmdb_ids))
+    providers = list(StreamingProvider.objects.filter(id__in=target_provider_pks))
+
+    for movie in movies:
+        for provider in providers:
+            MovieStreamingAvailability.objects.get_or_create(
+                movie=movie,
+                provider=provider,
+                defaults={"monetization_type": "flatrate"},
+            )
 
 # Section 13: Approved Sovereign National Cinemas outside US/UK Domestic Studio Ecosystem
 APPROVED_INTERNATIONAL_CODES: Set[str] = {
@@ -512,6 +604,24 @@ class HardConstraintFilter:
         return False
 
     @classmethod
+    def satisfies_streaming_providers(cls, movie: Any, streaming_provider_ids: Optional[List[int]]) -> bool:
+        if not streaming_provider_ids:
+            return True
+        # If movie has mock or explicit streaming_provider_ids attribute (e.g. in tests)
+        if hasattr(movie, "streaming_provider_ids") and movie.streaming_provider_ids is not None:
+            return any(int(p) in streaming_provider_ids for p in movie.streaming_provider_ids)
+        target_provider_pks = resolve_streaming_provider_ids(streaming_provider_ids)
+        if not target_provider_pks:
+            return False
+        if hasattr(movie, "moviestreamingavailability_set"):
+            return movie.moviestreamingavailability_set.filter(provider_id__in=target_provider_pks).exists()
+        from core.models import MovieStreamingAvailability
+        movie_id = getattr(movie, "id", None)
+        if not movie_id:
+            return False
+        return MovieStreamingAvailability.objects.filter(movie_id=movie_id, provider_id__in=target_provider_pks).exists()
+
+    @classmethod
     def matches_all(cls, movie: Any, constraints: HardConstraints) -> bool:
         """
         Evaluates whether a candidate strictly satisfies all active hard constraints.
@@ -527,6 +637,8 @@ class HardConstraintFilter:
         if not cls.satisfies_excluded_genres(movie, constraints.excluded_genre_ids):
             return False
         if not cls.satisfies_required_genres(movie, constraints.required_genre_ids):
+            return False
+        if not cls.satisfies_streaming_providers(movie, getattr(constraints, "streaming_provider_ids", [])):
             return False
         return True
 
@@ -747,6 +859,24 @@ class CandidateRetrievalService:
         if constraints.required_genre_ids:
             qs = qs.filter(genres__tmdb_id__in=constraints.required_genre_ids)
 
+        # Database-level filtering for streaming providers
+        if constraints.streaming_provider_ids:
+            target_provider_pks = resolve_streaming_provider_ids(constraints.streaming_provider_ids)
+            if target_provider_pks:
+                qs = qs.filter(moviestreamingavailability__provider_id__in=target_provider_pks)
+            else:
+                qs = qs.none()
+
+        # Strict exclusion of synthetic fixtures and dummy test records
+        qs = (
+            qs.exclude(provenance="synthetic_fixture")
+            .exclude(title__istartswith="Deck Movie")
+            .exclude(title__istartswith="Bench Movie")
+            .exclude(title__istartswith="Matrix Movie")
+            .exclude(title__istartswith="Repro Movie")
+            .exclude(title__icontains="SciFi Test")
+        )
+
         # Evaluate queryset with distinct to avoid duplicate rows from M2M joins
         candidates = list(qs.distinct())
 
@@ -848,6 +978,8 @@ class CandidateRetrievalService:
                             if results:
                                 count = _ingest_tmdb_results(results)
                                 ingested_count += count
+                                if getattr(constraints, "streaming_provider_ids", None):
+                                    _link_streaming_availability(results, constraints.streaming_provider_ids)
                         except Exception as e:
                             logger.warning(f"TMDB candidate replenishment error (page={page}, lang={lang}, era={era}): {e}")
                             if error_collector is not None:

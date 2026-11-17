@@ -4,7 +4,7 @@ import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from unittest.mock import patch, MagicMock
 
-from django.test import TransactionTestCase, TestCase, Client
+from django.test import TransactionTestCase, TestCase, Client, override_settings
 from django.db import connection
 from rest_framework.authtoken.models import Token
 
@@ -577,6 +577,7 @@ class Pre1990ReleasePeriodFilterTests(TestCase):
             self.assertLessEqual(movies[0]["release_year"], 1989)
 
 
+@override_settings(DEBUG=True)
 class ClassicVaultEraFilterTests(TestCase):
     """
     Verifies release-year boundaries for Classic Vault and The Nineties Wave:

@@ -157,10 +157,19 @@ class CompleteCatalogueView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        # Base candidate pool: completely unpersonalized
-        qs = Movie.objects.all()
+        # Base candidate pool: completely unpersonalized, strictly authentic catalogue
+        qs = (
+            Movie.objects.exclude(provenance="synthetic_fixture")
+            .exclude(title__istartswith="Deck Movie")
+            .exclude(title__istartswith="Bench Movie")
+            .exclude(title__istartswith="Matrix Movie")
+            .exclude(title__istartswith="Repro Movie")
+            .exclude(title__icontains="SciFi Test")
+            .prefetch_related("genres")
+        )
+
         if qs.filter(display_ready=True).exists():
-            qs = qs.filter(display_ready=True)
+            qs = qs.filter(display_ready=True).exclude(poster_path__isnull=True).exclude(poster_path="").exclude(poster_path="/p1.jpg")
 
         # 1. Search Query
         search = request.query_params.get("search", "").strip()
@@ -223,6 +232,23 @@ class CompleteCatalogueView(APIView):
                 qs = qs.filter(rating__gte=min_rating)
             except (ValueError, TypeError):
                 pass
+
+        # 6. Streaming Provider Filter
+        provider_param = (
+            request.query_params.get("watch_provider_id")
+            or request.query_params.get("provider")
+            or ""
+        ).strip()
+        if provider_param:
+            import re
+            from core.services.retrieval import resolve_streaming_provider_ids
+            provider_ids = [int(p) for p in re.split(r"[,|+]", str(provider_param)) if p.strip().isdigit()]
+            if provider_ids:
+                matched_pks = resolve_streaming_provider_ids(provider_ids)
+                if matched_pks:
+                    qs = qs.filter(moviestreamingavailability__provider_id__in=matched_pks)
+                else:
+                    qs = qs.none()
 
         # Sorting: rating, popularity, release_date, title
         sort_param = (

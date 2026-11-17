@@ -1052,11 +1052,15 @@ class SessionSetPreferencesView(APIView):
 
             user_role = "host" if request.user == session.host else "guest"
 
-            # Store preferences
+            # Store preferences (merging with any session creation parameters like streaming_provider_ids)
             if user_role == "host":
-                session.host_preferences = preferences
+                host_prefs = dict(session.host_preferences or {})
+                host_prefs.update(preferences)
+                session.host_preferences = host_prefs
             else:
-                session.guest_preferences = preferences
+                guest_prefs = dict(session.guest_preferences or {})
+                guest_prefs.update(preferences)
+                session.guest_preferences = guest_prefs
 
             # Check if both submitted
             both_ready = False
@@ -3674,6 +3678,10 @@ class DiscoverView(APIView):
             format_tmdb_movie,
         )
 
+        if not getattr(settings, "TMDB_API_KEY", None):
+            logger.info("TMDB_API_KEY unconfigured; serving discovery from local database.")
+            return self._local_fallback(request, page)
+
         try:
             if search:
                 raw_data, source = search_movies(query=search, page=page)
@@ -3843,13 +3851,35 @@ class DiscoverView(APIView):
         Graceful local fallback: queries local PostgreSQL records if TMDB is offline,
         unconfigured, or experiencing network errors.
         """
-        qs = Movie.objects.all().prefetch_related("genres")
+        qs = (
+            Movie.objects.exclude(provenance="synthetic_fixture")
+            .exclude(title__istartswith="Deck Movie")
+            .exclude(title__istartswith="Bench Movie")
+            .exclude(title__istartswith="Matrix Movie")
+            .exclude(title__istartswith="Repro Movie")
+            .exclude(title__icontains="SciFi Test")
+            .prefetch_related("genres")
+        )
+
+        if qs.filter(display_ready=True).exists():
+            qs = qs.filter(display_ready=True).exclude(poster_path__isnull=True).exclude(poster_path="").exclude(poster_path="/p1.jpg")
 
         genre = request.query_params.get("genre")
         language = request.query_params.get("language")
         era = request.query_params.get("era")
         min_rating = request.query_params.get("min_rating")
         search = request.query_params.get("search")
+        watch_provider_id = request.query_params.get("watch_provider_id")
+
+        if watch_provider_id:
+            from core.services.retrieval import resolve_streaming_provider_ids
+            provider_ids = [int(p) for p in re.split(r"[,|+]", str(watch_provider_id)) if p.strip().isdigit()]
+            if provider_ids:
+                matched_pks = resolve_streaming_provider_ids(provider_ids)
+                if matched_pks:
+                    qs = qs.filter(moviestreamingavailability__provider_id__in=matched_pks)
+                else:
+                    qs = qs.none()
 
         if min_rating and min_rating != "any":
             try:

@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794901743.9963207,
-    "seen": 1794901848.8949308,
-    "ast_hash": "c0f81aaae8553b23b8405748e431c568",
+    "mtime": 1794903226.6178975,
+    "seen": 1794903329.417124,
+    "ast_hash": "ebba45f21b04e85315ec19ac94d09461",
     "semantic_hash": ""
   },
   "backend/manage.py": {
@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/retrieval.py": {
-    "mtime": 1794901783.472177,
-    "seen": 1794901848.894876,
-    "ast_hash": "edc68273e64765d9782aaa8855863f06",
+    "mtime": 1794903181.9133422,
+    "seen": 1794903329.417069,
+    "ast_hash": "8cf0e8d4bffc975c0da6c3447a6c6589",
     "semantic_hash": ""
   },
   "backend/core/services/scoring.py": {
@@ -576,9 +576,9 @@
     "semantic_hash": ""
   },
   "backend/core/test_swipe_reliability_and_filter.py": {
-    "mtime": 1793796584.2820692,
-    "seen": 1793796848.969913,
-    "ast_hash": "f4725808dcb559ea591c038063530cd7",
+    "mtime": 1794903291.1888402,
+    "seen": 1794903329.4171169,
+    "ast_hash": "6bdf2d7cefd71edeaf711b51cda9209c",
     "semantic_hash": ""
   },
   ".agents/skills/systematic-debugging/agents/openai.yaml": {
@@ -954,9 +954,9 @@
     "semantic_hash": ""
   },
   "backend/core/views_personalization.py": {
-    "mtime": 1794567282.6750307,
-    "seen": 1794567316.375328,
-    "ast_hash": "05af6dfac6853d75914c0bd27682d40d",
+    "mtime": 1794903231.795604,
+    "seen": 1794903329.4171252,
+    "ast_hash": "2c4aa02c17ba5bb5e5e1121856535c17",
     "semantic_hash": ""
   },
   "backend/core/management/commands/seed_local_dev_catalogue.py": {
@@ -2058,9 +2058,15 @@
     "semantic_hash": ""
   },
   "backend/core/fixtures/initial_movies.json": {
-    "mtime": 1794900409.1703813,
-    "seen": 1794900427.222008,
-    "ast_hash": "d59437b4f9db9a3d85dc7668ccdcef9f",
+    "mtime": 1794902936.021008,
+    "seen": 1794903329.416982,
+    "ast_hash": "50c728c1dac1795931e053ad2230b636",
+    "semantic_hash": ""
+  },
+  "backend/core/test_streaming_filter_audit.py": {
+    "mtime": 1794903311.9127157,
+    "seen": 1794903329.417114,
+    "ast_hash": "78d976c4d0a9d6852698d7ed5e5b46c4",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {
