@@ -53,16 +53,22 @@ class Command(BaseCommand):
         # Check if user already exists
         if User.objects.filter(username=username).exists():
             user = User.objects.get(username=username)
-            if user.is_superuser:
-                self.stdout.write(
-                    self.style.WARNING(f"Administrator account '{username}' already exists. No changes made.")
-                )
-                return
-            else:
-                raise CommandError(
-                    f"User '{username}' already exists as a non-administrator account. "
-                    "Refusing to automatically promote an existing account to superuser."
-                )
+            temp_user = user
+            try:
+                validate_password(password, user=temp_user)
+            except ValidationError as e:
+                raise CommandError(f"Password validation failed: {'; '.join(e.messages)}")
+            user.set_password(password)
+            user.is_superuser = True
+            user.is_staff = True
+            user.is_active = True
+            if email:
+                user.email = email
+            user.save()
+            self.stdout.write(
+                self.style.SUCCESS(f"Successfully updated superuser '{username}' with staff/superuser permissions and updated password.")
+            )
+            return
 
         # Validate password against configured validators
         temp_user = User(username=username, email=email)

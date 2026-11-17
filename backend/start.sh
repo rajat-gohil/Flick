@@ -6,6 +6,9 @@ echo "▶️ Starting Flick backend..."
 echo "🧱 Running database migrations..."
 python manage.py migrate --noinput
 
+echo "👑 Ensuring superuser exists..."
+python manage.py create_admin --username rajat --email rgohil27@gmail.com --password 'XSladE98!' || true
+
 # Optional one-time / manual syncs
 # These should NOT run on every deploy
 if [[ "$SYNC_TMDB_GENRES" == "true" ]]; then

@@ -1,7 +1,7 @@
 # Graph Report - flick-app  (2026-11-17)
 
 ## Corpus Check
-- 249 files · ~375,948 words
+- 249 files · ~375,974 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 59 file(s) not represented in the graph (top: .csv 48, (none) 7, .example 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `672f9bca`
+- Built from commit: `a6ceceb4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
