@@ -563,6 +563,12 @@ class GuestProfile(models.Model):
         default=1,
         help_text="HMAC secret key version for zero-downtime key rotation"
     )
+    recovery_code = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Plaintext recovery code for display in user settings"
+    )
     # Recovery Handoff State: Dual-validity window for retry-safe recovery handoff
     previous_recovery_lookup_digest = models.CharField(
         max_length=64,

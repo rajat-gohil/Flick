@@ -496,7 +496,8 @@ class GuestProvisionView(APIView):
                     user=user,
                     recovery_lookup_digest=digest,
                     recovery_verification_hash=v_hash,
-                    recovery_key_version=1
+                    recovery_key_version=1,
+                    recovery_code=recovery_code,
                 )
 
                 token = Token.objects.create(user=user)
@@ -612,6 +613,7 @@ class GuestRecoverView(APIView):
 
                     profile.recovery_lookup_digest = new_digest
                     profile.recovery_verification_hash = new_hash
+                    profile.recovery_code = new_code
                     profile.last_active_at = now
                     profile.save()
 
@@ -696,6 +698,31 @@ class GuestRecoveryAckView(APIView):
         return Response({
             "success": True,
             "message": "Recovery credential handoff acknowledged. Previous credential retired."
+        }, status=status.HTTP_200_OK)
+
+
+class GuestRotateCodeView(APIView):
+    """
+    Generate and return a new recovery code for the authenticated guest user.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        guest_profile = getattr(request.user, "guest_profile", None)
+        if not guest_profile:
+            return Response({"success": False, "error": "Only guest accounts have recovery codes."}, status=status.HTTP_400_BAD_REQUEST)
+
+        new_code = generate_recovery_code()
+        guest_profile.recovery_code = new_code
+        guest_profile.recovery_lookup_digest = compute_recovery_lookup_digest(new_code)
+        guest_profile.recovery_verification_hash = hash_recovery_code(new_code)
+        guest_profile.save(update_fields=["recovery_code", "recovery_lookup_digest", "recovery_verification_hash"])
+
+        return Response({
+            "success": True,
+            "recovery_code": new_code,
+            "message": "New recovery code generated successfully."
         }, status=status.HTTP_200_OK)
 
 
@@ -2730,6 +2757,18 @@ class UserProfileView(APIView):
     def get(self, request):
         user = request.user
         profile = getattr(user, "profile", None)
+        guest_profile = getattr(user, "guest_profile", None)
+        is_guest = bool(guest_profile)
+        recovery_code = ""
+        if guest_profile:
+            if not guest_profile.recovery_code:
+                new_code = generate_recovery_code()
+                guest_profile.recovery_code = new_code
+                guest_profile.recovery_lookup_digest = compute_recovery_lookup_digest(new_code)
+                guest_profile.recovery_verification_hash = hash_recovery_code(new_code)
+                guest_profile.save(update_fields=["recovery_code", "recovery_lookup_digest", "recovery_verification_hash"])
+            recovery_code = guest_profile.recovery_code
+
         display_name = ""
         if profile and profile.display_name:
             display_name = profile.display_name.strip()
@@ -2743,8 +2782,11 @@ class UserProfileView(APIView):
                 "username": user.username,
                 "display_name": display_name,
                 "email": user.email,
+                "email_verified": profile.email_verified if profile else False,
                 "date_joined": user.date_joined,
                 "is_staff": user.is_staff,
+                "is_guest": is_guest,
+                "recovery_code": recovery_code if is_guest else None,
             }
         })
 

@@ -10,6 +10,8 @@ type UserProfile = {
   email: string;
   date_joined?: string;
   email_verified?: boolean;
+  is_guest?: boolean;
+  recovery_code?: string;
 };
 
 function SectionHeader({ title }: { title: string }) {
@@ -70,15 +72,60 @@ export default function AccountSettingsPage() {
   const [emailSuccess, setEmailSuccess]       = useState(false);
   const [emailLoading, setEmailLoading]       = useState(false);
 
+  /* ── Recovery code state for guests ── */
+  const [recoveryCode, setRecoveryCode]       = useState("");
+  const [showCode, setShowCode]               = useState(false);
+  const [copiedCode, setCopiedCode]           = useState(false);
+  const [rotatingCode, setRotatingCode]       = useState(false);
+  const [rotateSuccess, setRotateSuccess]     = useState(false);
+
   const fetchProfile = useCallback(async () => {
     try {
       const res = await apiRequest("/api/users/profile/");
-      if (res.success) setUser(res.user);
+      if (res.success && res.user) {
+        setUser(res.user);
+        if (res.user.recovery_code) {
+          setRecoveryCode(res.user.recovery_code);
+        }
+      }
     } catch (_err: unknown) {}
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
+
+  async function handleCopyCode() {
+    if (!recoveryCode) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(recoveryCode);
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  async function handleRotateCode() {
+    if (!window.confirm("Generate a new recovery code? Your previous code will stop working.")) {
+      return;
+    }
+    setRotatingCode(true);
+    try {
+      const res = await apiRequest("/api/auth/guest-rotate-code/", { method: "POST" });
+      if (res.success && res.recovery_code) {
+        setRecoveryCode(res.recovery_code);
+        setRotateSuccess(true);
+        setShowCode(true);
+        setTimeout(() => setRotateSuccess(false), 3000);
+      }
+    } catch (_err) {
+      // ignore
+    } finally {
+      setRotatingCode(false);
+    }
+  }
 
   async function handleChangePassword() {
     if (!currentPw) { setPwError("Enter your current password."); return; }
@@ -180,6 +227,72 @@ export default function AccountSettingsPage() {
             </>
           )}
         </div>
+
+        {/* ── Guest Recovery Credential Card ── */}
+        {(isGuest() || user?.is_guest) && (
+          <div className="mt-4 p-4 sm:p-5 rounded-xl border border-primary/25 bg-surface shadow-xs space-y-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[20px] text-primary">key</span>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Guest Recovery Code</p>
+                  <p className="text-[11px] text-foreground-secondary mt-0.5">Your single-device session master credential</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                Active Master Key
+              </span>
+            </div>
+
+            {/* Code display block */}
+            <div className="flex items-center justify-between gap-2 p-3 rounded-lg bg-surface-secondary border border-border">
+              <p className="font-mono text-xs sm:text-sm font-semibold tracking-wider text-foreground select-all break-all">
+                {recoveryCode ? (showCode ? recoveryCode : "•••• •••• •••• ••••") : "Generating / fetching code…"}
+              </p>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowCode(!showCode)}
+                  title={showCode ? "Hide code" : "Reveal code"}
+                  className="size-8 rounded-md hover:bg-surface border border-transparent hover:border-border flex items-center justify-center text-foreground-secondary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {showCode ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  title="Copy recovery code"
+                  className="h-8 px-2.5 rounded-md bg-primary hover:bg-primary-hover text-surface text-[11px] font-semibold flex items-center gap-1.5 transition-colors shadow-2xs"
+                >
+                  <span className="material-symbols-outlined text-[15px]">
+                    {copiedCode ? "check" : "content_copy"}
+                  </span>
+                  <span>{copiedCode ? "Copied!" : "Copy"}</span>
+                </button>
+              </div>
+            </div>
+
+            {rotateSuccess && (
+              <p className="text-[11px] text-primary font-medium">✓ New recovery code generated and saved to your device.</p>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-foreground-secondary pt-1 border-t border-border/50">
+              <p className="leading-relaxed">
+                Save this in a password manager to restore your session if you clear browser cache or change phones.
+              </p>
+              <button
+                type="button"
+                onClick={handleRotateCode}
+                disabled={rotatingCode}
+                className="text-[11px] font-semibold text-primary hover:underline disabled:opacity-50 shrink-0 text-left sm:text-right"
+              >
+                {rotatingCode ? "Generating…" : "Rotate Code"}
+              </button>
+            </div>
+          </div>
+        )}
 
         <SectionHeader title="Security Status" />
         <div className="rounded-xl border border-border bg-surface overflow-hidden divide-y divide-border/60 shadow-xs">

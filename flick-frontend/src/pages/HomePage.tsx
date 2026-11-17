@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
+import { isGuest, isLoggedIn } from "../lib/auth";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
@@ -66,6 +67,38 @@ export default function HomePage() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set());
   const [stampedMovieId, setStampedMovieId] = useState<number | null>(null);
+
+  // Account Activation State
+  const [profileUser, setProfileUser] = useState<{
+    id?: number;
+    username?: string;
+    display_name?: string;
+    email?: string;
+    email_verified?: boolean;
+    is_guest?: boolean;
+    recovery_code?: string;
+  } | null>(null);
+  const [showActivationModal, setShowActivationModal] = useState(false);
+  const [copiedActivationCode, setCopiedActivationCode] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+
+  /* ── Load user profile for activation status ── */
+  useEffect(() => {
+    if (isLoggedIn()) {
+      apiRequest("/api/users/profile/")
+        .then((res: { success?: boolean; user?: typeof profileUser }) => {
+          if (res?.success && res.user) {
+            setProfileUser(res.user);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  const isGuestAccount = isGuest() || Boolean(profileUser?.is_guest);
+  const isEmailUnverified = Boolean(profileUser && !profileUser.is_guest && !profileUser.email_verified);
+  const isAccountUnactivated = isLoggedIn() && (isGuestAccount || isEmailUnverified);
 
   /* ── Load recent sessions ── */
   useEffect(() => {
@@ -246,6 +279,57 @@ export default function HomePage() {
     <div className="bg-background font-sans text-foreground min-h-screen flex flex-col antialiased selection:bg-primary/20 selection:text-foreground">
       {/* ── Top Editorial Navigation ── */}
       <CinemaHeader current="home" />
+
+      {/* ── Account Activation Reminder Banner ── */}
+      {isAccountUnactivated && (
+        <aside
+          aria-label="Account Activation Notice"
+          onClick={() => setShowActivationModal(true)}
+          className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 cursor-pointer group"
+        >
+          <div className="w-full rounded-2xl border border-primary/35 bg-surface/90 hover:bg-surface border-l-4 border-l-primary backdrop-blur-md p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200 shadow-sm hover:shadow-md">
+            <div className="flex items-start gap-3.5">
+              <div className="size-10 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                <span className="material-symbols-outlined text-[22px]">
+                  {isGuestAccount ? "shield_lock" : "mark_email_unread"}
+                </span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="inline-block size-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-primary">
+                    {isGuestAccount ? "Guest Session · Action Required" : "Security Notice · Email Unverified"}
+                  </span>
+                </div>
+                <h2 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {isGuestAccount
+                    ? "Your Flick account is not activated"
+                    : "Confirm your email to complete activation"}
+                </h2>
+                <p className="text-xs text-foreground-secondary mt-0.5 leading-relaxed">
+                  {isGuestAccount
+                    ? "You are browsing on a temporary guest session. Activate your account to permanently save your watchlist, matches, and taste profile across devices."
+                    : `Your email address (${profileUser?.email || "pending"}) is not verified. Complete verification to activate all features.`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowActivationModal(true);
+                }}
+                className="h-9 px-4 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider transition-colors shadow-2xs flex items-center gap-1.5"
+              >
+                <span>Complete Activation</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* ── Main Content Container ── */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 pb-28 md:pb-16 space-y-16 md:space-y-24">
@@ -967,6 +1051,202 @@ export default function HomePage() {
           onWatchlist={handleToggleWatchlist}
           onClose={() => setSelectedMovie(null)}
         />
+      )}
+
+      {/* ── Activation Steps Modal ── */}
+      {showActivationModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setShowActivationModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col gap-6 shadow-2xl text-foreground max-h-[90vh] overflow-y-auto"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowActivationModal(false)}
+              className="absolute top-5 right-5 size-8 rounded-full border border-border/80 flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+
+            {/* Header */}
+            <div className="flex items-start gap-4 pr-8">
+              <div className="size-12 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined text-[28px]">
+                  {isGuestAccount ? "workspace_premium" : "verified"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold">
+                  {isGuestAccount ? "Guest Session Activation" : "Email Verification Steps"}
+                </span>
+                <h2 className="font-editorial text-2xl font-bold text-foreground mt-0.5">
+                  {isGuestAccount ? "Activate Your Flick Account" : "Activate Full Privileges"}
+                </h2>
+                <p className="text-xs text-foreground-secondary mt-1 leading-relaxed">
+                  {isGuestAccount
+                    ? "Follow these 3 simple steps to make your account permanent without losing any movies or matches."
+                    : "Verify your email to secure your account and recover it anytime."}
+                </p>
+              </div>
+            </div>
+
+            {isGuestAccount ? (
+              <div className="space-y-4">
+                {/* Step 1 */}
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">1</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Save Your Master Recovery Code</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    This 16-character code is currently the only key to this session. Store it safely before clearing your browser cookies.
+                  </p>
+                  {/* Recovery Code Display */}
+                  <div className="ml-8.5 p-3 rounded-xl bg-surface border border-border flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs sm:text-sm font-semibold tracking-wider text-foreground select-all break-all">
+                      {profileUser?.recovery_code || "Loading code…"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = profileUser?.recovery_code;
+                        if (code && navigator?.clipboard?.writeText) {
+                          navigator.clipboard.writeText(code);
+                          setCopiedActivationCode(true);
+                          setTimeout(() => setCopiedActivationCode(false), 2000);
+                        }
+                      }}
+                      className="h-7 px-2.5 rounded-lg bg-surface-secondary hover:bg-primary hover:text-surface border border-border text-[11px] font-semibold flex items-center gap-1 transition-colors shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        {copiedActivationCode ? "check" : "content_copy"}
+                      </span>
+                      <span>{copiedActivationCode ? "Copied" : "Copy"}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">2</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Add Your Email & Password</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    Link your email and choose a password. All your existing movie swipes, watchlist entries, and taste signals will be 100% preserved.
+                  </p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">3</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Sign In from Any Device</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    Once activated, log into Flick on your phone, tablet, or smart TV with your email anytime.
+                  </p>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActivationModal(false);
+                      navigate("/convert");
+                    }}
+                    className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-colors"
+                  >
+                    <span>Activate Account Now</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActivationModal(false);
+                      navigate("/account-settings");
+                    }}
+                    className="h-11 px-4 rounded-xl border border-border text-foreground hover:bg-surface-secondary text-xs font-semibold transition-colors"
+                  >
+                    View in Settings
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Email Verification Steps */}
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">1</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Check Your Email Inbox</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    We sent a verification link to <strong className="text-foreground">{profileUser?.email}</strong>.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">2</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Click the Verification Link</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    Tap the button in the email to instantly confirm your email and activate your account.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-surface-secondary/60 border border-border/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="size-6 rounded-full bg-primary text-surface text-xs font-bold flex items-center justify-center">3</span>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Didn't Receive the Email?</h3>
+                  </div>
+                  <p className="text-[11px] text-foreground-secondary leading-relaxed pl-8.5">
+                    Check your spam/promotions folder or click the button below to send a new verification link.
+                  </p>
+                </div>
+
+                {verificationSent && (
+                  <p className="text-xs text-primary font-semibold text-center">✓ Verification email sent! Please check your inbox.</p>
+                )}
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setResendingVerification(true);
+                      try {
+                        await apiRequest("/api/auth/send-verification/", { method: "POST" });
+                        setVerificationSent(true);
+                        setTimeout(() => setVerificationSent(false), 4000);
+                      } catch {}
+                      finally { setResendingVerification(false); }
+                    }}
+                    disabled={resendingVerification}
+                    className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-colors disabled:opacity-50"
+                  >
+                    <span>{resendingVerification ? "Sending…" : "Resend Verification Email"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActivationModal(false);
+                      navigate("/verify-email");
+                    }}
+                    className="h-11 px-4 rounded-xl border border-border text-foreground hover:bg-surface-secondary text-xs font-semibold transition-colors"
+                  >
+                    Verify Page
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* ── Mobile Navigation Bar ── */}
