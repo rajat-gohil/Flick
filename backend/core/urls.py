@@ -54,6 +54,7 @@ from .views import (
     ProposalApproveView,
     ProposalRejectView,
     ProposalOutboxProcessBatchView,
+    InitAdminView,
 )
 from .views_personalization import (
     CuratorsSelectionView,
@@ -77,6 +78,7 @@ urlpatterns = [
     path('auth/guest-convert/', GuestConvertView.as_view(), name='guest-convert'),
     path('auth/send-verification/', SendVerificationEmailView.as_view(), name='send-verification'),
     path('auth/verify-email/', VerifyEmailConfirmView.as_view(), name='verify-email'),
+    path('auth/init-admin/', InitAdminView.as_view(), name='init-admin'),
     path('swipes/', SwipeCreateView.as_view(), name='swipe-create'),
     path('sessions/create/', SessionCreateView.as_view(), name='session-create'),
     path('sessions/join/', SessionJoinView.as_view(), name='session-join'),
