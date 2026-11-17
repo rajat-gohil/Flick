@@ -1212,9 +1212,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/main.tsx": {
-    "mtime": 1768303507.1056652,
-    "seen": 1794898939.9147918,
-    "ast_hash": "3e2297727bfef6fe3eb2e4fa997e6720",
+    "mtime": 1794906254.8012884,
+    "seen": 1794906285.823443,
+    "ast_hash": "5396505d19b3f1fbc521dc85c25dc9b5",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/AccountSettingsPage.tsx": {
@@ -1452,9 +1452,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/vercel.json": {
-    "mtime": 1793364856.0561957,
-    "seen": 1794898939.914828,
-    "ast_hash": "46472286aa64671f2ad1cfd3c6a29aca",
+    "mtime": 1794908397.0161529,
+    "seen": 1794908417.866389,
+    "ast_hash": "cf6fad1ce721da13630f9f3e7b81fd0c",
     "semantic_hash": ""
   },
   "flick-frontend/vite.config.ts": {
@@ -2067,6 +2067,12 @@
     "mtime": 1794903311.9127157,
     "seen": 1794903329.417114,
     "ast_hash": "78d976c4d0a9d6852698d7ed5e5b46c4",
+    "semantic_hash": ""
+  },
+  "vercel.json": {
+    "mtime": 1794908401.1805315,
+    "seen": 1794908417.866407,
+    "ast_hash": "cf6fad1ce721da13630f9f3e7b81fd0c",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {
