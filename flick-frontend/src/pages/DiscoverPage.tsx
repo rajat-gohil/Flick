@@ -46,12 +46,24 @@ export type ArchiveShelf = {
 
 type Genre = { id: number; tmdb_id?: number; name: string };
 
-type Filters = {
+export type Filters = {
   genre: string;
   language: string;
   era: string;
   min_rating: string;
+  provider?: string;
 };
+
+export const STREAMING_PLATFORMS = [
+  { id: "", label: "All Streaming", icon: "live_tv" },
+  { id: "8", label: "Netflix", icon: "play_circle" },
+  { id: "119", label: "Prime Video", icon: "play_arrow" },
+  { id: "122", label: "Disney+ Hotstar", icon: "stars" },
+  { id: "350", label: "Apple TV+", icon: "tv" },
+  { id: "220", label: "JioCinema", icon: "movie" },
+  { id: "237", label: "SonyLIV", icon: "ondemand_video" },
+  { id: "232", label: "Zee5", icon: "smart_display" },
+] as const;
 
 export type CatalogueSort = "rating" | "popularity" | "release_date" | "title";
 
@@ -131,7 +143,7 @@ const MOODS = [
   { id: "classic",   label: "Classic Archive", icon: "history_edu",    genre: "",      language: "",   era: "classic", min_rating: "7.5" },
 ];
 
-const EMPTY_FILTERS: Filters = { genre: "", language: "", era: "any", min_rating: "any" };
+const EMPTY_FILTERS: Filters = { genre: "", language: "", era: "any", min_rating: "any", provider: "" };
 
 /* ============================
    CHIP COMPONENT
@@ -865,7 +877,8 @@ export default function DiscoverPage() {
     filters.genre ||
     (filters.language && filters.language !== "all") ||
     (filters.era && filters.era !== "any") ||
-    (filters.min_rating && filters.min_rating !== "any")
+    (filters.min_rating && filters.min_rating !== "any") ||
+    filters.provider
   );
 
   /* ── Load user watchlist ── */
@@ -945,27 +958,24 @@ export default function DiscoverPage() {
         if (f.language) params.set("language", f.language);
         if (f.era && f.era !== "any") params.set("era", f.era);
         if (f.min_rating && f.min_rating !== "any") params.set("min_rating", f.min_rating);
-        if (sort) params.set("sort_by", sort);
+        if (f.provider) params.set("watch_provider_id", f.provider);
+        if (sort) {
+          const sortMap: Record<string, string> = {
+            rating: "vote_average.desc",
+            popularity: "popularity.desc",
+            release_date: "primary_release_date.desc",
+            title: "title.asc",
+          };
+          params.set("sort_by", sortMap[sort] || "popularity.desc");
+        }
 
         let data: any = null;
         try {
+          data = await apiRequest(`/api/discover/?${params.toString()}`);
+        } catch (discErr) {
+          // Fallback to local /api/catalogue/ if live TMDB endpoint is unreachable
+          console.warn("[DiscoverPage] Live discovery unavailable, falling back to local catalogue:", discErr);
           data = await apiRequest(`/api/catalogue/?${params.toString()}`);
-        } catch (catErr) {
-          // Clean fallback to /api/discover/ if /api/catalogue/ is unavailable
-          console.warn("[DiscoverPage] /api/catalogue/ unavailable, falling back to /api/discover/:", catErr);
-          const discoverParams = new URLSearchParams();
-          discoverParams.set("page", String(p));
-          if (q) discoverParams.set("search", q);
-          if (f.genre) discoverParams.set("genre", f.genre);
-          if (f.language) discoverParams.set("language", f.language);
-          if (f.era && f.era !== "any") discoverParams.set("era", f.era);
-          if (f.min_rating && f.min_rating !== "any") discoverParams.set("min_rating", f.min_rating);
-          if (!q && (f.genre || f.language || f.era !== "any" || f.min_rating !== "any")) {
-            discoverParams.set("category", "discover");
-          } else if (!q) {
-            discoverParams.set("category", "popular");
-          }
-          data = await apiRequest(`/api/discover/?${discoverParams.toString()}`);
         }
 
         if (currentReqId !== activeReqIdRef.current) return;
@@ -1168,6 +1178,7 @@ export default function DiscoverPage() {
     filters.language,
     filters.era !== "any" ? filters.era : "",
     filters.min_rating !== "any" ? filters.min_rating : "",
+    filters.provider,
   ].filter(Boolean).length;
 
   return (
@@ -1230,7 +1241,7 @@ export default function DiscoverPage() {
             }`}
           >
             <span className="material-symbols-outlined text-[16px]">local_library</span>
-            Complete Catalogue
+            Live Catalogue
           </button>
         </div>
       </div>
@@ -1364,6 +1375,34 @@ export default function DiscoverPage() {
             {/* Search Bar */}
             <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={clearSearch} />
 
+            {/* Live Streaming Platforms Filter Bar */}
+            <div className="flex items-center gap-2 px-4 sm:px-6 lg:px-8 py-2.5 overflow-x-auto hide-scrollbar shrink-0 bg-surface/50 border-b border-border/40">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-foreground-secondary shrink-0 flex items-center gap-1 font-semibold pr-1">
+                <span className="material-symbols-outlined text-[15px] text-primary">live_tv</span>
+                Stream On:
+              </span>
+              {STREAMING_PLATFORMS.map((plat) => {
+                const isActive = (filters.provider || "") === plat.id;
+                return (
+                  <button
+                    key={plat.id || "__all__"}
+                    onClick={() => {
+                      setFilters((f) => ({ ...f, provider: isActive ? "" : plat.id }));
+                      setActiveMood(null);
+                    }}
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
+                      isActive
+                        ? "bg-primary text-surface border-primary font-bold shadow-xs scale-105"
+                        : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">{plat.icon}</span>
+                    <span>{plat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Sort & Quick Filter Bar */}
             <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-2 overflow-x-auto hide-scrollbar shrink-0">
               {/* Mood Quick Picks */}
@@ -1438,6 +1477,19 @@ export default function DiscoverPage() {
                     })()}
                     <span>{activeMood}</span>
                     <button onClick={clearFilters} className="ml-1 text-primary hover:opacity-80">
+                      <span className="material-symbols-outlined text-[12px]">close</span>
+                    </button>
+                  </span>
+                )}
+
+                {filters.provider && (
+                  <span className="flex items-center gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-2.5 py-1 rounded-lg">
+                    <span className="material-symbols-outlined text-[13px]">live_tv</span>
+                    <span>{STREAMING_PLATFORMS.find((p) => p.id === filters.provider)?.label || "Streaming"}</span>
+                    <button
+                      onClick={() => setFilters((f) => ({ ...f, provider: "" }))}
+                      className="ml-1 text-primary hover:opacity-80"
+                    >
                       <span className="material-symbols-outlined text-[12px]">close</span>
                     </button>
                   </span>

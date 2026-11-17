@@ -988,7 +988,16 @@ class SessionSetGenreView(APIView):
         session.genre = genre
         session.industry = industry
         session.selected_languages = languages
-        session.save(update_fields=["genre", "industry", "selected_languages"])
+
+        update_fields = ["genre", "industry", "selected_languages"]
+        streaming_provider_ids = request.data.get("streaming_provider_ids", [])
+        if streaming_provider_ids and isinstance(streaming_provider_ids, list):
+            prefs = dict(session.host_preferences or {})
+            prefs["streaming_provider_ids"] = [int(p) for p in streaming_provider_ids if str(p).isdigit()]
+            session.host_preferences = prefs
+            update_fields.append("host_preferences")
+
+        session.save(update_fields=update_fields)
 
         # Also populate ManyToMany genres if passed
         genre_ids = request.data.get("genre_ids", [])
@@ -2968,7 +2977,7 @@ class MovieStreamingOptionsView(APIView):
     and JustWatch attribution.
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, movie_id):
         # 1. Resolve movie by Django PK or TMDB ID
@@ -3606,6 +3615,8 @@ class DiscoverView(APIView):
         era = request.query_params.get("era")
         min_rating = request.query_params.get("min_rating")
         sort_by = request.query_params.get("sort_by", "popularity.desc")
+        watch_provider_id = request.query_params.get("watch_provider_id")
+        region = request.query_params.get("region", getattr(settings, "DEFAULT_STREAMING_REGION", "IN") or "IN")
 
         page_str = request.query_params.get("page", "1")
         try:
@@ -3728,6 +3739,7 @@ class DiscoverView(APIView):
                     or (language and language != "all")
                     or (era and era != "any")
                     or (min_rating and str(min_rating) != "any")
+                    or watch_provider_id
                 )
                 if not has_filters and not category:
                     # Default browse shelf
@@ -3740,6 +3752,9 @@ class DiscoverView(APIView):
                         sort_by=sort_by,
                         era=era,
                         min_rating=min_rating,
+                        region=region,
+                        watch_provider_id=watch_provider_id,
+                        watch_region=region,
                     )
 
             results = raw_data.get("results", [])

@@ -118,6 +118,7 @@ class HardConstraints:
     excluded_genre_ids: List[int] = field(default_factory=list)
     excluded_movie_ids: List[int] = field(default_factory=list)
     required_genre_ids: List[int] = field(default_factory=list)
+    streaming_provider_ids: List[int] = field(default_factory=list)
 
     @classmethod
     def from_agreement(cls, agreement: CollaborativeAgreement) -> "HardConstraints":
@@ -157,6 +158,10 @@ class HardConstraints:
                 else:
                     eras = h_list or g_list
 
+        streaming_providers = []
+        if session is not None and getattr(session, "host_preferences", None):
+            streaming_providers = list((session.host_preferences or {}).get("streaming_provider_ids", []))
+
         return cls(
             min_rating=min_r,
             max_runtime=agreement.shared_max_runtime,
@@ -165,6 +170,7 @@ class HardConstraints:
             excluded_genre_ids=excluded_genres,
             excluded_movie_ids=excluded_movies,
             required_genre_ids=required_genres,
+            streaming_provider_ids=streaming_providers,
         )
 
     @classmethod
@@ -697,9 +703,11 @@ class CandidateRetrievalService:
                 req_genres = [session.genre.tmdb_id]
 
             langs = list(getattr(session, "selected_languages", []) or [])
+            streaming_providers = list((getattr(session, "host_preferences", None) or {}).get("streaming_provider_ids", []))
             return HardConstraints(
                 languages=langs,
                 required_genre_ids=req_genres,
+                streaming_provider_ids=streaming_providers,
             )
 
         # Fall back to User Tier A taste profile if user provided
@@ -818,6 +826,10 @@ class CandidateRetrievalService:
 
         pages_per_query = max(1, target_pages // len(eras_to_query)) if len(eras_to_query) > 1 else target_pages
 
+        watch_provider_id = None
+        if getattr(constraints, "streaming_provider_ids", None):
+            watch_provider_id = "|".join(str(p) for p in constraints.streaming_provider_ids if p)
+
         try:
             for era in eras_to_query:
                 for lang in languages[:2]:  # Limit replenishment queries to top 2 languages
@@ -830,6 +842,7 @@ class CandidateRetrievalService:
                                 genre_id=genre_id,
                                 era=era,
                                 min_rating=min_rating,
+                                watch_provider_id=watch_provider_id,
                             )
                             results = res.get("results", []) if isinstance(res, dict) else []
                             if results:

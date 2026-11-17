@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/tmdb.py": {
-    "mtime": 1794602315.2855446,
-    "seen": 1794602340.4976141,
-    "ast_hash": "d5b08e7f94dec991fcf6117a10990bd4",
+    "mtime": 1794901568.4586985,
+    "seen": 1794901848.89488,
+    "ast_hash": "546084c3b921a7a163ed52058185f2c6",
     "semantic_hash": ""
   },
   "backend/core/services/tmdb2.py": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794597785.5040476,
-    "seen": 1794598029.728881,
-    "ast_hash": "b0eb48916e17cd601dab966c6ffcbbe1",
+    "mtime": 1794901743.9963207,
+    "seen": 1794901848.8949308,
+    "ast_hash": "c0f81aaae8553b23b8405748e431c568",
     "semantic_hash": ""
   },
   "backend/manage.py": {
@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/retrieval.py": {
-    "mtime": 1794591837.828055,
-    "seen": 1794592072.013345,
-    "ast_hash": "e674d0e65b4dfda78c6701a89b271fcd",
+    "mtime": 1794901783.472177,
+    "seen": 1794901848.894876,
+    "ast_hash": "edc68273e64765d9782aaa8855863f06",
     "semantic_hash": ""
   },
   "backend/core/services/scoring.py": {
@@ -1230,15 +1230,15 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/CreateSessionPage.tsx": {
-    "mtime": 1793629216.9770665,
-    "seen": 1794898939.914794,
-    "ast_hash": "0c83a065a55cf00ff5217aa33e4caa48",
+    "mtime": 1794901822.2391715,
+    "seen": 1794901848.894969,
+    "ast_hash": "9235d05cc67e816ca61cb6629115afe1",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/DiscoverPage.tsx": {
-    "mtime": 1794566665.7986507,
-    "seen": 1794898939.914795,
-    "ast_hash": "dc589c77fc00d57f4f8740c55fb7acdd",
+    "mtime": 1794901687.985883,
+    "seen": 1794901848.8949702,
+    "ast_hash": "594ab382ddf53157e4eb33b915c90e6d",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/EntryPage.tsx": {

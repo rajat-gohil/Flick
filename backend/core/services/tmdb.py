@@ -445,6 +445,8 @@ def discover_movies(
     min_rating=None,
     region: str = None,
     vote_count_gte: Optional[int] = None,
+    watch_provider_id: Optional[str] = None,
+    watch_region: Optional[str] = None,
 ):
     """
     Discover movies using TMDB's /discover/movie endpoint with comprehensive filtering.
@@ -498,6 +500,11 @@ def discover_movies(
     if region:
         params["region"] = region.strip().upper()
 
+    if watch_provider_id:
+        params["with_watch_providers"] = str(watch_provider_id)
+        effective_watch_region = (watch_region or region or getattr(settings, "DEFAULT_STREAMING_REGION", "IN") or "IN").strip().upper()
+        params["watch_region"] = effective_watch_region
+
     cache_key = _make_cache_key(
         "discover",
         "lang", language or "all",
@@ -507,6 +514,8 @@ def discover_movies(
         "era", era or "any",
         "min_rating", min_rating or "any",
         "region", region or "all",
+        "wp", watch_provider_id or "all",
+        "wr", watch_region or "all",
         "vc", effective_vote_count,
         "page", page,
     )
@@ -736,12 +745,17 @@ def get_or_create_movie_from_tmdb(tmdb_id: int):
                     "original_language": movie_data.get("original_language"),
                     "tmdb_genre_ids": raw_genre_ids,
                     "trailer_key": trailer_key,
+                    "provenance": "tmdb_catalogue",
                 }
             )
             if created and raw_genre_ids:
                 matching_genres = Genre.objects.filter(tmdb_id__in=raw_genre_ids)
                 if matching_genres.exists():
                     movie.genres.add(*matching_genres)
+
+            if created:
+                from core.services.catalogue_eligibility import recalculate_movie_eligibility
+                recalculate_movie_eligibility(movie, commit=True)
 
             return movie, created
     except IntegrityError:

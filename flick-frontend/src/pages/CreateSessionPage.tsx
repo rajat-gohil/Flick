@@ -106,6 +106,16 @@ const INDUSTRY_OPTIONS: {
   },
 ];
 
+const STREAMING_SERVICES = [
+  { id: "8", name: "Netflix" },
+  { id: "119", name: "Prime Video" },
+  { id: "122", name: "Disney+ Hotstar" },
+  { id: "350", name: "Apple TV+" },
+  { id: "220", name: "JioCinema" },
+  { id: "237", name: "SonyLIV" },
+  { id: "232", name: "Zee5" },
+];
+
 /* ============================
    COMPONENT
 ============================ */
@@ -118,6 +128,7 @@ export default function CreateSessionPage() {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
+  const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -175,6 +186,7 @@ export default function CreateSessionPage() {
           session_id: sessionData.id,
           industry: industry,
           languages: selectedLanguages,
+          streaming_provider_ids: selectedProviders.map((p) => Number(p)),
         }),
       });
 
@@ -550,6 +562,55 @@ export default function CreateSessionPage() {
               })}
             </div>
           )}
+
+          {/* Optional Streaming Services */}
+          <div className="pt-6 border-t border-border/60">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[15px] text-primary">live_tv</span>
+                  Streaming Services (Optional)
+                </span>
+                <p className="text-[11px] text-foreground-secondary">
+                  Only show movies available on platforms you both share
+                </p>
+              </div>
+              {selectedProviders.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedProviders([])}
+                  className="text-[11px] text-primary hover:underline font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {STREAMING_SERVICES.map((provider) => {
+                const isSelected = selectedProviders.includes(provider.id);
+                return (
+                  <button
+                    key={provider.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedProviders((prev) =>
+                        prev.includes(provider.id)
+                          ? prev.filter((p) => p !== provider.id)
+                          : [...prev, provider.id]
+                      );
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
+                        : "border-border bg-surface text-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    <span>{provider.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
