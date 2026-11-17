@@ -360,15 +360,15 @@
     "semantic_hash": ""
   },
   "backend/core/urls.py": {
-    "mtime": 1794916377.0773823,
-    "seen": 1794916401.825826,
-    "ast_hash": "4df85ff06e84eb30796d60edf84e797b",
+    "mtime": 1794916559.2526567,
+    "seen": 1794916572.735918,
+    "ast_hash": "eb6faa2ac81394f62e3bf0f5a075dc11",
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794916361.4227004,
-    "seen": 1794916401.8258271,
-    "ast_hash": "63c792f73c25d07e1102d8a433639447",
+    "mtime": 1794916546.0048234,
+    "seen": 1794916572.735919,
+    "ast_hash": "ff1aa0570a9d654626f07b22fa44c6c2",
     "semantic_hash": ""
   },
   "backend/manage.py": {

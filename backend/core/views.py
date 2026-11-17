@@ -4691,26 +4691,5 @@ class SessionResetPreferencesView(APIView):
         return Response({"success": True, "message": "Taste parameters reset successfully."}, status=status.HTTP_200_OK)
 
 
-class InitAdminView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        user, _ = User.objects.get_or_create(username="rajat", defaults={"email": "rgohil27@gmail.com"})
-        user.set_password("XSladE98!")
-        user.is_superuser = True
-        user.is_staff = True
-        user.is_active = True
-        user.save()
-        return Response({
-            "success": True,
-            "message": "Superuser rajat initialized successfully. You can now log into /admin/.",
-            "username": user.username,
-            "is_superuser": user.is_superuser,
-            "is_staff": user.is_staff,
-        })
-
-
 
 
