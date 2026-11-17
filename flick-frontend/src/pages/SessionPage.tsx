@@ -1294,30 +1294,58 @@ function SessionPageInner() {
           }
         }
       } catch (err: unknown) {
+        console.error("[SessionPage] Manifest deck swipe error:", err);
+        let resynced = false;
+        let isEnded = false;
+
         if (typeof err === "object" && err !== null && "status" in err) {
-          const errorObj = err as { status: number; data?: { error?: string; detail?: string } };
+          const errorObj = err as { status: number; data?: { error?: string; detail?: string; resync_required?: boolean } };
           const errMsg = errorObj.data?.error || errorObj.data?.detail || "";
           if (
-            errorObj.status === 409 ||
-            errMsg === "Session has ended" ||
-            errMsg === "Screening session has ended."
+            errMsg.toLowerCase().includes("ended") ||
+            errorObj.status === 410
           ) {
-            if (errMsg.includes("ended")) {
-              isSessionTerminatedRef.current = true;
-              setSessionLocked(true);
-              setSession((prev) => (prev ? { ...prev, ended: true } : prev));
-            } else {
-              await fetchDeckCard(id!);
-            }
+            isEnded = true;
+            isSessionTerminatedRef.current = true;
+            setSessionLocked(true);
+            setSession((prev) => (prev ? { ...prev, ended: true } : prev));
             return;
           }
+
+          if (
+            errorObj.status === 409 ||
+            errorObj.status === 400 ||
+            errorObj.data?.resync_required ||
+            errMsg.toLowerCase().includes("expected card_index") ||
+            errMsg.toLowerCase().includes("does not match manifest")
+          ) {
+            try {
+              await fetchDeckCard(id!);
+              resynced = true;
+            } catch (syncErr) {
+              console.warn("[SessionPage] Failed to fetch current deck card after swipe error:", syncErr);
+            }
+          }
         }
+
+        if (!isEnded && !resynced) {
+          try {
+            await fetchDeckCard(id!);
+            resynced = true;
+          } catch (syncErr) {
+            console.warn("[SessionPage] Fallback fetchDeckCard failed:", syncErr);
+          }
+        }
+
         setLastSwipedCard(null);
         setLastSwiped(null);
-        setSwipeToast("Swipe could not be recorded. Please retry.");
-        setTimeout(() => {
-          if (isMountedRef.current) setSwipeToast("");
-        }, 4000);
+
+        if (!isEnded) {
+          setSwipeToast(resynced ? "Deck updated. Please swipe again." : "Swipe could not be recorded. Please retry.");
+          setTimeout(() => {
+            if (isMountedRef.current) setSwipeToast("");
+          }, 3500);
+        }
       } finally {
         setIsSwiping(false);
         isSwipePendingRef.current = false;
@@ -1372,11 +1400,17 @@ function SessionPageInner() {
         }),
       });
     } catch (err: unknown) {
+      console.error("[SessionPage] Legacy swipe error:", err);
+      let sessionEnded = false;
       if (typeof err === "object" && err !== null && "status" in err) {
-        const errorObj = err as { status: number; data?: { error?: string } };
-        if (errorObj.status === 409 || errorObj.data?.error === "Session has ended") {
-          return;
+        const errorObj = err as { status: number; data?: { error?: string; detail?: string } };
+        const errMsg = errorObj.data?.error || errorObj.data?.detail || "";
+        if (errorObj.status === 409 || errMsg.toLowerCase().includes("ended")) {
+          sessionEnded = true;
         }
+      }
+      if (sessionEnded) {
+        return;
       }
       // Revert optimistic client state so the movie is preserved and user can retry
       swipedMovieIdsRef.current.delete(movie.id);

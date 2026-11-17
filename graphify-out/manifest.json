@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794911410.7062182,
-    "seen": 1794911536.8152409,
-    "ast_hash": "1d214c6c5696ef85d0ea7c2152007b74",
+    "mtime": 1794913314.1553335,
+    "seen": 1794913439.5329332,
+    "ast_hash": "9ff1e99d62dcf83fd3c084f5f0aa2f0e",
     "semantic_hash": ""
   },
   "backend/manage.py": {
@@ -1326,9 +1326,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionPage.tsx": {
-    "mtime": 1794597850.8495944,
-    "seen": 1794898939.914809,
-    "ast_hash": "07cf657be0af7ee95bffdfdd0998b08c",
+    "mtime": 1794913339.8751383,
+    "seen": 1794913439.532985,
+    "ast_hash": "bceb31b5180227ee127b4fa65cfef969",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionsListPage.tsx": {

@@ -1810,8 +1810,8 @@ class SwipeCreateView(APIView):
                     # Defer expensive analytics (up to 40 queries) to post-commit to minimize write-lock duration
                     user_id_val = request.user.id
                     session_id_val = session.id
-                    host_id_val = session.host.id
-                    guest_id_val = session.guest.id
+                    host_id_val = session.host.id if session.host else None
+                    guest_id_val = session.guest.id if session.guest else None
                     movie_id_val = movie.id
                     rx_val = reaction
                     m_created_val = match_created
@@ -1859,7 +1859,14 @@ class SwipeCreateView(APIView):
                         status=status.HTTP_503_SERVICE_UNAVAILABLE,
                     )
                 else:
-                    raise exc
+                    logger.exception("Unexpected error in SwipeCreateView")
+                    return Response(
+                        {
+                            "success": False,
+                            "error": f"Internal swipe error: {type(exc).__name__}: {str(exc)}",
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
 
         # Post-transaction broadcast
         channel_layer = get_channel_layer()
@@ -2065,7 +2072,14 @@ class SwipeUndoView(APIView):
                         status=status.HTTP_503_SERVICE_UNAVAILABLE,
                     )
                 else:
-                    raise exc
+                    logger.exception("Unexpected error in SwipeUndoView")
+                    return Response(
+                        {
+                            "success": False,
+                            "error": f"Internal swipe undo error: {type(exc).__name__}: {str(exc)}",
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
 
         return Response(
             {"success": True, "message": "Swipe undone"},
@@ -4092,6 +4106,15 @@ class DeckCardDeliveryView(APIView):
             )
         except DeckStateError as e:
             return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Unexpected error in DeckCardDeliveryView")
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Internal deck delivery error: {type(e).__name__}: {str(e)}",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class DeckSwipeResponseView(APIView):
@@ -4195,16 +4218,29 @@ class DeckSwipeResponseView(APIView):
                 "Deck swipe conflict session=%s user=%s card_idx=%s movie=%s: %s",
                 session_id, request.user.id, card_index, movie_id, e
             )
-            return Response({"success": False, "error": str(e)}, status=status.HTTP_409_CONFLICT)
+            return Response({"success": False, "error": str(e), "resync_required": True}, status=status.HTTP_409_CONFLICT)
         except PermissionDenied as e:
             logger.warning(
                 "Deck swipe forbidden session=%s user=%s card_idx=%s movie=%s: %s",
                 session_id, request.user.id, card_index, movie_id, e
             )
             return Response({"success": False, "error": str(e)}, status=status.HTTP_403_FORBIDDEN)
-        except (OutOfOrderResponseError, InvalidCardIndexError, StaleManifestError, ValidationError) as e:
+        except (OutOfOrderResponseError, InvalidCardIndexError, StaleManifestError) as e:
             logger.warning(
-                "Deck swipe rejected session=%s user=%s card_idx=%s movie=%s: %s",
+                "Deck swipe out-of-order/stale session=%s user=%s card_idx=%s movie=%s: %s",
+                session_id, request.user.id, card_index, movie_id, e
+            )
+            return Response(
+                {
+                    "success": False,
+                    "error": str(e),
+                    "resync_required": True,
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        except ValidationError as e:
+            logger.warning(
+                "Deck swipe validation error session=%s user=%s card_idx=%s movie=%s: %s",
                 session_id, request.user.id, card_index, movie_id, e
             )
             return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -4214,6 +4250,15 @@ class DeckSwipeResponseView(APIView):
                 session_id, request.user.id, card_index, movie_id, e
             )
             return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Unexpected error in DeckSwipeResponseView")
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Internal deck swipe error: {type(e).__name__}: {str(e)}",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class DeckSwipeUndoView(APIView):
@@ -4257,6 +4302,15 @@ class DeckSwipeUndoView(APIView):
             return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except DeckStateError as e:
             return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception("Unexpected error in DeckSwipeUndoView")
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Internal deck swipe undo error: {type(e).__name__}: {str(e)}",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # -----------------------------------------------------------------------------

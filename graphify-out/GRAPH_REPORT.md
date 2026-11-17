@@ -1,17 +1,17 @@
 # Graph Report - flick-app  (2026-11-17)
 
 ## Corpus Check
-- 249 files · ~375,804 words
+- 249 files · ~376,049 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 59 file(s) not represented in the graph (top: .csv 48, (none) 7, .example 2)
 
 ## Summary
-- 4259 nodes · 9225 edges · 201 communities (96 shown, 105 thin omitted)
+- 4259 nodes · 9225 edges · 202 communities (96 shown, 106 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 1049 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d66f1cfa`
+- Built from commit: `ceb53e7b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -89,7 +89,7 @@
 - _assert_safe_local_database
 - Swipe
 - .agent/skills/ui-ux-pro-max/scripts/core.py
-- views.py
+- AuthRateThrottle
 - .record_swipe_response
 - 9. Practical Troubleshooting Playbook
 - batch_sync_prelaunch.py
@@ -181,13 +181,14 @@
 - LimitValidationTest
 - SessionQueryOptimizationTests
 - flick-frontend/package.json
-- MovieTagRelation
+- SwipeHistoryView
 - Command
 - Command
 - vercel.json
 - Flick — HTTP Status Codes, Server Logs & Error-Handling Reference
 - CorrectSyntheticM1RecordsTest
 - verify-batch-b-browser.js
+- HealthCheckView
 - 2xx — Successful Responses
 - vite.config.ts
 - WatchlistItem
@@ -235,7 +236,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (201 total, 105 thin omitted)
+## Communities (202 total, 106 thin omitted)
 
 ### Community 0 - "PersonalizedRecommendationEngine"
 Cohesion: 0.12
@@ -362,8 +363,8 @@ Cohesion: 0.20
 Nodes (11): CustomUserAdmin, GenreAdmin, MatchAdmin, MovieAdmin, MovieStreamingAvailabilityAdmin, SessionAdmin, SessionStatsAdmin, StreamingProviderAdmin (+3 more)
 
 ### Community 47 - "views.py"
-Cohesion: 0.04
-Nodes (25): DeckSwipeUndoView, DeleteAccountView, GenreSyncTMDBView, GuestConvertView, GuestProvisionView, GuestRecoverView, GuestRecoveryAckView, GuestRotateCodeView (+17 more)
+Cohesion: 0.03
+Nodes (33): DeckSwipeUndoView, DeleteAccountView, ensure_default_genres(), generate_session_code(), GenreListView, GenreSyncTMDBView, GuestConvertView, GuestProvisionView (+25 more)
 
 ### Community 50 - ".agent/skills/ui-ux-pro-max/scripts/design_system.py"
 Cohesion: 0.14
@@ -425,9 +426,9 @@ Nodes (39): Genre, InteractionLog, Meta, MovieExposure, MovieKeyword, MovieTag, 
 Cohesion: 0.20
 Nodes (5): detect_domain(), _load_csv(), search(), _search_csv(), search_stack()
 
-### Community 73 - "views.py"
-Cohesion: 0.04
-Nodes (19): StandardResultsSetPagination, SwipeHistoryPagination, RegisterSerializer, Meta, AuthRateThrottle, GuestProvisionThrottle, GuestRecoverThrottle, PasswordResetRateThrottle (+11 more)
+### Community 73 - "AuthRateThrottle"
+Cohesion: 0.14
+Nodes (6): AuthRateThrottle, GuestProvisionThrottle, GuestRecoverThrottle, PasswordResetRateThrottle, LoginView, PasswordResetRequestView
 
 ### Community 74 - ".record_swipe_response"
 Cohesion: 0.03
@@ -521,10 +522,6 @@ Nodes (10): normalize_user_preferences(), CollaborativeDeckScorer, normalize_can
 Cohesion: 0.27
 Nodes (3): StalenessSweepCheckpoint, Meta, StalenessSweepService
 
-### Community 122 - "SessionEndView"
-Cohesion: 0.20
-Nodes (4): compute_session_statistics(), MatchListView, serialize_session_matches(), SessionEndView
-
 ### Community 125 - "CandidateRetrievalAndEligibilityTests"
 Cohesion: 0.03
 Nodes (4): HardConstraintFilter, WorldCinemaClassifier, PreferenceAndManifestCorrectnessTests, CandidateRetrievalAndEligibilityTests
@@ -572,6 +569,10 @@ Nodes (12): 4xx — Client-Side Errors, HTTP 400 Bad Request, HTTP 401 Unauthori
 ### Community 171 - "flick-frontend/package.json"
 Cohesion: 0.18
 Nodes (10): @types/canvas-confetti@^1.9.0, @types/node@^24.10.1, typescript@~5.9.3, name, private, type, version, @types/canvas-confetti (+2 more)
+
+### Community 172 - "SwipeHistoryView"
+Cohesion: 0.09
+Nodes (8): MovieTagRelation, Meta, StandardResultsSetPagination, SwipeHistoryPagination, RegisterSerializer, Meta, MovieListView, SwipeHistoryView
 
 ### Community 178 - "Flick — HTTP Status Codes, Server Logs & Error-Handling Reference"
 Cohesion: 0.20
@@ -622,12 +623,12 @@ Cohesion: 0.10
 Nodes (4): CorrelationIdFilter, SecretRedactionFilter, SecretRedactionFormatter, SecretRedactionLoggerTests
 
 ## Knowledge Gaps
-- **105 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **106 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Movie` connect `Session` to `PersonalizedRecommendationEngine`, `GuestProfile`, `_make_movie`, `GuestConversionValidationAndRejectionTests`, `handle_catalogue_classification`, `TmdbChangesService`, `models.py`, `Batch5PersonalizationEvaluationTests`, `DynamicMovieCatalogueTests`, `Stage3EndToEndProductValidationTests`, `ProposalExecutionWorker`, `ClassicVaultEraFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `transition_movie_classification`, `RecommendationEvaluationTests`, `RecommendationDiscoveryTests`, `evaluate_eligibility_predicates`, `Batch3WorkerIntegrationTests`, `FunctionalAndMobileAuditVerificationTests`, `admin.py`, `ScreeningSessionResultsAndStatsPersistenceTests`, `views.py`, `_ingest_tmdb_results`, `TestCase`, `fetch_cached_tmdb`, `TMDBTimeoutError`, `test_proposals.py`, `Phase6BatchCRecentSessionsAndStreamingTests`, `Swipe`, `views.py`, `.record_swipe_response`, `batch_sync_prelaunch.py`, `ArchiveShelvesService`, `Movie`, `TmdbChangesServiceTests`, `.anonymize_and_delete_user`, `HardConstraints`, `PostgreSQLQueueConcurrencyTests`, `AuthenticationAndPermissionTests`, `Pre1990ReleasePeriodFilterTests`, `StreamingFilterAuditTests`, `test_indian_catalogue_ingestion.py`, `TmdbChangesCheckpoint`, `StreamingProvider`, `UserPreferenceData`, `StalenessSweepCheckpoint`, `NormalManifestCompilationTests`, `SwipeUndoTests`, `CandidateRetrievalAndEligibilityTests`, `_validate_candidate`, `Phase6BatchBBackendTests`, `SwipeAndMatchingTests`, `CoreUserExperienceRepairTests`, `IntelligenceWorkerTasteHandlerTests`, `PaginationAndResourceLimitTests`, `InteractionLogProcessingStatusTests`, `.handle`, `Command`, `_build_candidate_queryset`, `DiscoverTests`, `MovieSerializer`, `SwipeFailureRecoveryAndEdgeCaseTests`, `BoutiqueManifestCompilationTests`, `MatchListFilteringSecurityTests`, `AffinityEvaluationTests`, `WatchlistTests`, `test_observability_and_security.py`, `LimitValidationTest`, `SessionQueryOptimizationTests`, `CorrectSyntheticM1RecordsTest`, `WatchlistItem`, `HistoricalReconciliationService`, `TestIndianLanguageDiscovery`, `IntelligenceModelsTestCase`, `SuperLikePersistenceAndAttributionTests`, `DatabaseConcurrencyAndSwipeReliabilityTests`, `run_staleness_sweep`, `MotionAndSessionRegressionAuditTests`, `SessionHistoryTests`, `DeckStateAPITests`?**
+- **Why does `Movie` connect `Session` to `PersonalizedRecommendationEngine`, `GuestProfile`, `_make_movie`, `GuestConversionValidationAndRejectionTests`, `handle_catalogue_classification`, `TmdbChangesService`, `models.py`, `Batch5PersonalizationEvaluationTests`, `DynamicMovieCatalogueTests`, `Stage3EndToEndProductValidationTests`, `ProposalExecutionWorker`, `ClassicVaultEraFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `transition_movie_classification`, `RecommendationEvaluationTests`, `RecommendationDiscoveryTests`, `evaluate_eligibility_predicates`, `Batch3WorkerIntegrationTests`, `FunctionalAndMobileAuditVerificationTests`, `admin.py`, `ScreeningSessionResultsAndStatsPersistenceTests`, `views.py`, `_ingest_tmdb_results`, `TestCase`, `fetch_cached_tmdb`, `TMDBTimeoutError`, `test_proposals.py`, `Phase6BatchCRecentSessionsAndStreamingTests`, `Swipe`, `.record_swipe_response`, `batch_sync_prelaunch.py`, `ArchiveShelvesService`, `Movie`, `TmdbChangesServiceTests`, `.anonymize_and_delete_user`, `HardConstraints`, `PostgreSQLQueueConcurrencyTests`, `AuthenticationAndPermissionTests`, `Pre1990ReleasePeriodFilterTests`, `StreamingFilterAuditTests`, `test_indian_catalogue_ingestion.py`, `TmdbChangesCheckpoint`, `StreamingProvider`, `UserPreferenceData`, `StalenessSweepCheckpoint`, `NormalManifestCompilationTests`, `SwipeUndoTests`, `CandidateRetrievalAndEligibilityTests`, `_validate_candidate`, `Phase6BatchBBackendTests`, `SwipeAndMatchingTests`, `CoreUserExperienceRepairTests`, `IntelligenceWorkerTasteHandlerTests`, `PaginationAndResourceLimitTests`, `InteractionLogProcessingStatusTests`, `.handle`, `Command`, `_build_candidate_queryset`, `DiscoverTests`, `MovieSerializer`, `SwipeFailureRecoveryAndEdgeCaseTests`, `BoutiqueManifestCompilationTests`, `MatchListFilteringSecurityTests`, `AffinityEvaluationTests`, `WatchlistTests`, `test_observability_and_security.py`, `LimitValidationTest`, `SessionQueryOptimizationTests`, `SwipeHistoryView`, `CorrectSyntheticM1RecordsTest`, `WatchlistItem`, `HistoricalReconciliationService`, `TestIndianLanguageDiscovery`, `IntelligenceModelsTestCase`, `SuperLikePersistenceAndAttributionTests`, `DatabaseConcurrencyAndSwipeReliabilityTests`, `run_staleness_sweep`, `MotionAndSessionRegressionAuditTests`, `SessionHistoryTests`, `DeckStateAPITests`?**
   _High betweenness centrality (0.244) - this node is a cross-community bridge._
 - **Are the 130 inferred relationships involving `Movie` (e.g. with `Command` and `Command`) actually correct?**
   _`Movie` has 130 INFERRED edges - model-reasoned connections that need verification._
