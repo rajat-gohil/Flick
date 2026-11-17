@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "backend/backend/settings.py": {
-    "mtime": 1794555255.1886551,
-    "seen": 1794560917.333122,
-    "ast_hash": "754bd8cb8f500f9421c46fa0f4a94b70",
+    "mtime": 1794905479.5248554,
+    "seen": 1794905814.761431,
+    "ast_hash": "99787fbc8430e1e4ffb20565931fa7b8",
     "semantic_hash": ""
   },
   "backend/backend/urls.py": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/tmdb.py": {
-    "mtime": 1794901568.4586985,
-    "seen": 1794901848.89488,
-    "ast_hash": "546084c3b921a7a163ed52058185f2c6",
+    "mtime": 1794905726.1298149,
+    "seen": 1794905814.761525,
+    "ast_hash": "ab1aacee7f58a58b86c1c5b3dda2729f",
     "semantic_hash": ""
   },
   "backend/core/services/tmdb2.py": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794903226.6178975,
-    "seen": 1794903329.417124,
-    "ast_hash": "ebba45f21b04e85315ec19ac94d09461",
+    "mtime": 1794905754.1978254,
+    "seen": 1794905814.7615712,
+    "ast_hash": "21a6ff6e4ec4e6745d5bcca7a6b6eab6",
     "semantic_hash": ""
   },
   "backend/manage.py": {
@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/retrieval.py": {
-    "mtime": 1794903181.9133422,
-    "seen": 1794903329.417069,
-    "ast_hash": "8cf0e8d4bffc975c0da6c3447a6c6589",
+    "mtime": 1794905723.1666043,
+    "seen": 1794905814.7615209,
+    "ast_hash": "4873f5cc7a435dfce3120670c69e1e0c",
     "semantic_hash": ""
   },
   "backend/core/services/scoring.py": {
@@ -786,9 +786,9 @@
     "semantic_hash": ""
   },
   "backend/core/services/tmdb_rate_limiter.py": {
-    "mtime": 1794561038.133125,
-    "seen": 1794561151.72825,
-    "ast_hash": "d158bfee8d6cb806637d944a061713a3",
+    "mtime": 1794905462.5876389,
+    "seen": 1794905814.761527,
+    "ast_hash": "5f23e1d1abbd42ce4c2fffe3832cdd5c",
     "semantic_hash": ""
   },
   "backend/core/test_batch2_enrichment.py": {
@@ -804,9 +804,9 @@
     "semantic_hash": ""
   },
   "backend/core/test_tmdb_rate_limiter.py": {
-    "mtime": 1794561109.651762,
-    "seen": 1794561151.728693,
-    "ast_hash": "82f3e4c77d422a4dc8d295db636fa13b",
+    "mtime": 1794905498.2422144,
+    "seen": 1794905814.7615669,
+    "ast_hash": "ee016d52e1338dc601bd31e48cd67894",
     "semantic_hash": ""
   },
   "backend/core/management/commands/poll_tmdb_changes.py": {

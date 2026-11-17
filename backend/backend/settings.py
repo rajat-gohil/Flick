@@ -67,6 +67,11 @@ else:
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
 DEFAULT_STREAMING_REGION = os.getenv("STREAMING_REGION", "IN").strip().upper() or "IN"
+# TMDB Rate Limiter: In production without Redis (e.g. Render Free Tier), allow in-memory token bucket.
+# In test runs, default to False to honor strict fail-closed contract tests unless overridden.
+TMDB_RATELIMIT_ALLOW_IN_MEMORY = (
+    os.getenv("TMDB_RATELIMIT_ALLOW_IN_MEMORY", "true").lower() in ("true", "1", "yes")
+)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 FIREBASE_SERVER_KEY = os.getenv("FIREBASE_SERVER_KEY", "")
 

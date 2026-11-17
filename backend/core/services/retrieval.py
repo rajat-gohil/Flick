@@ -60,6 +60,7 @@ ERA_DEFINITIONS = {
     "2000s": {"min_year": 2000, "max_year": 2009},
     "2010s": {"min_year": 2010, "max_year": 2019},
     "recent": {"min_year": 2020},
+    "modern": {"min_year": 2000},
 }
 
 TMDB_TO_STREAMING_PROVIDER_MAP = {

@@ -487,6 +487,8 @@ def discover_movies(
             params["primary_release_date.lte"] = "1989-12-31"
         elif era_lower == "recent":
             params["primary_release_date.gte"] = "2020-01-01"
+        elif era_lower == "modern":
+            params["primary_release_date.gte"] = "2000-01-01"
         elif era_lower == "2010s":
             params["primary_release_date.gte"] = "2010-01-01"
             params["primary_release_date.lte"] = "2019-12-31"

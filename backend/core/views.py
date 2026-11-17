@@ -4309,14 +4309,13 @@ class SessionExpandConstraintsView(APIView):
                         from core.services.outbox import ProposalExecutionWorker
                         worker = ProposalExecutionWorker()
                         worker.process_batch(max_messages=1)
-                        prop.refresh_from_db()
                     except Exception as e:
                         logger.warning(f"Synchronous proposal outbox execution failed for {prop.id}: {e}")
 
                     return Response({
                         "success": True,
                         "proposal_id": str(prop.id),
-                        "status": prop.status,
+                        "status": "approved_queued",
                         "message": "Dual approval confirmed. Asynchronous candidate replenishment queued.",
                     }, status=status.HTTP_200_OK)
                 else:

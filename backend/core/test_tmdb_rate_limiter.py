@@ -279,7 +279,7 @@ class TMDBRateLimiterProductionFailClosedTests(SimpleTestCase):
         reset_rate_limiter()
         super().tearDown()
 
-    @override_settings(DEBUG=False)
+    @override_settings(DEBUG=False, TMDB_RATELIMIT_ALLOW_IN_MEMORY=False)
     def test_fail_closed_when_redis_none_in_production(self):
         """In production, missing/unconfigured Redis raises RedisRateLimiterUnavailableError."""
         set_redis_client(None)
@@ -296,7 +296,21 @@ class TMDBRateLimiterProductionFailClosedTests(SimpleTestCase):
         with self.assertRaises(RedisRateLimiterUnavailableError):
             get_rate_limiter_status()
 
-    @override_settings(DEBUG=False)
+    @override_settings(DEBUG=False, TMDB_RATELIMIT_ALLOW_IN_MEMORY=True)
+    def test_in_memory_allowed_in_production_when_flag_enabled(self):
+        """When TMDB_RATELIMIT_ALLOW_IN_MEMORY=True in production, in-memory bucket operates cleanly without Redis."""
+        set_redis_client(None)
+        # Should not raise RedisRateLimiterUnavailableError
+        acquired = acquire_tmdb_token("interactive")
+        self.assertTrue(acquired)
+
+        status = get_rate_limiter_status()
+        self.assertIn("interactive_tokens", status)
+
+        cooldown = record_tmdb_429("10")
+        self.assertGreaterEqual(cooldown, 10.0)
+
+    @override_settings(DEBUG=False, TMDB_RATELIMIT_ALLOW_IN_MEMORY=False)
     def test_fail_closed_on_redis_connection_error_in_production(self):
         """In production, Redis ConnectionError raises RedisRateLimiterUnavailableError."""
         mock_redis = MagicMock()
@@ -315,7 +329,7 @@ class TMDBRateLimiterProductionFailClosedTests(SimpleTestCase):
         with self.assertRaises(RedisRateLimiterUnavailableError):
             get_rate_limiter_status()
 
-    @override_settings(DEBUG=False)
+    @override_settings(DEBUG=False, TMDB_RATELIMIT_ALLOW_IN_MEMORY=False)
     def test_fail_closed_on_redis_timeout_error_in_production(self):
         """In production, Redis TimeoutError raises RedisRateLimiterUnavailableError."""
         mock_redis = MagicMock()

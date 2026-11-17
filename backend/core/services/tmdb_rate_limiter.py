@@ -348,8 +348,12 @@ _cached_redis_client: Optional[redis.Redis] = None
 # ─────────────────────────────────────────────────────────────────────────────
 
 def is_production() -> bool:
-    """Checks whether running in production (DEBUG=False)."""
-    return getattr(settings, "DEBUG", True) is False
+    """Checks whether running in production (DEBUG=False) and Redis fail-closed is required."""
+    if getattr(settings, "DEBUG", True) is True:
+        return False
+    if getattr(settings, "TMDB_RATELIMIT_ALLOW_IN_MEMORY", False) is True:
+        return False
+    return True
 
 
 def get_redis_client() -> Optional[redis.Redis]:
