@@ -43,44 +43,6 @@
     <meta property="og:url" content="https://flickapp.in" />
     <meta name="twitter:card" content="summary" />
 
-    <!-- ── Sentry (Item 15) ─────────────────────────── -->
-    <!--
-      SETUP:
-        1. Create a free account at https://sentry.io
-        2. Create a new project → JavaScript / React
-        3. Copy the DSN from Settings → Client Keys
-        4. Replace YOUR_SENTRY_DSN below (looks like https://abc123@o123456.ingest.sentry.io/789)
-
-      Alternatively, install the npm package and init in main.tsx:
-        npm install @sentry/react @sentry/tracing
-        Then add to src/main.tsx:
-          import * as Sentry from "@sentry/react";
-          Sentry.init({
-            dsn: import.meta.env.VITE_SENTRY_DSN,
-            tracesSampleRate: 0.1,
-            environment: import.meta.env.MODE,
-          });
-    -->
-    <script
-      src="https://browser.sentry-cdn.com/7.99.0/bundle.tracing.min.js"
-      integrity="sha384-placeholder-replace-with-actual"
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      if (window.Sentry && "YOUR_SENTRY_DSN" !== "YOUR_SENTRY_DSN") {
-        Sentry.init({
-          dsn: "YOUR_SENTRY_DSN",
-          tracesSampleRate: 0.1,
-          environment: "production",
-          // Don't send errors from localhost
-          beforeSend(event) {
-            if (window.location.hostname === "localhost") return null;
-            return event;
-          },
-        });
-      }
-    </script>
-
     <!-- ── Material Symbols font ─────────────────────── -->
     <link
       rel="stylesheet"

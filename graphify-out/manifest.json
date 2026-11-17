@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "backend/backend/settings.py": {
-    "mtime": 1794905479.5248554,
-    "seen": 1794905814.761431,
-    "ast_hash": "99787fbc8430e1e4ffb20565931fa7b8",
+    "mtime": 1794914012.6166587,
+    "seen": 1794914114.1935842,
+    "ast_hash": "128d928aabe3a2f38cd42bedd665434d",
     "semantic_hash": ""
   },
   "backend/backend/urls.py": {
@@ -1326,8 +1326,8 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionPage.tsx": {
-    "mtime": 1794913339.8751383,
-    "seen": 1794913439.532985,
+    "mtime": 1794914067.2516963,
+    "seen": 1794914114.193791,
     "ast_hash": "bceb31b5180227ee127b4fa65cfef969",
     "semantic_hash": ""
   },
@@ -1482,9 +1482,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/index.html": {
-    "mtime": 1794898859.8167112,
-    "seen": 1794898939.914846,
-    "ast_hash": "1a94de5efe539df439488f5b83273658",
+    "mtime": 1794914033.1697855,
+    "seen": 1794914114.193831,
+    "ast_hash": "81228c43d6dfcbb4e99ba1bfac57d69e",
     "semantic_hash": ""
   },
   "flick-frontend/src/assets/designs/active_swiping_interface_1/code.html": {

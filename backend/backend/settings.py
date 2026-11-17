@@ -339,6 +339,13 @@ else:
 
 CORS_ALLOW_CREDENTIALS = True
 
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "idempotency-key",
+    "x-idempotency-key",
+]
+
 # Guest Persistent Recovery HMAC Key Configuration
 GUEST_RECOVERY_HMAC_KEY = os.getenv("GUEST_RECOVERY_HMAC_KEY")
 GUEST_RECOVERY_HMAC_KEYS = {
