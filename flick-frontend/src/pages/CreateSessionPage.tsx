@@ -158,7 +158,8 @@ export default function CreateSessionPage() {
   useEffect(() => {
     if (industry) {
       fetchGenres(industry);
-      setSelectedLanguages(LANGUAGE_OPTIONS[industry].map((l) => l.code));
+      // Default to empty selection so user intentionally picks their preferred language(s)
+      setSelectedLanguages([]);
     }
   }, [industry, fetchGenres]);
 
@@ -440,8 +441,11 @@ export default function CreateSessionPage() {
             </p>
           </div>
 
-          {/* Select All toggle */}
-          <div className="pt-2 pb-2 flex justify-end">
+          {/* Select All toggle & count */}
+          <div className="pt-2 pb-2 flex justify-between items-center text-xs">
+            <span className="text-foreground-secondary">
+              {selectedLanguages.length} of {LANGUAGE_OPTIONS[industry].length} selected
+            </span>
             <button
               onClick={() => {
                 const allSelected = LANGUAGE_OPTIONS[industry].every((lang) =>
@@ -451,7 +455,7 @@ export default function CreateSessionPage() {
                   allSelected ? [] : LANGUAGE_OPTIONS[industry].map((l) => l.code)
                 );
               }}
-              className="text-xs font-semibold text-primary uppercase tracking-wider hover:underline"
+              className="font-semibold text-primary uppercase tracking-wider hover:underline"
             >
               {LANGUAGE_OPTIONS[industry].every((lang) =>
                 selectedLanguages.includes(lang.code)
@@ -735,7 +739,7 @@ export default function CreateSessionPage() {
               ) : (
                 <span>
                   {step === "industry" && "Continue to Languages →"}
-                  {step === "language" && "Continue to Genres →"}
+                  {step === "language" && (selectedLanguages.length > 0 ? `Continue to Genres · ${selectedLanguages.length} language${selectedLanguages.length > 1 ? "s" : ""} →` : "Select at least one language")}
                   {step === "genre"    && (selectedGenreIds.length > 0 ? `Create Session · ${selectedGenreIds.length} genre${selectedGenreIds.length > 1 ? "s" : ""}` : "Create Session")}
                 </span>
               )}

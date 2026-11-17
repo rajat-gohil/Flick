@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/CreateSessionPage.tsx": {
-    "mtime": 1794901822.2391715,
-    "seen": 1794901848.894969,
-    "ast_hash": "9235d05cc67e816ca61cb6629115afe1",
+    "mtime": 1794938953.1403568,
+    "seen": 1794939010.475321,
+    "ast_hash": "07ef491620a55f5935a2516ad315f6e9",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/DiscoverPage.tsx": {
