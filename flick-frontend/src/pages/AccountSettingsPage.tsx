@@ -54,6 +54,7 @@ function Row({
 export default function AccountSettingsPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const isGuestAccount = user ? Boolean(user.is_guest) : isGuest();
   const [loading, setLoading] = useState(true);
 
   /* ── Change password state ── */
@@ -84,6 +85,9 @@ export default function AccountSettingsPage() {
       const res = await apiRequest("/api/users/profile/");
       if (res.success && res.user) {
         setUser(res.user);
+        if (res.user.is_guest === false) {
+          localStorage.setItem("is_guest", "false");
+        }
         if (res.user.recovery_code) {
           setRecoveryCode(res.user.recovery_code);
         }
@@ -229,7 +233,7 @@ export default function AccountSettingsPage() {
         </div>
 
         {/* ── Guest Recovery Credential Card ── */}
-        {(isGuest() || user?.is_guest) && (
+        {isGuestAccount && (
           <div className="mt-4 p-4 sm:p-5 rounded-xl border border-primary/25 bg-surface shadow-xs space-y-3.5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -297,10 +301,10 @@ export default function AccountSettingsPage() {
         <SectionHeader title="Security Status" />
         <div className="rounded-xl border border-border bg-surface overflow-hidden divide-y divide-border/60 shadow-xs">
           <Row
-            icon={user?.email_verified ? "verified_user" : "gpp_maybe"}
-            label="Email Verification"
-            value={user?.email_verified ? "Verified and secured" : "Action required"}
-            onClick={user?.email_verified ? undefined : () => navigate("/verify-email")}
+            icon={isGuestAccount ? "gpp_maybe" : "verified_user"}
+            label="Account Security"
+            value={isGuestAccount ? "Action required (Guest session)" : "Activated & Secured"}
+            onClick={isGuestAccount ? () => navigate("/convert") : undefined}
           />
         </div>
 

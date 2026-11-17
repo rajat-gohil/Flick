@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "backend/core/views.py": {
-    "mtime": 1794909891.6842632,
-    "seen": 1794910339.958095,
-    "ast_hash": "a47fed8f69944a476e1a21285d59321c",
+    "mtime": 1794911410.7062182,
+    "seen": 1794911536.8152409,
+    "ast_hash": "1d214c6c5696ef85d0ea7c2152007b74",
     "semantic_hash": ""
   },
   "backend/manage.py": {
@@ -1218,9 +1218,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/AccountSettingsPage.tsx": {
-    "mtime": 1794910248.6780272,
-    "seen": 1794910339.958129,
-    "ast_hash": "9ece3400baa85374817556e8bd7383e9",
+    "mtime": 1794911492.864224,
+    "seen": 1794911536.8152761,
+    "ast_hash": "67ac958ac3a6c53e04c3880799d64711",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/AutoJoin.tsx": {
@@ -1266,9 +1266,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/HomePage.tsx": {
-    "mtime": 1794910273.7510245,
-    "seen": 1794910339.958137,
-    "ast_hash": "c13848ccbe198ce708c687a012b303d3",
+    "mtime": 1794911438.9399803,
+    "seen": 1794911536.815283,
+    "ast_hash": "f5f9ab9d524afa99875287add111a14a",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/JoinViaLink.tsx": {
@@ -1302,9 +1302,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/ProfilePage.tsx": {
-    "mtime": 1793807526.662456,
-    "seen": 1794898939.914805,
-    "ast_hash": "3a00cf8ed549621a542c4f8a33603f92",
+    "mtime": 1794911502.7728708,
+    "seen": 1794911536.815289,
+    "ast_hash": "6f6f2b6c7715cb5b6450f82783a1ca49",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/RegisterPage.tsx": {

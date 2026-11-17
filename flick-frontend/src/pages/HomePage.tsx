@@ -90,15 +90,19 @@ export default function HomePage() {
         .then((res: { success?: boolean; user?: typeof profileUser }) => {
           if (res?.success && res.user) {
             setProfileUser(res.user);
+            if (res.user.is_guest === false) {
+              localStorage.setItem("is_guest", "false");
+            }
           }
         })
         .catch(() => {});
     }
   }, []);
 
-  const isGuestAccount = isGuest() || Boolean(profileUser?.is_guest);
-  const isEmailUnverified = Boolean(profileUser && !profileUser.is_guest && !profileUser.email_verified);
-  const isAccountUnactivated = isLoggedIn() && (isGuestAccount || isEmailUnverified);
+  // An account is unactivated ONLY if it is an unconverted guest account.
+  // When profile is fetched from backend, profileUser.is_guest is authoritative.
+  const isGuestAccount = profileUser ? Boolean(profileUser.is_guest) : isGuest();
+  const isAccountUnactivated = isLoggedIn() && isGuestAccount;
 
   /* ── Load recent sessions ── */
   useEffect(() => {
@@ -291,25 +295,21 @@ export default function HomePage() {
             <div className="flex items-start gap-3.5">
               <div className="size-10 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0 mt-0.5">
                 <span className="material-symbols-outlined text-[22px]">
-                  {isGuestAccount ? "shield_lock" : "mark_email_unread"}
+                  shield_lock
                 </span>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="inline-block size-2 rounded-full bg-primary animate-pulse" />
                   <span className="text-[10px] font-mono uppercase tracking-widest font-semibold text-primary">
-                    {isGuestAccount ? "Guest Session · Action Required" : "Security Notice · Email Unverified"}
+                    Guest Session · Action Required
                   </span>
                 </div>
                 <h2 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {isGuestAccount
-                    ? "Your Flick account is not activated"
-                    : "Confirm your email to complete activation"}
+                  Your Flick account is not activated
                 </h2>
                 <p className="text-xs text-foreground-secondary mt-0.5 leading-relaxed">
-                  {isGuestAccount
-                    ? "You are browsing on a temporary guest session. Activate your account to permanently save your watchlist, matches, and taste profile across devices."
-                    : `Your email address (${profileUser?.email || "pending"}) is not verified. Complete verification to activate all features.`}
+                  You are browsing on a temporary guest session. Activate your account to permanently save your watchlist, matches, and taste profile across devices.
                 </p>
               </div>
             </div>

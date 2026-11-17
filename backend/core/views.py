@@ -359,7 +359,7 @@ class RegisterView(APIView):
                 )
                 UserProfile.objects.update_or_create(
                     user=user,
-                    defaults={"display_name": display_name}
+                    defaults={"display_name": display_name, "email_verified": True}
                 )
             return Response({
                 "success": True,
@@ -710,8 +710,8 @@ class GuestRotateCodeView(APIView):
 
     def post(self, request):
         guest_profile = getattr(request.user, "guest_profile", None)
-        if not guest_profile:
-            return Response({"success": False, "error": "Only guest accounts have recovery codes."}, status=status.HTTP_400_BAD_REQUEST)
+        if not guest_profile or guest_profile.is_claimed:
+            return Response({"success": False, "error": "Only active guest accounts have recovery codes."}, status=status.HTTP_400_BAD_REQUEST)
 
         new_code = generate_recovery_code()
         guest_profile.recovery_code = new_code
@@ -863,9 +863,12 @@ class GuestConvertView(APIView):
 
                     # Update UserProfile if exists or display_name provided
                     user_profile, _ = UserProfile.objects.get_or_create(user=user)
+                    user_profile.email_verified = True
                     if display_name:
                         user_profile.display_name = display_name
-                        user_profile.save(update_fields=["display_name"])
+                        user_profile.save(update_fields=["display_name", "email_verified"])
+                    else:
+                        user_profile.save(update_fields=["email_verified"])
 
                     # Retire all guest recovery credentials permanently
                     profile.is_claimed = True
@@ -2758,9 +2761,9 @@ class UserProfileView(APIView):
         user = request.user
         profile = getattr(user, "profile", None)
         guest_profile = getattr(user, "guest_profile", None)
-        is_guest = bool(guest_profile)
+        is_guest = bool(guest_profile and not guest_profile.is_claimed)
         recovery_code = ""
-        if guest_profile:
+        if is_guest and guest_profile:
             if not guest_profile.recovery_code:
                 new_code = generate_recovery_code()
                 guest_profile.recovery_code = new_code
@@ -2768,6 +2771,19 @@ class UserProfileView(APIView):
                 guest_profile.recovery_verification_hash = hash_recovery_code(new_code)
                 guest_profile.save(update_fields=["recovery_code", "recovery_lookup_digest", "recovery_verification_hash"])
             recovery_code = guest_profile.recovery_code
+
+        # For activated registered / converted members, mark email_verified = True so they are recognized as activated
+        email_verified = True
+        if is_guest:
+            email_verified = False
+        elif profile:
+            if not profile.email_verified:
+                profile.email_verified = True
+                profile.save(update_fields=["email_verified"])
+            email_verified = True
+        else:
+            UserProfile.objects.create(user=user, email_verified=True)
+            email_verified = True
 
         display_name = ""
         if profile and profile.display_name:
@@ -2782,7 +2798,7 @@ class UserProfileView(APIView):
                 "username": user.username,
                 "display_name": display_name,
                 "email": user.email,
-                "email_verified": profile.email_verified if profile else False,
+                "email_verified": email_verified,
                 "date_joined": user.date_joined,
                 "is_staff": user.is_staff,
                 "is_guest": is_guest,

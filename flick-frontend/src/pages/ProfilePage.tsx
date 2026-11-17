@@ -414,7 +414,7 @@ export default function ProfilePage() {
           <MenuItem icon="gavel" label="Terms of Service" onClick={() => navigate("/terms")} />
 
           {/* Email verification alert */}
-          {emailVerified === false && (
+          {emailVerified === false && !isGuest() && (
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg shrink-0">mail_lock</span>
               <div className="flex-1 min-w-0">
