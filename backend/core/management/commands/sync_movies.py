@@ -2,6 +2,7 @@ import time
 from django.core.management.base import BaseCommand
 from core.models import Movie, Genre
 from core.services.tmdb import discover_movies, get_movie_trailer_key
+from core.services.catalogue_eligibility import recalculate_movie_eligibility
 
 
 class Command(BaseCommand):
@@ -61,6 +62,7 @@ class Command(BaseCommand):
                                 "vote_count": item.get("vote_count"),
                                 "original_language": item.get("original_language"),
                                 "tmdb_genre_ids": raw_genre_ids,
+                                "provenance": "tmdb_catalogue",
                             }
                         )
 
@@ -68,6 +70,12 @@ class Command(BaseCommand):
                             genre_objects = Genre.objects.filter(tmdb_id__in=raw_genre_ids)
                             if genre_objects.exists():
                                 movie.genres.set(genre_objects)
+
+                        if movie.provenance != "tmdb_catalogue":
+                            movie.provenance = "tmdb_catalogue"
+                            movie.save(update_fields=["provenance"])
+
+                        recalculate_movie_eligibility(movie, commit=True)
 
                         if created:
                             movies_created += 1

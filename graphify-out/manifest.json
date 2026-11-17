@@ -108,9 +108,9 @@
     "semantic_hash": ""
   },
   "backend/core/management/commands/sync_movies.py": {
-    "mtime": 1793280346.718197,
-    "seen": 1793281427.87318,
-    "ast_hash": "0667e618a3bac2ab067cb3c4a72cdce3",
+    "mtime": 1794900336.2782192,
+    "seen": 1794900427.222027,
+    "ast_hash": "be182667e6c9ab0f7a606e3240a737d1",
     "semantic_hash": ""
   },
   "backend/core/migrations/0001_initial.py": {
@@ -2055,6 +2055,12 @@
     "mtime": 1772776858.0,
     "seen": 1794898939.914936,
     "ast_hash": "1e13875b2dcbe5c04ee9195a76c93ea2",
+    "semantic_hash": ""
+  },
+  "backend/core/fixtures/initial_movies.json": {
+    "mtime": 1794900409.1703813,
+    "seen": 1794900427.222008,
+    "ast_hash": "d59437b4f9db9a3d85dc7668ccdcef9f",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

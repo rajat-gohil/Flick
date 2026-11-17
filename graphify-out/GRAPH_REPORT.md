@@ -1,17 +1,17 @@
 # Graph Report - flick-app  (2026-11-17)
 
 ## Corpus Check
-- 245 files · ~292,111 words
+- 246 files · ~382,342 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 59 file(s) not represented in the graph (top: .csv 48, (none) 7, .example 2)
 
 ## Summary
-- 4222 nodes · 9119 edges · 188 communities (89 shown, 99 thin omitted)
+- 4222 nodes · 9122 edges · 188 communities (89 shown, 99 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 1036 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e4067b71`
+- Built from commit: `990bc72d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -64,7 +64,7 @@
 - ScreeningSessionResultsAndStatsPersistenceTests
 - DesignSystemGenerator
 - Session
-- requests
+- GuestConversionDataIntegrityTests
 - CatalogueJob
 - .agent/skills/ui-ux-pro-max/scripts/design_system.py
 - SwipeUndoViewInverseParityTests
@@ -251,8 +251,8 @@ Cohesion: 0.15
 Nodes (23): BottomNav(), BottomNavProps, NavTab, CinemaHeader(), CinemaHeaderProps, DEFAULT_PREFS, NotificationsSettingsPage(), requestPushPermission() (+15 more)
 
 ### Community 14 - "Movie"
-Cohesion: 0.10
-Nodes (8): Command, Movie, MovieExposure, _movie_contains(), _movie_get(), _movie_getitem(), PersonalizedRecommendationEngine, GuestConversionDataIntegrityTests
+Cohesion: 0.09
+Nodes (8): _build_candidate_queryset(), Movie, MovieExposure, _movie_contains(), _movie_get(), _movie_getitem(), PersonalizedRecommendationEngine, StalenessSweepService
 
 ### Community 17 - "test_observability_and_security.py"
 Cohesion: 0.05
@@ -332,7 +332,7 @@ Nodes (33): Session, DeleteAccountView, GenreListView, GenreSyncTMDBView, GuestC
 
 ### Community 49 - "CatalogueJob"
 Cohesion: 0.04
-Nodes (23): Command, _build_candidate_queryset(), CatalogueJob, JobType, Meta, Status, movie_genres_changed_handler(), recalculate_movie_eligibility() (+15 more)
+Nodes (23): Command, Command, Command, CatalogueJob, JobType, Meta, Status, movie_genres_changed_handler() (+15 more)
 
 ### Community 50 - ".agent/skills/ui-ux-pro-max/scripts/design_system.py"
 Cohesion: 0.14
@@ -572,8 +572,8 @@ Nodes (18): SessionOccasionState, ActiveManifestImmutableError, HamiltonManifest
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Movie` connect `Movie` to `HardConstraintFilter`, `Phase6BatchBBackendTests`, `tests.py`, `retrieval.py`, `_make_movie`, `LimitValidationTest`, `ProposalLifecycleAndIdempotencyTestCase`, `Batch3WorkerIntegrationTests`, `SwipeAndMatchingTests`, `Batch5PersonalizationEvaluationTests`, `DeckStateAPITests`, `DynamicMovieCatalogueTests`, `views.py`, `ProposalExecutionWorker`, `Pre1990ReleasePeriodFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `transition_movie_classification`, `MatchListFilteringSecurityTests`, `AffinityEvaluationTests`, `CollaborativeAgreement`, `evaluate_eligibility_predicates`, `SwipeUndoTests`, `handle_catalogue_classification`, `ScreeningSessionResultsAndStatsPersistenceTests`, `Session`, `CatalogueJob`, `SwipeUndoViewInverseParityTests`, `CorrectSyntheticM1RecordsTest`, `tmdb.py`, `LocalizedGenreRetrievalTests`, `CatalogueQueueService`, `WatchlistItem`, `test_proposals.py`, `InteractionLog`, `.handle`, `HistoricalReconciliationService`, `PostgreSQLQueueConcurrencyTests`, `.handle`, `TestIndianLanguageDiscovery`, `._record_interactions`, `admin.py`, `ArchiveShelvesService`, `models.py`, `IntelligenceModelsTestCase`, `StreamingOptionsRemediationTests`, `HardConstraints`, `test_observability_and_security.py`, `enrichment_handlers.py`, `InteractionLogProcessingStatusTests`, `Phase1EndToEndScenarioTestCase`, `_validate_candidate`, `AuthenticationAndPermissionTests`, `BoutiqueManifestCompilationTests`, `.calculate_allocation`, `SuperLikePersistenceAndAttributionTests`, `UserTasteProfile`, `.record_swipe_response`, `DatabaseConcurrencyAndSwipeReliabilityTests`, `run_staleness_sweep`, `UserPreferenceData`, `TestIngestionAndProvenance`, `MotionAndSessionRegressionAuditTests`, `Match`, `CoreUserExperienceRepairTests`, `FunctionalAndMobileAuditVerificationTests`, `CandidateRetrievalAndEligibilityTests`, `TestReliabilityAndRetrieval`?**
-  _High betweenness centrality (0.267) - this node is a cross-community bridge._
+- **Why does `Movie` connect `Movie` to `HardConstraintFilter`, `Phase6BatchBBackendTests`, `tests.py`, `retrieval.py`, `_make_movie`, `LimitValidationTest`, `ProposalLifecycleAndIdempotencyTestCase`, `Batch3WorkerIntegrationTests`, `SwipeAndMatchingTests`, `Batch5PersonalizationEvaluationTests`, `DeckStateAPITests`, `DynamicMovieCatalogueTests`, `views.py`, `ProposalExecutionWorker`, `Pre1990ReleasePeriodFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `transition_movie_classification`, `MatchListFilteringSecurityTests`, `AffinityEvaluationTests`, `CollaborativeAgreement`, `evaluate_eligibility_predicates`, `SwipeUndoTests`, `handle_catalogue_classification`, `ScreeningSessionResultsAndStatsPersistenceTests`, `Session`, `GuestConversionDataIntegrityTests`, `CatalogueJob`, `SwipeUndoViewInverseParityTests`, `CorrectSyntheticM1RecordsTest`, `tmdb.py`, `LocalizedGenreRetrievalTests`, `CatalogueQueueService`, `WatchlistItem`, `test_proposals.py`, `InteractionLog`, `.handle`, `HistoricalReconciliationService`, `PostgreSQLQueueConcurrencyTests`, `.handle`, `TestIndianLanguageDiscovery`, `._record_interactions`, `admin.py`, `ArchiveShelvesService`, `models.py`, `IntelligenceModelsTestCase`, `StreamingOptionsRemediationTests`, `HardConstraints`, `test_observability_and_security.py`, `enrichment_handlers.py`, `InteractionLogProcessingStatusTests`, `Phase1EndToEndScenarioTestCase`, `_validate_candidate`, `AuthenticationAndPermissionTests`, `BoutiqueManifestCompilationTests`, `.calculate_allocation`, `SuperLikePersistenceAndAttributionTests`, `UserTasteProfile`, `.record_swipe_response`, `DatabaseConcurrencyAndSwipeReliabilityTests`, `run_staleness_sweep`, `UserPreferenceData`, `TestIngestionAndProvenance`, `MotionAndSessionRegressionAuditTests`, `Match`, `CoreUserExperienceRepairTests`, `FunctionalAndMobileAuditVerificationTests`, `CandidateRetrievalAndEligibilityTests`, `TestReliabilityAndRetrieval`?**
+  _High betweenness centrality (0.268) - this node is a cross-community bridge._
 - **Are the 128 inferred relationships involving `Movie` (e.g. with `Command` and `Command`) actually correct?**
   _`Movie` has 128 INFERRED edges - model-reasoned connections that need verification._
 - **Should `HardConstraintFilter` be split into smaller, more focused modules?**
