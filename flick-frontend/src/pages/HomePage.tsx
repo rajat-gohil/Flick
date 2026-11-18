@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
-import { trackEvent } from "../lib/analytics";
+import { identifyUser, resetAnalyticsIdentity, trackEvent } from "../lib/analytics";
 import { isGuest, isLoggedIn } from "../lib/auth";
 import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
 import CinemaHeader from "../components/CinemaHeader";
@@ -164,6 +164,7 @@ export default function HomePage() {
   const [profileResolved, setProfileResolved] = useState<boolean>(() => !safeIsLoggedIn());
   const [homeTourOpen, setHomeTourOpen] = useState(false);
   const homeTourDismissedRef = useRef(false);
+  const homeTourStepRef = useRef<{ index: number; id: string }>({ index: 0, id: "welcome" });
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [copiedActivationCode, setCopiedActivationCode] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
@@ -183,6 +184,10 @@ export default function HomePage() {
           setProfileUser(res.user);
           if (res.user.id !== undefined && res.user.id !== null) {
             safeStorageSet("user_id", String(res.user.id));
+            identifyUser(res.user.id, {
+              is_guest: Boolean(res.user.is_guest),
+              username: res.user.username,
+            });
           }
           if (res.user.is_guest === false) {
             safeStorageSet("is_guest", "false");
@@ -218,12 +223,18 @@ export default function HomePage() {
   const handleCompleteHomeTour = () => {
     homeTourDismissedRef.current = true;
     markTourFinished("home", "completed", tourIdentity);
+    trackEvent("tutorial_completed", { tour: "home" });
     setHomeTourOpen(false);
   };
 
   const handleSkipHomeTour = () => {
     homeTourDismissedRef.current = true;
     markTourFinished("home", "skipped", tourIdentity);
+    trackEvent("tutorial_skipped", {
+      tour: "home",
+      step_id: homeTourStepRef.current.id,
+      step_index: homeTourStepRef.current.index,
+    });
     setHomeTourOpen(false);
   };
 
@@ -330,6 +341,7 @@ export default function HomePage() {
       });
       try {
         await apiRequest(`/api/watchlist/${targetId}/`, { method: "DELETE" });
+        trackEvent("watchlist_removed", { movie_id: targetId, source: "home" });
       } catch {
         loadWatchlist();
       }
@@ -350,6 +362,7 @@ export default function HomePage() {
             rating: movie.rating,
           }),
         });
+        trackEvent("watchlist_added", { movie_id: targetId, source: "home" });
       } catch {
         loadWatchlist();
       }
@@ -389,6 +402,7 @@ export default function HomePage() {
         }
       }
       setJoinError(message);
+      trackEvent("session_join_failed", { source: "home_code", reason: message });
     } finally {
       setJoinLoading(false);
     }
@@ -402,6 +416,7 @@ export default function HomePage() {
     } catch {
       // Ignore storage errors
     }
+    resetAnalyticsIdentity();
     navigate("/", { replace: true });
   }
 
@@ -1397,6 +1412,9 @@ export default function HomePage() {
         isOpen={homeTourOpen && !showActivationModal && !selectedMovie}
         steps={HOME_TOUR_STEPS}
         ariaLabel="Flick homepage tour"
+        onStepChange={(index, step) => {
+          homeTourStepRef.current = { index, id: step.id };
+        }}
         onComplete={handleCompleteHomeTour}
         onSkip={handleSkipHomeTour}
       />

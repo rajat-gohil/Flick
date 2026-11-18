@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { provisionGuest, ApiError } from "../lib/api";
 import { saveAuthState } from "../lib/auth";
+import { trackEvent } from "../lib/analytics";
 import RecoveryCodeModal from "../components/RecoveryCodeModal";
 
 /* ============================
@@ -39,6 +40,7 @@ export default function EntryPage() {
           token: data.token,
           user: data.user,
         });
+        trackEvent("guest_provisioned", { user_id: data.user?.id });
 
         // Present newly issued recovery code
         setRecoveryCode(data.recovery_code);

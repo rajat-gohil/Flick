@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthShell, getPasswordStrength } from "../components/AuthShell";
 import { convertGuestAccount, ApiError } from "../lib/api";
 import { isGuest, updateAuthState, getCurrentUser } from "../lib/auth";
+import { identifyUser, trackEvent } from "../lib/analytics";
 
 export default function GuestConvertPage() {
   const navigate = useNavigate();
@@ -63,6 +64,11 @@ export default function GuestConvertPage() {
           display_name: data.user.display_name,
           username: data.user.username,
         });
+        identifyUser(data.user.id, {
+          is_guest: false,
+          username: data.user.username,
+        });
+        trackEvent("guest_converted", { user_id: data.user.id });
 
         setSuccess(true);
         setTimeout(() => {

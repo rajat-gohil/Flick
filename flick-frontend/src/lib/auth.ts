@@ -4,6 +4,8 @@
  * Recovery codes are NEVER stored in persistent storage.
  */
 
+import { identifyUser, resetAnalyticsIdentity } from "./analytics";
+
 export interface AuthUser {
   id?: number;
   username?: string;
@@ -72,6 +74,10 @@ export function saveAuthState(data: {
   if (data.user.guest_uuid) {
     localStorage.setItem("guest_uuid", data.user.guest_uuid);
   }
+  identifyUser(data.user.id, {
+    is_guest: Boolean(data.user.is_guest),
+    username: data.user.username,
+  });
 }
 
 export function updateAuthState(partial: {
@@ -104,6 +110,7 @@ export function logout() {
   localStorage.removeItem("email");
   localStorage.removeItem("is_guest");
   localStorage.removeItem("guest_uuid");
+  resetAnalyticsIdentity();
 }
 
 export const clearAuthState = logout;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { apiRequest } from "../../lib/api";
+import { trackEvent } from "../../lib/analytics";
 import {
   formatConstraintLabel,
   formatConstraintValue,
@@ -135,6 +136,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
         method: "POST",
         body: JSON.stringify({ action: "propose", auto_approve: true }),
       });
+      trackEvent("constraint_expansion_proposed", { session_id: Number(sessionId) });
       await fetchProposal();
     } catch (err: any) {
       setErrorMessage(err?.data?.error || err?.message || "Failed to submit proposal");
@@ -156,6 +158,10 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
           decision,
         }),
       });
+      trackEvent(
+        decision === "approve" ? "constraint_expansion_accepted" : "constraint_expansion_rejected",
+        { session_id: Number(sessionId), proposal_id: proposal.id }
+      );
       await fetchProposal();
     } catch (err: any) {
       setErrorMessage(err?.data?.error || err?.message || "Failed to record response");

@@ -1,5 +1,6 @@
 import { useParams, Navigate } from "react-router-dom";
 import { useEffect } from "react";
+import { trackEvent } from "../lib/analytics";
 
 export default function JoinViaLink() {
   const { sessionCode } = useParams<{ sessionCode: string }>();
@@ -10,6 +11,9 @@ export default function JoinViaLink() {
         "pendingSessionCode",
         sessionCode.toUpperCase()
       );
+      trackEvent("invite_link_opened", {
+        has_auth_token: Boolean(localStorage.getItem("auth_token")),
+      });
     }
   }, [sessionCode]);
 

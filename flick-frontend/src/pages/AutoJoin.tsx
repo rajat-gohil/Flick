@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import { trackEvent } from "../lib/analytics";
 import { useTheme } from "../context/ThemeContext";
 
 /* ============================
@@ -71,13 +72,21 @@ export default function AutoJoin() {
         });
 
         localStorage.removeItem("pendingSessionCode");
+        trackEvent("session_joined", {
+          session_id: data.session_id,
+          source: "invite_link",
+        });
         if (data.user_preferences_set) {
           navigate(`/session/${data.session_id}`, { replace: true });
         } else {
           navigate(`/session/${data.session_id}/preferences`, { replace: true });
         }
-      } catch {
+      } catch (err: unknown) {
         localStorage.removeItem("pendingSessionCode");
+        trackEvent("session_join_failed", {
+          source: "invite_link",
+          reason: err instanceof Error ? err.message : "invalid_or_ended",
+        });
         setError("This invite link is invalid or the screening session has concluded.");
       }
     }

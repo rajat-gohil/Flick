@@ -526,6 +526,7 @@ function SessionPageInner() {
   /* ── Session Spotlight Tutorial ── */
   const [showSessionTour, setShowSessionTour] = useState(false);
   const [sessionTourDismissed, setSessionTourDismissed] = useState(false);
+  const sessionTourStepRef = useRef<{ index: number; id: string }>({ index: 0, id: "like" });
 
   const sessionUserId =
     session?.user_role === "guest" ? session?.guest_id : session?.host_id;
@@ -579,14 +580,21 @@ function SessionPageInner() {
   const handleSessionTourComplete = useCallback(() => {
     setSessionTourDismissed(true);
     markTourFinished("session", "completed", tourIdentity);
+    trackEvent("tutorial_completed", { tour: "session", session_id: Number(id) || undefined });
     setShowSessionTour(false);
-  }, [tourIdentity]);
+  }, [tourIdentity, id]);
 
   const handleSessionTourSkip = useCallback(() => {
     setSessionTourDismissed(true);
     markTourFinished("session", "skipped", tourIdentity);
+    trackEvent("tutorial_skipped", {
+      tour: "session",
+      session_id: Number(id) || undefined,
+      step_id: sessionTourStepRef.current.id,
+      step_index: sessionTourStepRef.current.index,
+    });
     setShowSessionTour(false);
-  }, [tourIdentity]);
+  }, [tourIdentity, id]);
 
   /* ── Component-scoped swipe eligibility gate ── */
   const canSwipe = Boolean(
@@ -668,12 +676,14 @@ function SessionPageInner() {
       if (watchlistedIds.has(movieId)) {
         await apiRequest(`/api/watchlist/${movieId}/`, { method: "DELETE" });
         setWatchlistedIds(prev => { const s = new Set(prev); s.delete(movieId); return s; });
+        trackEvent("watchlist_removed", { movie_id: movieId, session_id: sessionId, source: "session" });
       } else {
         await apiRequest("/api/watchlist/", {
           method: "POST",
           body: JSON.stringify({ movie_id: movieId, session_id: sessionId }),
         });
         setWatchlistedIds(prev => new Set([...prev, movieId]));
+        trackEvent("watchlist_added", { movie_id: movieId, session_id: sessionId, source: "session" });
       }
     } catch { /* ignored */ }
     setWatchlistLoading(null);
@@ -756,6 +766,7 @@ function SessionPageInner() {
         setIsCandidateExhausted(false);
         const errStr = data.error || "Temporary movie service connection error. Tap retry to reconnect.";
         setDeckError(errStr);
+        trackEvent("deck_load_failed", { session_id: Number(sessionId), reason: "transient_error" });
         return { status: "retryable_error" as const, error: errStr };
       }
       if (data && data.replenishing) {
@@ -774,6 +785,7 @@ function SessionPageInner() {
         setIsCandidateExhausted(true);
         const errStr = data.error || "Eligible candidate pool exhausted (< 16).";
         setDeckError(errStr);
+        trackEvent("deck_exhausted", { session_id: Number(sessionId) });
         return { status: "exhausted" as const, error: errStr };
       }
       if (data && data.success) {
@@ -819,19 +831,23 @@ function SessionPageInner() {
           setIsCandidateExhausted(true);
           const errStr = errorObj.data?.error || "Eligible candidate pool exhausted (< 16).";
           setDeckError(errStr);
+          trackEvent("deck_exhausted", { session_id: Number(sessionId) });
           return { status: "exhausted" as const, error: errStr };
         }
         if (errorObj.status === 401 || errorObj.status === 403) {
           const errStr = errorObj.data?.error || errorObj.message || "Authentication error";
           setDeckError(errStr);
+          trackEvent("deck_load_failed", { session_id: Number(sessionId), status: errorObj.status, reason: "auth_error" });
           return { status: "auth_error" as const, error: errStr, statusCode: errorObj.status };
         }
         const errStr = errorObj.data?.error || errorObj.message || "Screening deck connection error. Tap retry to reconnect.";
         setDeckError(errStr);
+        trackEvent("deck_load_failed", { session_id: Number(sessionId), status: errorObj.status, reason: "request_error" });
         return { status: "retryable_error" as const, error: errStr, statusCode: errorObj.status };
       }
       const genericError = "Screening deck connection error. Tap retry to reconnect.";
       setDeckError(genericError);
+      trackEvent("deck_load_failed", { session_id: Number(sessionId), reason: "network_error" });
       return { status: "retryable_error" as const, error: genericError };
     }
   }, []);
@@ -1468,6 +1484,14 @@ function SessionPageInner() {
         setLastSwiped(null);
 
         if (!isEnded) {
+          trackEvent("swipe_failed", {
+            session_id: Number(id),
+            movie_id: card.movie_id,
+            card_index: card.card_index,
+            reaction,
+            resynced,
+            mode: "manifest",
+          });
           setSwipeToast(resynced ? "Deck updated. Please swipe again." : "Swipe could not be recorded. Please retry.");
           setTimeout(() => {
             if (isMountedRef.current) setSwipeToast("");
@@ -1545,6 +1569,12 @@ function SessionPageInner() {
       setSwipeCount((prev) => Math.max(0, prev - 1));
       setLastSwiped(null);
 
+      trackEvent("swipe_failed", {
+        session_id: Number(id),
+        movie_id: movie.id,
+        reaction,
+        mode: "legacy",
+      });
       setSwipeToast("Swipe could not be recorded. Please retry.");
       setTimeout(() => {
         if (isMountedRef.current) setSwipeToast("");
@@ -1746,6 +1776,7 @@ function SessionPageInner() {
   ============================ */
 
   async function openStreamingSheet(movieId: number, movieTitle?: string) {
+    trackEvent("streaming_options_viewed", { movie_id: movieId, session_id: Number(id) || undefined });
     if (streamingMovieId === movieId) {
       setShowStreamingSheet(true);
       return;
@@ -3317,7 +3348,21 @@ function SessionPageInner() {
                                   </div>
                                 );
                                 return p.url ? (
-                                  <a key={i} href={p.url} target="_blank" rel="noopener noreferrer" className="block focus:outline-hidden">
+                                  <a
+                                    key={i}
+                                    href={p.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() =>
+                                      trackEvent("streaming_provider_clicked", {
+                                        movie_id: streamingMovieId,
+                                        provider_name: p.name,
+                                        monetization_type: p.type,
+                                        session_id: Number(id) || undefined,
+                                      })
+                                    }
+                                    className="block focus:outline-hidden"
+                                  >
                                     {item}
                                   </a>
                                 ) : (
@@ -3466,6 +3511,9 @@ function SessionPageInner() {
         isOpen={showSessionTour}
         steps={SESSION_TOUR_STEPS}
         ariaLabel="Screening room tutorial"
+        onStepChange={(index, step) => {
+          sessionTourStepRef.current = { index, id: step.id };
+        }}
         onComplete={handleSessionTourComplete}
         onSkip={handleSessionTourSkip}
       />

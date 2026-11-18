@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "../lib/api";
+import { trackEvent } from "../lib/analytics";
 import StreamingOptions from "../components/StreamingOptions";
 import { MovieCardSkeleton, ShelfSkeleton } from "../components/Skeleton";
 import { bottomSheetVariants, backdropVariants } from "../lib/motion";
@@ -1109,11 +1110,13 @@ export default function DiscoverPage() {
     try {
       if (already) {
         await apiRequest(`/api/watchlist/${key}/`, { method: "DELETE" });
+        trackEvent("watchlist_removed", { movie_id: key, source: "discover" });
       } else {
         await apiRequest("/api/watchlist/", {
           method: "POST",
           body: JSON.stringify({ tmdb_id: movie.tmdb_id, movie_id: movie.id || movie.tmdb_id }),
         });
+        trackEvent("watchlist_added", { movie_id: key, source: "discover" });
       }
     } catch {
       // Revert on failure

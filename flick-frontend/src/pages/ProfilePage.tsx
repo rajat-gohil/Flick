@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest, ApiError } from "../lib/api";
+import { identifyUser, resetAnalyticsIdentity, trackEvent } from "../lib/analytics";
 import { isGuest } from "../lib/auth";
 import { resetAllTours } from "../lib/tutorial";
 import { useTheme } from "../context/ThemeContext";
@@ -130,6 +131,10 @@ export default function ProfilePage() {
           } catch {
             // Ignore storage access errors
           }
+          identifyUser(response.user.id, {
+            is_guest: safeIsGuest(),
+            username: response.user.username,
+          });
         }
         if (response.user.display_name) {
           try {
@@ -154,6 +159,7 @@ export default function ProfilePage() {
     } catch {
       // Ignore storage access errors
     }
+    trackEvent("tutorial_replayed");
     setTutorialsResetNotice(true);
     if (resetNoticeTimerRef.current !== null) {
       window.clearTimeout(resetNoticeTimerRef.current);
@@ -257,6 +263,7 @@ export default function ProfilePage() {
         ["auth_token", "username", "display_name", "email", "user_id"].forEach(k =>
           localStorage.removeItem(k)
         );
+        resetAnalyticsIdentity();
         navigate("/", { replace: true });
       } else {
         setDeleteError(res.error || "Failed to delete account.");
@@ -272,6 +279,7 @@ export default function ProfilePage() {
     ["auth_token", "username", "display_name", "email", "user_id"].forEach(k =>
       localStorage.removeItem(k)
     );
+    resetAnalyticsIdentity();
     navigate("/");
   };
 

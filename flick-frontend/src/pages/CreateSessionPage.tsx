@@ -195,9 +195,18 @@ export default function CreateSessionPage() {
       setSessionCode(sessionData.code);
       setStep("created");
 
+      const selectedProviderNames = STREAMING_SERVICES.filter((p) =>
+        selectedProviders.includes(p.id)
+      ).map((p) => p.name);
+
       trackEvent("session_created", {
         industry,
         genres_count: selectedGenreIds.length,
+        languages: selectedLanguages,
+        languages_count: selectedLanguages.length,
+        streaming_providers: selectedProviderNames,
+        streaming_provider_ids: selectedProviders.map((p) => Number(p)),
+        streaming_providers_count: selectedProviders.length,
         session_id: sessionData.id,
       });
     } catch {
@@ -251,6 +260,7 @@ export default function CreateSessionPage() {
     try {
       await navigator.clipboard.writeText(sessionCode);
       setCopied(true);
+      trackEvent("invite_code_copied", { session_id: sessionId });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback
@@ -262,6 +272,7 @@ export default function CreateSessionPage() {
     try {
       await navigator.clipboard.writeText(inviteLink);
       setCopied(true);
+      trackEvent("invite_link_copied", { session_id: sessionId });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback
@@ -278,6 +289,7 @@ export default function CreateSessionPage() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        trackEvent("invite_link_copied", { session_id: sessionId, method: "web_share" });
       } catch {
         handleCopyLink();
       }

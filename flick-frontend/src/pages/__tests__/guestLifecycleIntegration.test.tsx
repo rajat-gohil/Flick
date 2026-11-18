@@ -24,6 +24,8 @@ Object.defineProperty(window, "matchMedia", {
 // Mock analytics
 vi.mock("../../lib/analytics", () => ({
   trackEvent: vi.fn(),
+  identifyUser: vi.fn(),
+  resetAnalyticsIdentity: vi.fn(),
 }));
 
 // Mock apiRequest and helper functions while retaining real ApiError and export types
