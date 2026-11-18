@@ -306,6 +306,65 @@ describe("Slice E — Screening Termination Controls (SessionPage)", () => {
 
     const endCalls = mockApiRequest.mock.calls.filter((call: any[]) => call[0] === "/api/sessions/end/");
     expect(endCalls.length).toBe(0);
+    // Guest sees honest exited-screening view (not fake "Screening Concluded")
+    await waitFor(() => {
+      expect(screen.queryByTestId("guest-left-session-view")).not.toBeNull();
+    });
+  });
+
+  it("shows visible inline error inside confirmation modal and allows retry when /api/sessions/end/ fails", async () => {
+    let attempts = 0;
+    mockApiRequest.mockImplementation((url: string) => {
+      if (url.includes("deck/card/")) return Promise.resolve(normalManifestResponse);
+      if (url.includes("deck/")) return Promise.resolve({});
+      if (url.includes("/api/sessions/63/")) return Promise.resolve(hostSessionResponse);
+      if (url.includes("/api/matches/")) return Promise.resolve({ matches: [] });
+      if (url.includes("/api/watchlist/")) return Promise.resolve({ watchlist: [] });
+      if (url === "/api/sessions/end/") {
+        attempts += 1;
+        if (attempts === 1) return Promise.reject(new Error("Temporary server error"));
+        return Promise.resolve({ success: true, ended: true, matches: [] });
+      }
+      return Promise.resolve({});
+    });
+
+    renderSessionPage();
+    await waitFor(() => {
+      expect(screen.queryByTestId("conclude-screening-btn")).not.toBeNull();
+    }, { timeout: 4000 });
+
+    fireEvent.click(screen.getByTestId("conclude-screening-btn"));
+    await waitFor(() => expect(screen.queryByTestId("end-confirm-modal")).not.toBeNull());
+    fireEvent.click(screen.getByTestId("end-confirm-proceed-btn"));
+
+    // Modal stays open with visible error alert on failure
+    await waitFor(() => {
+      expect(screen.queryByTestId("end-confirm-error")).not.toBeNull();
+    });
+    expect(screen.getByTestId("end-confirm-error").textContent).toContain("Temporary server error");
+
+    // Retry succeeds and concludes session
+    fireEvent.click(screen.getByTestId("end-confirm-proceed-btn"));
+    await waitFor(() => {
+      expect(screen.queryByText(/Screening Concluded/i)).not.toBeNull();
+    });
+    expect(attempts).toBe(2);
+  });
+
+  it("Escape key closes the End Screening confirmation modal", async () => {
+    window.localStorage.setItem("flick_tour_session_v1:4", "completed");
+    makeNormalMock();
+    renderSessionPage();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("conclude-screening-btn")).not.toBeNull();
+    }, { timeout: 4000 });
+
+    fireEvent.click(screen.getByTestId("conclude-screening-btn"));
+    await waitFor(() => expect(screen.queryByTestId("end-confirm-modal")).not.toBeNull());
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("end-confirm-modal")).toBeNull());
   });
 });
 

@@ -514,7 +514,9 @@ function SessionPageInner() {
 
   /* ── Slice E: role-aware end/leave controls ── */
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [endSessionError, setEndSessionError] = useState("");
   const [leaveSessionLoading, setLeaveSessionLoading] = useState(false);
+  const [hasLeftSession, setHasLeftSession] = useState(false);
 
   /* ── Super-like ── */
   const [superLikeLoading, setSuperLikeLoading] = useState(false);
@@ -874,7 +876,18 @@ function SessionPageInner() {
           matched_count: sMatched,
           affinity_percent: sAffinity,
         };
-        setSession(normalizedSession);
+        setSession((prev) => {
+          if (isSessionTerminatedRef.current && prev?.ended && !normalizedSession.ended) {
+            return {
+              ...normalizedSession,
+              ended: true,
+              reviewed_count: Math.max(normalizedSession.reviewed_count ?? 0, prev.reviewed_count ?? 0),
+              matched_count: Math.max(normalizedSession.matched_count ?? 0, prev.matched_count ?? 0),
+              affinity_percent: prev.affinity_percent ?? normalizedSession.affinity_percent,
+            };
+          }
+          return normalizedSession;
+        });
 
         if (sReviewed > 0) {
           setSwipeCount((prev) => Math.max(prev, sReviewed));
@@ -1248,7 +1261,11 @@ function SessionPageInner() {
               return;
             }
             if (data.type === "session_state_changed" && data.session) {
-              setSession((prev) => (prev ? { ...prev, ...data.session } : data.session));
+              setSession((prev) => {
+                if (!prev) return data.session;
+                const keepEnded = isSessionTerminatedRef.current && prev.ended;
+                return { ...prev, ...data.session, ended: keepEnded ? true : (data.session.ended ?? prev.ended) };
+              });
             }
           }
 
@@ -1593,15 +1610,23 @@ function SessionPageInner() {
     if (sessionLocked || session?.ended || isEndingRef.current) return;
     isEndingRef.current = true;
     setEndSessionLoading(true);
-    setShowEndConfirm(false);
+    setEndSessionError("");
     try {
       const res = await apiRequest("/api/sessions/end/", {
         method: "POST",
         body: JSON.stringify({ session_id: Number(id) }),
       });
+      if (res && res.success === false) {
+        throw new Error(res.error || "Unable to conclude session.");
+      }
       if (isMountedRef.current) {
         isSessionTerminatedRef.current = true;
         setSessionLocked(true);
+        setShowEndConfirm(false);
+        setShowMatch(false);
+        setMatchedMovie(null);
+        setEndSessionError("");
+        trackEvent("session_end_manual", { session_id: Number(id) });
         if (Array.isArray(res?.matches)) {
           setMatches(res.matches);
         }
@@ -1636,14 +1661,20 @@ function SessionPageInner() {
       }
     } catch (err: unknown) {
       console.error("[endSession] API error:", err);
+      const errMsg =
+        err instanceof Error && err.message
+          ? err.message
+          : "Unable to conclude session. Please check your connection and retry.";
+      trackEvent("session_end_failed", { session_id: Number(id), reason: errMsg });
       if (isMountedRef.current) {
         // Unlock on failure so temporary network interruptions allow retry
         isEndingRef.current = false;
         setEndSessionLoading(false);
-        setError("Unable to conclude session. Please check your connection and retry.");
+        setEndSessionError(errMsg);
+        setSwipeToast(errMsg);
         setTimeout(() => {
-          if (isMountedRef.current) setError("");
-        }, 4000);
+          if (isMountedRef.current) setSwipeToast("");
+        }, 4500);
       }
       return;
     } finally {
@@ -1658,7 +1689,7 @@ function SessionPageInner() {
   ============================ */
 
   async function leaveSession() {
-    if (leaveSessionLoading || session?.ended) return;
+    if (leaveSessionLoading || session?.ended || hasLeftSession) return;
     setLeaveSessionLoading(true);
     try {
       await apiRequest("/api/sessions/leave/", {
@@ -1668,7 +1699,7 @@ function SessionPageInner() {
       if (isMountedRef.current) {
         isSessionTerminatedRef.current = true;
         setSessionLocked(true);
-        setSession((prev) => (prev ? { ...prev, ended: true } : prev));
+        setHasLeftSession(true);
         const active = activeSessionSockets.get(String(id));
         if (active) {
           try { active.close(1000, "Session left by user"); } catch {}
@@ -1678,10 +1709,10 @@ function SessionPageInner() {
     } catch (err: unknown) {
       console.error("[leaveSession] API error:", err);
       if (isMountedRef.current) {
-        setError("Unable to leave session. Please check your connection and retry.");
+        setSwipeToast("Unable to leave session. Please check your connection and retry.");
         setTimeout(() => {
-          if (isMountedRef.current) setError("");
-        }, 4000);
+          if (isMountedRef.current) setSwipeToast("");
+        }, 4500);
       }
     } finally {
       if (isMountedRef.current) setLeaveSessionLoading(false);
@@ -1813,7 +1844,7 @@ function SessionPageInner() {
         target.tagName === "SELECT" ||
         target.tagName === "BUTTON" ||
         target.tagName === "A" ||
-        target.getAttribute("role") === "button"
+        (typeof target.getAttribute === "function" && target.getAttribute("role") === "button")
       );
 
       // Escape key handling
@@ -1824,6 +1855,14 @@ function SessionPageInner() {
         }
 
         // Strict topmost dismissal order (one sheet/modal at a time)
+        if (showEndConfirm) {
+          e.preventDefault();
+          if (!endSessionLoading) {
+            setShowEndConfirm(false);
+            setEndSessionError("");
+          }
+          return;
+        }
         if (showStreamingSheet) {
           e.preventDefault();
           setShowStreamingSheet(false);
@@ -1901,6 +1940,8 @@ function SessionPageInner() {
   }, [
     canSwipe,
     isSessionTourLocked,
+    showEndConfirm,
+    endSessionLoading,
     showStreamingSheet,
     showInfoSheet,
     showReQuestionnaire,
@@ -1939,6 +1980,50 @@ function SessionPageInner() {
         submessage="Connecting to collaborative viewing room..."
         fullScreen={true}
       />
+    );
+  }
+
+  /* ============================
+     GUEST VOLUNTARY EXIT VIEW
+  ============================ */
+
+  if (hasLeftSession && !session.ended) {
+    return (
+      <div className="bg-background font-sans text-foreground min-h-screen flex flex-col items-center justify-center px-6">
+        <div
+          data-testid="guest-left-session-view"
+          className="w-full max-w-sm flex flex-col items-center gap-6 text-center p-8 rounded-2xl border border-border bg-surface shadow-sm"
+        >
+          <div className="size-16 rounded-full bg-surface-secondary border border-border flex items-center justify-center text-primary">
+            <span className="material-symbols-outlined text-[32px]">exit_to_app</span>
+          </div>
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-primary mb-1 block">
+              Screening Exited
+            </span>
+            <h1 className="font-editorial text-2xl font-semibold tracking-tight text-foreground mb-1.5">
+              You Left the Screening
+            </h1>
+            <p className="text-foreground-secondary text-xs leading-relaxed max-w-xs mx-auto">
+              You have stepped out of this screening room. The host's session remains active until they conclude it.
+            </p>
+          </div>
+          <div className="w-full flex flex-col gap-2.5">
+            <button
+              onClick={() => navigate("/home", { replace: true })}
+              className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              Return Home
+            </button>
+            <button
+              onClick={() => navigate("/sessions", { replace: true })}
+              className="w-full h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2"
+            >
+              View Screenings
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -2903,16 +2988,19 @@ function SessionPageInner() {
               onClick={leaveSession}
               disabled={leaveSessionLoading || sessionLocked || session?.ended}
               data-testid="leave-screening-btn"
-              className="text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground transition-colors disabled:opacity-50"
+              className="inline-flex min-h-[36px] items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               {leaveSessionLoading ? "Leaving…" : "Leave"}
             </button>
           ) : (
             <button
-              onClick={() => setShowEndConfirm(true)}
+              onClick={() => {
+                setEndSessionError("");
+                setShowEndConfirm(true);
+              }}
               disabled={endSessionLoading || sessionLocked || session?.ended}
               data-testid="conclude-screening-btn"
-              className="text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground transition-colors disabled:opacity-50"
+              className="inline-flex min-h-[36px] items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               {endSessionLoading ? "Concluding…" : "Conclude"}
             </button>
@@ -3469,7 +3557,12 @@ function SessionPageInner() {
         <div
           data-testid="end-confirm-modal"
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowEndConfirm(false); }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !endSessionLoading) {
+              setShowEndConfirm(false);
+              setEndSessionError("");
+            }
+          }}
         >
           <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-xl p-6 flex flex-col gap-4">
             <div className="flex flex-col gap-1 text-center">
@@ -3479,12 +3572,21 @@ function SessionPageInner() {
                 This will end the screening for both participants. Your match history and screening archive will be preserved.
               </p>
             </div>
+            {endSessionError && (
+              <div
+                role="alert"
+                data-testid="end-confirm-error"
+                className="rounded-xl bg-error/10 border border-error/25 px-3.5 py-2.5 text-xs text-error text-center font-medium"
+              >
+                {endSessionError}
+              </div>
+            )}
             <div className="flex flex-col gap-2.5">
               <button
                 onClick={endSession}
                 disabled={endSessionLoading}
                 data-testid="end-confirm-proceed-btn"
-                className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+                className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 cursor-pointer touch-manipulation"
               >
                 {endSessionLoading ? (
                   <span className="size-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
@@ -3496,8 +3598,12 @@ function SessionPageInner() {
                 )}
               </button>
               <button
-                onClick={() => setShowEndConfirm(false)}
-                className="w-full h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors"
+                onClick={() => {
+                  setShowEndConfirm(false);
+                  setEndSessionError("");
+                }}
+                disabled={endSessionLoading}
+                className="w-full h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
               >
                 Keep Screening
               </button>

@@ -590,3 +590,17 @@ class ScreeningSessionResultsAndStatsPersistenceTests(TestCase):
         self.assertEqual(res_b.data["session"]["reviewed_count"], 8)
         self.assertEqual(res_b.data["session"]["matched_count"], 4)
         self.assertEqual(res_b.data["session"]["affinity_percent"], 50)
+
+    def test_end_session_clamps_duration_ms_for_old_sessions(self):
+        """Ending a session older than 24.85 days must clamp duration_ms instead of overflowing 32-bit int."""
+        from datetime import timedelta
+
+        Session.objects.filter(id=self.session.id).update(
+            created_at=timezone.now() - timedelta(days=40)
+        )
+        self.client.force_authenticate(user=self.host)
+        res = self.client.post("/api/sessions/end/", {"session_id": self.session.id}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.data["ended"])
+        stats = SessionStats.objects.get(session=self.session)
+        self.assertEqual(stats.duration_ms, 2_147_483_647)

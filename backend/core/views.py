@@ -1411,7 +1411,8 @@ class SessionEndView(APIView):
 
             if session.created_at:
                 duration = timezone.now() - session.created_at
-                stats.duration_ms = int(duration.total_seconds() * 1000)
+                raw_ms = int(duration.total_seconds() * 1000)
+                stats.duration_ms = max(0, min(raw_ms, 2_147_483_647))
 
             stats.ended_by = ended_by
 
