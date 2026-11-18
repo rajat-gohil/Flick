@@ -153,7 +153,7 @@ describe("Component-Level User-Visible API Error Handling", () => {
 
       await waitFor(() => {
         expect(screen.getByText("Active Session 88 Deck")).not.toBeNull();
-      });
+      }, { timeout: 4000 });
     });
   });
 

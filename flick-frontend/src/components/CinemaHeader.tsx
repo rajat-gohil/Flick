@@ -33,7 +33,7 @@ export default function CinemaHeader({
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* ── Left: Brand or Mobile Back ── */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
           {onBack && (
             <button
               onClick={onBack}
@@ -59,12 +59,12 @@ export default function CinemaHeader({
 
           {/* Mobile Title (when onBack is present or custom title provided) */}
           {title && (
-            <div className="flex flex-col min-w-0 md:hidden">
+            <div className="flex flex-col min-w-0 md:hidden flex-1">
               <h1 className="font-editorial text-base sm:text-lg font-bold text-foreground leading-tight truncate">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-[10px] text-foreground-secondary leading-none truncate mt-0.5">
+                <p className="text-[10px] text-foreground-secondary leading-none truncate mt-0.5 max-w-full">
                   {subtitle}
                 </p>
               )}
@@ -100,7 +100,7 @@ export default function CinemaHeader({
         </nav>
 
         {/* ── Right: Custom Actions & Profile / Theme ── */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {rightAction}
 
           {/* Theme switcher */}

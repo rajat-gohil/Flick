@@ -35,6 +35,8 @@ vi.mock("../../lib/api", () => ({
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
   useMotionValue: () => ({ get: () => 0, set: () => {} }),

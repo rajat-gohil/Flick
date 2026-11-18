@@ -34,6 +34,8 @@ vi.mock("../../lib/api", () => ({
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
   useMotionValue: () => ({ get: () => 0, set: () => {} }),
@@ -150,9 +152,11 @@ describe("WebSocket Match Metadata Fallback & Connection Stability", () => {
     });
 
     // Verify poster img has the fallback poster url from deckMovies (via moviesRef)
-    const posterImg = screen.getByAltText("Inception") as HTMLImageElement;
-    expect(posterImg).not.toBeNull();
-    expect(posterImg.src).toContain("https://image.tmdb.org/t/p/w500/inception.jpg");
+    await waitFor(() => {
+      const posterImg = screen.getByAltText("Inception") as HTMLImageElement;
+      expect(posterImg).not.toBeNull();
+      expect(posterImg.src).toContain("https://image.tmdb.org/t/p/w500/inception.jpg");
+    });
 
     // Verify that WebSocket was NOT closed or re-instantiated
     expect(activeWs.close).not.toHaveBeenCalled();

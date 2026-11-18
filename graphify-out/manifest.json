@@ -1110,9 +1110,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/components/CinemaHeader.tsx": {
-    "mtime": 1794987017.748065,
-    "seen": 1794987627.340999,
-    "ast_hash": "65ed2bf3d4f5cba80840a0d685dbcb88",
+    "mtime": 1795030335.823819,
+    "seen": 1795030599.4083872,
+    "ast_hash": "6335780077724542526910974c9f8ad9",
     "semantic_hash": ""
   },
   "flick-frontend/src/components/CinematicLoader.tsx": {
@@ -1182,9 +1182,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/lib/api.ts": {
-    "mtime": 1793904983.0997832,
-    "seen": 1794898939.914788,
-    "ast_hash": "4a6842ed25b6c61ca1774b08dbabc944",
+    "mtime": 1795030343.6200607,
+    "seen": 1795030599.408401,
+    "ast_hash": "986982d4bb2f668c98518072edc95a4d",
     "semantic_hash": ""
   },
   "flick-frontend/src/lib/auth.ts": {
@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/DiscoverPage.tsx": {
-    "mtime": 1795003190.0211394,
-    "seen": 1795003284.3936808,
-    "ast_hash": "71f13cf2adc976017ba51506faed2a56",
+    "mtime": 1795030538.426554,
+    "seen": 1795030599.4084108,
+    "ast_hash": "690b712335718d13a082e19ed74e2b83",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/EntryPage.tsx": {
@@ -1320,9 +1320,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionPage.tsx": {
-    "mtime": 1795021090.5786822,
-    "seen": 1795021120.744983,
-    "ast_hash": "0f8ed6ecf7672667396fae6485b32a8b",
+    "mtime": 1795032735.3095198,
+    "seen": 1795032974.284826,
+    "ast_hash": "45d08cfb10f8da8e18ccfb7a90efaff7",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionsListPage.tsx": {
@@ -1356,15 +1356,15 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/componentErrorDisplay.test.tsx": {
-    "mtime": 1794898882.2819383,
-    "seen": 1794898939.914814,
-    "ast_hash": "8f5334d19e470b056817a5f9b045f91e",
+    "mtime": 1795032795.791494,
+    "seen": 1795032974.28487,
+    "ast_hash": "8df39eca8e96e3e83b067bf94fcc6ca0",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/guestJoinNavigation.test.tsx": {
-    "mtime": 1793787669.5223947,
-    "seen": 1794898939.914815,
-    "ast_hash": "00092a31f28c72180643816127a9a2c0",
+    "mtime": 1795032598.9049563,
+    "seen": 1795032974.2854779,
+    "ast_hash": "25c9f6e322f3cb220a7d74b6300b21c3",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/guestLifecycleIntegration.test.tsx": {
@@ -1386,9 +1386,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/partnerWaitingBehavior.test.tsx": {
-    "mtime": 1795021071.3733337,
-    "seen": 1795021120.744995,
-    "ast_hash": "3bcadc9a02a53b983b58bfdfdd63436e",
+    "mtime": 1795032583.8275986,
+    "seen": 1795032974.285494,
+    "ast_hash": "dddb891a315a0ec70bbe1ad911d9d580",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/phase3DeckIntegration.test.tsx": {
@@ -1404,9 +1404,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/screeningSessionResults.test.tsx": {
-    "mtime": 1794597929.0690045,
-    "seen": 1794898939.9148219,
-    "ast_hash": "5a1b696871560932c3b0dc081cedabf0",
+    "mtime": 1795032587.392883,
+    "seen": 1795032974.285505,
+    "ast_hash": "355feb0013b3ab7d03e6030939b2e107",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/sessionDirectoryEndButton.test.tsx": {
@@ -1416,15 +1416,15 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/sessionLifecycleBatchB.test.tsx": {
-    "mtime": 1794987531.7805912,
-    "seen": 1794987627.341055,
-    "ast_hash": "bc71b53df9fe8859f8a435c08267677a",
+    "mtime": 1795032591.4706488,
+    "seen": 1795032974.285512,
+    "ast_hash": "0d0dbdca92da27fb3bb428bcbf56c9ed",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/webSocketMetadataFallback.test.tsx": {
-    "mtime": 1793730455.0760012,
-    "seen": 1794898939.914825,
-    "ast_hash": "072c2fa613ad4c6687f0f8b68c6baef5",
+    "mtime": 1795032695.1160116,
+    "seen": 1795032974.2855208,
+    "ast_hash": "7ebe10cb86160718607b28dbd69586fa",
     "semantic_hash": ""
   },
   "flick-frontend/tsconfig.app.json": {
@@ -2091,6 +2091,24 @@
     "mtime": 1795003240.924695,
     "seen": 1795003284.393713,
     "ast_hash": "7eb5847cbb2436c2df60c456931041a4",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/pages/__tests__/discoverPageUiFixes.test.tsx": {
+    "mtime": 1795031350.180202,
+    "seen": 1795031520.825386,
+    "ast_hash": "2ccdf8f6aacf553e71610449209884e6",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/pages/__tests__/swipeDeckPhase1Polish.test.tsx": {
+    "mtime": 1795032621.0016665,
+    "seen": 1795032974.285515,
+    "ast_hash": "ae5ad1dd459a96fb0fbccbabf7820d17",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/lib/sound.ts": {
+    "mtime": 1795032278.413469,
+    "seen": 1795032974.2846642,
+    "ast_hash": "5d05c259d9b85e918478e166f3643e99",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

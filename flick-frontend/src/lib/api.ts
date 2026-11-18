@@ -150,6 +150,7 @@ const PUBLIC_ENDPOINTS = [
   "/api/auth/guest-recover/",
   "/api/genres/",
   "/api/discover/",
+  "/api/catalogue/",
 ];
 
 function isPublicEndpoint(endpoint: string): boolean {

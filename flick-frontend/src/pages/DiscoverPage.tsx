@@ -91,8 +91,8 @@ export const CATEGORIES = [
 export type CategoryId = typeof CATEGORIES[number]["id"];
 
 const SORT_OPTIONS: { value: CatalogueSort; label: string; icon: string }[] = [
-  { value: "rating", label: "Rating", icon: "star" },
   { value: "popularity", label: "Popularity", icon: "trending_up" },
+  { value: "rating", label: "Rating", icon: "star" },
   { value: "release_date", label: "Release Date", icon: "calendar_today" },
   { value: "title", label: "Title (A–Z)", icon: "sort_by_alpha" },
 ];
@@ -391,7 +391,7 @@ export function MovieDetailSheet({
           {/* Close pill with 44x44px hitbox */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 size-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10"
+            className="absolute top-3 right-3 size-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10 cursor-pointer"
             aria-label="Close details"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -489,7 +489,7 @@ export function MovieDetailSheet({
         <div className="px-5 pb-[max(1.5rem,calc(1rem+env(safe-area-inset-bottom)))] md:pb-4 pt-3 border-t border-border/60 shrink-0">
           <button
             onClick={() => onWatchlist(movie)}
-            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all ${
+            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer ${
               inWatchlist
                 ? "bg-primary/10 border border-primary text-primary"
                 : "bg-primary hover:bg-primary-hover text-surface shadow-sm"
@@ -616,19 +616,25 @@ function HeroCard({
   onWatchlist: (m: Movie) => void;
   onTap: (movie: Movie) => void;
 }) {
+  const [imgError, setImgError] = useState(false);
+  const imageUrl = movie.backdrop_url || movie.poster_url;
+
   return (
     <div
       className="relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border shadow-md h-52 sm:h-72 md:h-80 lg:h-96"
       onClick={() => onTap(movie)}
     >
-      {movie.backdrop_url || movie.poster_url ? (
+      {!imgError && imageUrl ? (
         <img
-          src={movie.backdrop_url ?? movie.poster_url ?? ""}
+          src={imageUrl}
           alt={movie.title}
           className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
         />
       ) : (
-        <div className="w-full h-full bg-surface-secondary" />
+        <div className="w-full h-full bg-surface-secondary flex items-center justify-center text-foreground-secondary">
+          <span className="material-symbols-outlined text-5xl">movie</span>
+        </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
@@ -753,10 +759,10 @@ function ArchiveShelfSection({
         onScroll={checkScroll}
         className="flex gap-3.5 sm:gap-4 px-4 sm:px-6 lg:px-8 overflow-x-auto hide-scrollbar pb-2 scroll-smooth"
       >
-        {shelf.movies.map((movie) => {
+        {shelf.movies.map((movie, idx) => {
           const isMarked = watchlistIds.has(movie.tmdb_id) || (movie.id != null && watchlistIds.has(movie.id));
           return (
-            <div key={movie.tmdb_id || movie.id} className="shrink-0 w-28 sm:w-36 md:w-40 lg:w-44">
+            <div key={`shelf-${shelf.id}-${movie.tmdb_id || movie.id || idx}`} className="shrink-0 w-28 sm:w-36 md:w-40 lg:w-44">
               <MovieCard
                 movie={movie}
                 inWatchlist={isMarked}
@@ -818,7 +824,7 @@ export default function DiscoverPage() {
   const urlEra = searchParams.get("era") || "any";
   const urlRating = searchParams.get("min_rating") || "any";
   const urlSearch = searchParams.get("search") || "";
-  const urlSort = (searchParams.get("sort_by") as CatalogueSort) || "rating";
+  const urlSort = (searchParams.get("sort_by") as CatalogueSort) || "popularity";
 
   const initialFilters: Filters = {
     genre: urlGenre,
@@ -870,6 +876,7 @@ export default function DiscoverPage() {
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevSearchRef = useRef(searchQuery);
   const activeReqIdRef = useRef(0);
 
   const isAuthenticated = Boolean(localStorage.getItem("auth_token"));
@@ -1027,7 +1034,10 @@ export default function DiscoverPage() {
   /* ── Debounced Search for Catalogue ── */
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    if (!searchQuery) return;
+
+    // Skip redundant fetch on initial mount when searchQuery is empty
+    if (searchQuery === "" && prevSearchRef.current === "") return;
+    prevSearchRef.current = searchQuery;
 
     searchTimer.current = setTimeout(() => {
       if (activeView !== "catalogue") {
@@ -1192,8 +1202,8 @@ export default function DiscoverPage() {
         title={activeView === "archive" ? "Your Archive" : "Complete Catalogue"}
         subtitle={
           activeView === "archive"
-            ? "Personalized discovery shelves tailored to your cinematic taste"
-            : "Completely unpersonalized international catalogue with zero taste bias"
+            ? "Personalized shelves tailored to your cinematic taste"
+            : "Unfiltered global catalogue with zero taste bias"
         }
         onBack={() => navigate(-1)}
         rightAction={
@@ -1254,7 +1264,7 @@ export default function DiscoverPage() {
             SURFACE 1: YOUR ARCHIVE (Personalized Shelves)
         ======================================================= */}
         {activeView === "archive" && (
-          <main className="flex-1 overflow-y-auto pt-2 pb-8">
+          <main className="flex-1 pt-2 pb-8">
             {!isAuthenticated ? (
               <div className="mx-4 sm:mx-6 lg:mx-8 my-8 p-8 sm:p-10 rounded-3xl border border-border/80 bg-surface text-center space-y-4 max-w-2xl mx-auto shadow-sm">
                 <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
@@ -1374,7 +1384,7 @@ export default function DiscoverPage() {
             SURFACE 2: COMPLETE CATALOGUE (Unpersonalized Browsing)
         ======================================================= */}
         {activeView === "catalogue" && (
-          <main className="flex-1 overflow-y-auto pb-8">
+          <main className="flex-1 pb-8">
             {/* Search Bar */}
             <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={clearSearch} />
 
@@ -1407,14 +1417,14 @@ export default function DiscoverPage() {
             </div>
 
             {/* Sort & Quick Filter Bar */}
-            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 py-2 overflow-x-auto hide-scrollbar shrink-0">
+            <div className="px-4 sm:px-6 lg:px-8 py-2 flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between shrink-0">
               {/* Mood Quick Picks */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-0.5">
                 {MOODS.map((mood) => (
                   <button
                     key={mood.id}
                     onClick={() => applyMood(mood)}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border cursor-pointer ${
                       activeMood === mood.label
                         ? "bg-primary border-primary text-surface font-semibold shadow-xs"
                         : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-primary/50"
@@ -1427,16 +1437,16 @@ export default function DiscoverPage() {
               </div>
 
               {/* Sort Selector */}
-              <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-border/50">
-                <span className="text-[10px] font-mono text-foreground-secondary uppercase tracking-wider hidden sm:inline">Sort:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar shrink-0 md:pl-2 md:border-l md:border-border/50">
+                <span className="text-[10px] font-mono text-foreground-secondary uppercase tracking-wider shrink-0 font-semibold">Sort:</span>
                 {SORT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setCatalogueSort(opt.value)}
-                    className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium transition-all border ${
+                    className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium transition-all border cursor-pointer ${
                       catalogueSort === opt.value
-                        ? "bg-primary/10 border-primary text-primary font-bold"
-                        : "bg-surface border-border text-foreground-secondary hover:text-foreground"
+                        ? "bg-primary/10 border-primary text-primary font-bold shadow-2xs"
+                        : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-primary/40"
                     }`}
                   >
                     {opt.label}
@@ -1548,11 +1558,11 @@ export default function DiscoverPage() {
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
-                    {movies.map((movie) => {
+                    {movies.map((movie, idx) => {
                       const isMarked = watchlistIds.has(movie.tmdb_id) || (movie.id != null && watchlistIds.has(movie.id));
                       return (
                         <MovieCard
-                          key={movie.tmdb_id || movie.id}
+                          key={`cat-${movie.tmdb_id || movie.id || idx}`}
                           movie={movie}
                           inWatchlist={isMarked}
                           onWatchlist={toggleWatchlist}
@@ -1603,7 +1613,10 @@ export default function DiscoverPage() {
       {/* ── Filter Bottom Sheet ── */}
       <AnimatePresence>
         {showFilters && (
-          <div className="fixed inset-0 z-40 flex flex-col justify-end" onClick={() => setShowFilters(false)}>
+          <div
+            className="fixed inset-0 z-50 flex flex-col justify-end md:justify-center md:items-center p-0 md:p-6"
+            onClick={() => setShowFilters(false)}
+          >
             <motion.div
               variants={backdropVariants}
               initial="hidden"
@@ -1612,73 +1625,97 @@ export default function DiscoverPage() {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="catalogue-filters-title"
               variants={bottomSheetVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="relative bg-surface border-t border-border rounded-t-3xl p-6 pb-[max(2.5rem,calc(1.5rem+env(safe-area-inset-bottom)))] z-50 max-h-[80vh] overflow-y-auto overscroll-contain max-w-lg mx-auto w-full shadow-2xl"
+              className="relative bg-surface border-t md:border border-border rounded-t-3xl md:rounded-2xl z-50 max-h-[85vh] flex flex-col max-w-lg md:max-w-xl mx-auto w-full shadow-2xl overflow-hidden"
               onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >
-              <div className="w-10 h-1 rounded-full bg-border mx-auto mb-5" />
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="font-editorial text-xl font-bold text-foreground">Archive Filters</h2>
-                <button onClick={clearFilters} className="text-xs text-foreground-secondary hover:text-foreground transition-colors">
-                  Reset
+              <div className="w-10 h-1 rounded-full bg-border mx-auto mt-3 mb-1 md:hidden" />
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-xl">tune</span>
+                  <h2 id="catalogue-filters-title" className="font-editorial text-xl font-bold text-foreground">
+                    Catalogue Filters
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={clearFilters}
+                    className="text-xs text-foreground-secondary hover:text-foreground transition-colors px-2 py-1 cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="size-9 rounded-full bg-surface-secondary border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
+                    aria-label="Close filters"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-y-auto overscroll-contain px-6 py-4 flex-1 space-y-5">
+                <div>
+                  <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Genre</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Chip label="All Genres" active={pendingFilters.genre === ""} onClick={() => setPendingFilters((f) => ({ ...f, genre: "" }))} />
+                    {genres.map((g) => {
+                      const val = String(g.tmdb_id || g.id);
+                      return (
+                        <Chip
+                          key={g.id}
+                          label={g.name}
+                          active={pendingFilters.genre === val}
+                          onClick={() => setPendingFilters((f) => ({ ...f, genre: val }))}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Era</span>
+                  <div className="flex flex-wrap gap-2">
+                    {ERAS.map((e) => (
+                      <Chip
+                        key={e.value}
+                        label={e.label}
+                        active={pendingFilters.era === e.value}
+                        onClick={() => setPendingFilters((f) => ({ ...f, era: e.value }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Minimum Rating</span>
+                  <div className="flex gap-2">
+                    {RATINGS.map((r) => (
+                      <Chip
+                        key={r.value}
+                        label={r.label}
+                        active={pendingFilters.min_rating === r.value}
+                        onClick={() => setPendingFilters((f) => ({ ...f, min_rating: r.value }))}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 px-6 border-t border-border/60 bg-surface pb-[max(1.5rem,calc(1rem+env(safe-area-inset-bottom)))] shrink-0">
+                <button
+                  onClick={applyFilters}
+                  className="w-full h-12 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  Apply Filter Parameters
                 </button>
               </div>
-
-              <div className="mb-5">
-                <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Genre</span>
-                <div className="flex flex-wrap gap-2">
-                  <Chip label="All Genres" active={pendingFilters.genre === ""} onClick={() => setPendingFilters((f) => ({ ...f, genre: "" }))} />
-                  {genres.map((g) => {
-                    const val = String(g.tmdb_id || g.id);
-                    return (
-                      <Chip
-                        key={g.id}
-                        label={g.name}
-                        active={pendingFilters.genre === val}
-                        onClick={() => setPendingFilters((f) => ({ ...f, genre: val }))}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Era</span>
-                <div className="flex flex-wrap gap-2">
-                  {ERAS.map((e) => (
-                    <Chip
-                      key={e.value}
-                      label={e.label}
-                      active={pendingFilters.era === e.value}
-                      onClick={() => setPendingFilters((f) => ({ ...f, era: e.value }))}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-7">
-                <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Minimum Rating</span>
-                <div className="flex gap-2">
-                  {RATINGS.map((r) => (
-                    <Chip
-                      key={r.value}
-                      label={r.label}
-                      active={pendingFilters.min_rating === r.value}
-                      onClick={() => setPendingFilters((f) => ({ ...f, min_rating: r.value }))}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={applyFilters}
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98]"
-              >
-                Apply Filter Parameters
-              </button>
             </motion.div>
           </div>
         )}

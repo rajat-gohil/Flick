@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { apiRequest, getWsUrl } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import confetti from "canvas-confetti";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Variants } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Variants, type MotionValue } from "framer-motion";
 import StreamingOptions from "../components/StreamingOptions";
 import CinematicLoader from "../components/CinematicLoader";
 import { DeckCardSkeleton, MatchItemSkeleton, StreamingItemSkeleton } from "../components/Skeleton";
@@ -12,6 +12,7 @@ import { ConstraintExhaustionNoticeModal } from "../components/session/Constrain
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
 import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
+import { sound } from "../lib/sound";
 
 /* ============================
    TYPES (MATCH BACKEND)
@@ -160,35 +161,38 @@ const cardVariants: Variants = {
     if (direction === "like") {
       return {
         opacity: 0,
-        x: 600,
-        rotate: 15,
+        x: 580,
+        y: -24,
+        rotate: 16,
         pointerEvents: "none",
         transition: {
           duration: 0.22,
-          ease: [0.16, 1, 0.3, 1],
+          ease: [0.18, 0.9, 0.2, 1],
         },
       };
     }
     if (direction === "dislike") {
       return {
         opacity: 0,
-        x: -600,
-        rotate: -15,
+        x: -580,
+        y: -24,
+        rotate: -16,
         pointerEvents: "none",
         transition: {
           duration: 0.22,
-          ease: [0.16, 1, 0.3, 1],
+          ease: [0.18, 0.9, 0.2, 1],
         },
       };
     }
     if (direction === "superlike") {
       return {
         opacity: 0,
-        y: -600,
-        scale: 1.05,
+        y: -720,
+        scale: 1.08,
+        rotate: 0,
         pointerEvents: "none",
         transition: {
-          duration: 0.25,
+          duration: 0.26,
           ease: [0.16, 1, 0.3, 1],
         },
       };
@@ -232,20 +236,54 @@ interface MovieSwipeCardProps {
   onPosterLoad: () => void;
   custom?: "like" | "dislike" | "superlike";
   disabled?: boolean;
+  dragX?: MotionValue<number>;
 }
 
 export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
   function MovieSwipeCard(
-    { movie, onSwipe, onInfoClick, posterLoaded, onPosterLoad, custom, disabled },
+    { movie, onSwipe, onInfoClick, posterLoaded, onPosterLoad, custom, disabled, dragX: externalDragX },
     ref
   ) {
     // Fluid responsive motion values: continuous 1:1 finger tracking with proportional subtle rotation
-    const dragX = useMotionValue(0);
-    const cardRotate = useTransform(dragX, [-280, 0, 280], [-10, 0, 10]);
+    const internalDragX = useMotionValue(0);
+    const dragX = externalDragX || internalDragX;
+    // Ergonomic Pivot Anchor: rotation pivot sits below thumb/wrist joint (50% 115%)
+    const cardRotate = useTransform(dragX, [-280, 0, 280], [-12, 0, 12]);
+    // Ergonomic Thumb Dip: subtle downward arc following natural thumb sweep
+    const cardY = useTransform(dragX, [-260, 0, 260], [8, 0, 8]);
     const considerOpacity = useTransform(dragX, [30, 90], [0, 1]);
+    const considerScale = useTransform(dragX, [30, 95], [0.8, 1.05]);
     const passOpacity = useTransform(dragX, [-30, -90], [0, 1]);
+    const passScale = useTransform(dragX, [-30, -95], [0.8, 1.05]);
     const cardScale = useTransform(dragX, [-280, 0, 280], [1.02, 1, 1.02]);
+    const considerGlowOpacity = useTransform(dragX, [20, 140], [0, 0.7]);
+    const passGlowOpacity = useTransform(dragX, [-20, -140], [0, 0.7]);
     const hasSwipedRef = useRef(false);
+    const hasHapticFiredRef = useRef(false);
+
+    // Phase 1 & 2 Micro-Haptics & Commit Tick: Subtle 8ms tactile click when crossing 100px commit threshold
+    useEffect(() => {
+      if (typeof dragX?.on !== "function") return;
+      const unsubscribe = dragX.on("change", (latest) => {
+        const absVal = Math.abs(latest);
+        if (absVal >= 100 && !hasHapticFiredRef.current) {
+          hasHapticFiredRef.current = true;
+          sound.playCommitTick();
+          if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+            try {
+              navigator.vibrate(8);
+            } catch {
+              // Ignore vibration exceptions in restricted contexts
+            }
+          }
+        } else if (absVal < 80 && hasHapticFiredRef.current) {
+          hasHapticFiredRef.current = false;
+        }
+      });
+      return () => {
+        if (typeof unsubscribe === "function") unsubscribe();
+      };
+    }, [dragX]);
 
     const handleDragEnd = (
       _: unknown,
@@ -259,11 +297,26 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
       // Responsive commit threshold (displacement or swipe flick velocity)
       if (offsetX > 100 || velocityX > 400) {
         hasSwipedRef.current = true;
+        if (externalDragX) {
+          animate(externalDragX, 0, {
+            type: "spring",
+            stiffness: 350,
+            damping: 28,
+          });
+        }
         onSwipe("like");
       } else if (offsetX < -100 || velocityX < -400) {
         hasSwipedRef.current = true;
+        if (externalDragX) {
+          animate(externalDragX, 0, {
+            type: "spring",
+            stiffness: 350,
+            damping: 28,
+          });
+        }
         onSwipe("dislike");
       } else {
+        hasHapticFiredRef.current = false;
         // Smooth responsive spring return to center on uncommitted gesture
         animate(dragX, 0, {
           type: "spring",
@@ -279,7 +332,13 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
         ref={ref}
         data-tour="session-card"
         custom={custom}
-        style={{ x: dragX, rotate: cardRotate, scale: cardScale }}
+        style={{
+          x: dragX,
+          y: cardY,
+          rotate: cardRotate,
+          scale: cardScale,
+          transformOrigin: "50% 115%",
+        }}
         drag={disabled ? undefined : "x"}
         onDragEnd={handleDragEnd}
         variants={cardVariants}
@@ -290,18 +349,30 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
           disabled ? "pointer-events-none opacity-90 cursor-not-allowed" : "cursor-grab active:cursor-grabbing"
         }`}
       >
+        {/* Atmospheric Consider Glow (emerald border + right radial glow) */}
+        <motion.div
+          style={{ opacity: considerGlowOpacity }}
+          className="absolute inset-0 rounded-2xl pointer-events-none z-15 border-2 border-emerald-500/70 shadow-[inset_0_0_35px_rgba(16,185,129,0.22)] bg-gradient-to-l from-emerald-500/15 via-transparent to-transparent"
+        />
+
+        {/* Atmospheric Pass Glow (rose border + left radial glow) */}
+        <motion.div
+          style={{ opacity: passGlowOpacity }}
+          className="absolute inset-0 rounded-2xl pointer-events-none z-15 border-2 border-rose-500/70 shadow-[inset_0_0_35px_rgba(244,63,94,0.22)] bg-gradient-to-r from-rose-500/15 via-transparent to-transparent"
+        />
+
         {/* CONSIDER stamp */}
         <motion.div
-          style={{ opacity: considerOpacity }}
-          className="absolute top-6 left-6 z-30 pointer-events-none px-4 py-1.5 rounded-lg border-2 border-emerald-500 bg-emerald-950/80 text-emerald-400 font-editorial font-bold text-lg uppercase tracking-wider -rotate-12 shadow-lg backdrop-blur-xs"
+          style={{ opacity: considerOpacity, scale: considerScale, rotate: -12 }}
+          className="absolute top-6 left-6 z-30 pointer-events-none px-4 py-1.5 rounded-lg border-2 border-emerald-500 bg-emerald-950/80 text-emerald-400 font-editorial font-bold text-lg uppercase tracking-wider shadow-lg backdrop-blur-xs"
         >
           Consider
         </motion.div>
 
         {/* PASS stamp */}
         <motion.div
-          style={{ opacity: passOpacity }}
-          className="absolute top-6 right-6 z-30 pointer-events-none px-4 py-1.5 rounded-lg border-2 border-rose-500 bg-rose-950/80 text-rose-400 font-editorial font-bold text-lg uppercase tracking-wider rotate-12 shadow-lg backdrop-blur-xs"
+          style={{ opacity: passOpacity, scale: passScale, rotate: 12 }}
+          className="absolute top-6 right-6 z-30 pointer-events-none px-4 py-1.5 rounded-lg border-2 border-rose-500 bg-rose-950/80 text-rose-400 font-editorial font-bold text-lg uppercase tracking-wider shadow-lg backdrop-blur-xs"
         >
           Pass
         </motion.div>
@@ -452,6 +523,49 @@ function SessionPageInner() {
   const [partnerJoinedToastMsg, setPartnerJoinedToastMsg] = useState("");
   const [partnerDisplayName, setPartnerDisplayName] = useState<string>("");
   const [selectedMatchDetail, setSelectedMatchDetail] = useState<Match | null>(null);
+
+  // Phase 1 Deck Depth Physics: Shared real-time drag motion value driving stack depth
+  const activeCardDragX = useMotionValue(0);
+  const nextCardScale = useTransform(activeCardDragX, [-180, 0, 180], [1, 0.94, 1]);
+  const nextCardY = useTransform(activeCardDragX, [-180, 0, 180], [0, 8, 0]);
+  const nextCardOpacity = useTransform(activeCardDragX, [-180, 0, 180], [0.95, 0.55, 0.95]);
+  const nextCardDimmer = useTransform(activeCardDragX, [-180, 0, 180], [0, 0.45, 0]);
+
+  // Phase 3 Synchronized Micro-Vignette & Button Haptics
+  const [buttonVignette, setButtonVignette] = useState<"like" | "dislike" | "superlike" | null>(null);
+  const vignetteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerVignetteFlash = useCallback((reaction: "like" | "dislike" | "superlike") => {
+    if (vignetteTimerRef.current) {
+      clearTimeout(vignetteTimerRef.current);
+    }
+    setButtonVignette(reaction);
+    vignetteTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        setButtonVignette(null);
+      }
+    }, 420);
+  }, []);
+
+  const triggerButtonHaptic = useCallback((durationMs = 12) => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate(durationMs);
+      } catch {
+        // Safe no-op in restricted environments
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (vignetteTimerRef.current) clearTimeout(vignetteTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    activeCardDragX.set(0);
+  }, [currentIndex, deckCardIndex, activeCardDragX]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -936,11 +1050,13 @@ function SessionPageInner() {
         if (s.is_legacy) {
           try {
             const recos = await apiRequest(`/api/recommendations/?session_id=${id}`);
-            setMovies(Array.isArray(recos.movies) ? recos.movies : []);
+            const recosList = Array.isArray(recos.movies) ? recos.movies : [];
+            setMovies(recosList);
+            moviesRef.current = recosList;
             setCurrentIndex(0);
             setMoviesLoaded(true);
             setIsManifestDeck(false);
-            trackEvent("movies_loaded", { count: recos.movies?.length || 0 });
+            trackEvent("movies_loaded", { count: recosList.length });
           } catch (err: unknown) {
             console.error("Failed to load recommendations:", err);
             setError("Failed to load movies. Please refresh.");
@@ -955,11 +1071,13 @@ function SessionPageInner() {
         } else if (deckRes.status === "legacy") {
           try {
             const recos = await apiRequest(`/api/recommendations/?session_id=${id}`);
-            setMovies(Array.isArray(recos.movies) ? recos.movies : []);
+            const recosList = Array.isArray(recos.movies) ? recos.movies : [];
+            setMovies(recosList);
+            moviesRef.current = recosList;
             setCurrentIndex(0);
             setMoviesLoaded(true);
             setIsManifestDeck(false);
-            trackEvent("movies_loaded", { count: recos.movies?.length || 0 });
+            trackEvent("movies_loaded", { count: recosList.length });
           } catch (err: unknown) {
             console.error("Failed to load recommendations:", err);
             setError("Failed to load movies. Please refresh.");
@@ -1366,6 +1484,23 @@ function SessionPageInner() {
     if (!canSwipe || isSwiping || isSwipePendingRef.current) return;
     setIsSwiping(true);
     isSwipePendingRef.current = true;
+    if (typeof activeCardDragX?.get === "function" && activeCardDragX.get() !== 0) {
+      animate(activeCardDragX, 0, {
+        type: "spring",
+        stiffness: 350,
+        damping: 28,
+      });
+    }
+
+    if (reaction === "like") {
+      sound.playLike();
+    } else if (reaction === "dislike") {
+      sound.playPass();
+    } else if (reaction === "superlike") {
+      sound.playSuperlike();
+    }
+    triggerVignetteFlash(reaction);
+    triggerButtonHaptic(12);
 
     if (isManifestDeck) {
       const card = currentDeckCardRef.current;
@@ -1725,6 +1860,8 @@ function SessionPageInner() {
 
   async function handleUndo() {
     if (isSessionTourLocked) return;
+    sound.playUndo();
+    triggerButtonHaptic(10);
     if (isManifestDeck) {
       if (!lastSwipedCard || !session || undoLoading || isSwipePendingRef.current) return;
       setUndoLoading(true);
@@ -2883,6 +3020,7 @@ function SessionPageInner() {
         } else {
           const newMovies = Array.isArray(recos.movies) ? recos.movies : [];
           setMovies(newMovies);
+          moviesRef.current = newMovies;
           setCurrentIndex(0);
           trackEvent("movies_refetched", { session_id: Number(id), count: newMovies.length });
         }
@@ -3120,27 +3258,66 @@ function SessionPageInner() {
       )}
 
       {/* ── Movie card (Art-House aesthetic) ── */}
-      <div className="flex-grow flex items-center justify-center px-4 py-3 z-0 relative">
-        {/* Underneath Card (depth illusion) */}
-        {nextMovie && (
-          <div
+      <div className="flex-grow flex items-center justify-center px-4 py-3 z-0 relative overflow-hidden">
+        {/* Synchronized Micro-Vignette Color Feedback for Button & Shortcut Swipes */}
+        <AnimatePresence>
+          {buttonVignette && (
+            <motion.div
+              data-testid="button-vignette-overlay"
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: prefersReducedMotion() ? 0.08 : 0.22, ease: "easeOut" }}
+              className={`absolute inset-0 pointer-events-none z-30 transition-colors ${
+                buttonVignette === "like"
+                  ? "shadow-[inset_0_0_90px_rgba(16,185,129,0.3)] bg-gradient-to-t from-emerald-950/25 via-emerald-950/5 to-transparent"
+                  : buttonVignette === "dislike"
+                  ? "shadow-[inset_0_0_90px_rgba(244,63,94,0.3)] bg-gradient-to-t from-rose-950/25 via-rose-950/5 to-transparent"
+                  : "shadow-[inset_0_0_100px_rgba(245,158,11,0.35)] bg-gradient-to-t from-amber-950/30 via-amber-950/10 to-transparent"
+              }`}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Underneath Card (dynamic depth physics) */}
+        {(nextMovie || (isManifestDeck && deckCardIndex + 1 < totalDeckCards && !isDeckCompleted)) && (
+          <motion.div
             aria-hidden="true"
-            className="absolute w-full max-w-sm h-[63vh] rounded-2xl overflow-hidden border border-border/60 bg-surface shadow-md pointer-events-none select-none scale-[0.95] translate-y-2 opacity-60 transition-transform duration-300"
+            style={{
+              scale: nextCardScale,
+              y: nextCardY,
+              opacity: nextCardOpacity,
+            }}
+            className="absolute w-full max-w-sm h-[63vh] rounded-2xl overflow-hidden border border-border/60 bg-surface shadow-md pointer-events-none select-none will-change-transform"
           >
-            {nextMovie.poster_url && (
+            {nextMovie?.poster_url ? (
               <img
                 src={nextMovie.poster_url}
                 alt=""
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="w-full h-full bg-surface-secondary flex flex-col items-center justify-center p-6 text-center">
+                <span className="material-symbols-outlined text-foreground-secondary/40 text-[48px] mb-2">
+                  movie
+                </span>
+                <span className="text-xs uppercase tracking-widest text-foreground-secondary/60 font-semibold">
+                  Next Screening Title
+                </span>
+              </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5 bg-black/40 backdrop-blur-sm border-t border-white/10">
+            <motion.div
+              style={{ opacity: nextCardDimmer }}
+              className="absolute inset-0 bg-black pointer-events-none"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 bg-black/40 backdrop-blur-sm border-t border-white/10 pointer-events-none">
               <h2 className="font-editorial text-2xl font-bold text-white/90 leading-tight truncate">
-                {nextMovie.title}
+                {nextMovie ? nextMovie.title : `Selection ${deckCardIndex + 2} of ${totalDeckCards}`}
               </h2>
             </div>
-          </div>
+          </motion.div>
         )}
 
         <AnimatePresence custom={swipeDirection} mode="popLayout">
@@ -3150,6 +3327,7 @@ function SessionPageInner() {
               custom={swipeDirection}
               movie={movie}
               disabled={!canSwipe}
+              dragX={activeCardDragX}
               onSwipe={(reaction) => handleSwipe(reaction)}
               onInfoClick={() => !isSessionTourLocked && setShowInfoSheet(true)}
               posterLoaded={!!posterLoaded[movie.id]}
@@ -3164,13 +3342,14 @@ function SessionPageInner() {
         <div className="flex justify-around items-center max-w-sm mx-auto">
 
           {/* Undo */}
-          <button
+          <motion.button
+            whileTap={lastSwiped && !undoLoading && !isSessionTourLocked ? { scale: 0.88 } : undefined}
             data-tour="session-undo"
             onClick={handleUndo}
             disabled={!lastSwiped || undoLoading || isSessionTourLocked}
-            className={`size-12 rounded-full border flex items-center justify-center transition-all active:scale-95 ${
+            className={`size-12 rounded-full border flex items-center justify-center transition-all ${
               lastSwiped && !undoLoading && !isSessionTourLocked
-                ? "border-border bg-surface text-foreground hover:bg-surface-secondary shadow-sm"
+                ? "border-border bg-surface text-foreground hover:bg-surface-secondary shadow-sm active:scale-95"
                 : "border-border/40 bg-surface/40 text-foreground-secondary/30 cursor-not-allowed"
             }`}
             title="Recall last action"
@@ -3181,32 +3360,34 @@ function SessionPageInner() {
             ) : (
               <span className="material-symbols-outlined text-[20px]">undo</span>
             )}
-          </button>
+          </motion.button>
 
           {/* Dislike / Pass */}
-          <button
+          <motion.button
+            whileTap={canSwipe ? { scale: 0.88 } : undefined}
             data-tour="session-pass"
             onClick={() => handleSwipe("dislike")}
             disabled={!canSwipe}
             className={`size-14 rounded-full border border-border bg-surface flex items-center justify-center shadow-sm transition-all ${
               canSwipe
-                ? "hover:border-error hover:text-error text-foreground-secondary hover:scale-105 active:scale-95 cursor-pointer"
+                ? "hover:border-rose-500/80 hover:text-rose-500 hover:shadow-[0_0_20px_rgba(244,63,94,0.2)] text-foreground-secondary hover:scale-105 active:scale-90 cursor-pointer"
                 : "opacity-40 cursor-not-allowed text-foreground-secondary/40"
             }`}
             title="Pass"
             aria-label="Pass"
           >
             <span className="material-symbols-outlined text-[26px]">close</span>
-          </button>
+          </motion.button>
 
           {/* Like / Primary CTA */}
-          <button
+          <motion.button
+            whileTap={canSwipe ? { scale: 0.90 } : undefined}
             data-tour="session-like"
             onClick={() => handleSwipe("like")}
             disabled={!canSwipe}
             className={`size-16 rounded-full bg-primary text-surface flex items-center justify-center shadow-md transition-all ${
               canSwipe
-                ? "hover:bg-primary-hover hover:scale-105 active:scale-95 cursor-pointer"
+                ? "hover:bg-primary-hover hover:scale-105 hover:shadow-[0_0_25px_rgba(16,185,129,0.3)] active:scale-90 cursor-pointer"
                 : "opacity-40 cursor-not-allowed"
             }`}
             title="Recommend"
@@ -3215,20 +3396,21 @@ function SessionPageInner() {
             <span className="material-symbols-outlined text-[30px]" style={{ fontVariationSettings: "'FILL' 1" }}>
               favorite
             </span>
-          </button>
+          </motion.button>
 
           {/* Super-like */}
           <div className="relative">
             {showSuperLikeBurst && (
               <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping pointer-events-none" />
             )}
-            <button
+            <motion.button
+              whileTap={canSwipe ? { scale: 0.88 } : undefined}
               data-tour="session-superlike"
               onClick={handleSuperLike}
               disabled={!canSwipe}
               className={`size-12 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center justify-center shadow-sm transition-all ${
                 canSwipe
-                  ? "hover:bg-primary/20 hover:scale-105 active:scale-95 cursor-pointer"
+                  ? "hover:bg-primary/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-90 cursor-pointer"
                   : "opacity-40 cursor-not-allowed"
               }`}
               title="Priority interest"
@@ -3239,7 +3421,7 @@ function SessionPageInner() {
               ) : (
                 <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
 
