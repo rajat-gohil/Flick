@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, forwardRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo, forwardRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiRequest, getWsUrl } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
@@ -10,6 +10,8 @@ import { DeckCardSkeleton, MatchItemSkeleton, StreamingItemSkeleton } from "../c
 import { bottomSheetVariants, backdropVariants, prefersReducedMotion } from "../lib/motion";
 import { ConstraintExhaustionNoticeModal } from "../components/session/ConstraintExhaustionNoticeModal";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
+import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
 
 /* ============================
    TYPES (MATCH BACKEND)
@@ -57,6 +59,8 @@ type Session = {
   host_preferences_set?: boolean;
   guest_preferences_set?: boolean;
   user_role?: "host" | "guest" | null;
+  host_id?: string | number | null;
+  guest_id?: string | number | null;
   host_display_name?: string;
   guest_display_name?: string;
   is_legacy?: boolean;
@@ -65,6 +69,62 @@ type Session = {
   affinity_percent?: number;
   status?: string;
 };
+
+const SESSION_TOUR_STEPS: SpotlightTourStep[] = [
+  {
+    id: "like",
+    target: '[data-tour="session-like"]',
+    title: "Swipe Right to Like",
+    description:
+      "Drag a film card right or tap the heart button to like a film. Mutual likes create an instant match.",
+    icon: "favorite",
+    shortcutHint: "→",
+    shortcutLabel: "Like",
+    gestureHint: "swipe-right",
+  },
+  {
+    id: "pass",
+    target: '[data-tour="session-pass"]',
+    title: "Swipe Left to Pass",
+    description:
+      "Drag left or tap × to skip a film for this screening and move on to the next title.",
+    icon: "close",
+    shortcutHint: "←",
+    shortcutLabel: "Pass",
+    gestureHint: "swipe-left",
+  },
+  {
+    id: "superlike",
+    target: '[data-tour="session-superlike"]',
+    title: "Super-Like Your Top Pick",
+    description:
+      "Tap ★ to flag a must-watch film with a priority highlight when you match.",
+    icon: "star",
+    shortcutHint: "↑",
+    shortcutLabel: "Super-like",
+    gestureHint: "superlike",
+  },
+  {
+    id: "info-undo",
+    target: '[data-tour="session-card"]',
+    title: "Film Info & Undo",
+    description:
+      "Tap the movie card's info button for full synopsis and ratings. After swiping, Undo unlocks to recall your last choice.",
+    icon: "info",
+    shortcutHint: "Space",
+    shortcutLabel: "Film details",
+    gestureHint: "info-undo",
+  },
+  {
+    id: "live-matches",
+    target: '[data-tour="session-header"]',
+    title: "Live Matches & Progress",
+    description:
+      "Track your partner's live status, adjust taste parameters, and see mutual matches appear in real time.",
+    icon: "sync",
+    nextLabel: "Start Swiping",
+  },
+];
 
 // Module-level connection registry to prevent duplicate WebSocket instances for the same session in a single tab
 const activeSessionSockets = new Map<string, WebSocket>();
@@ -217,6 +277,7 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
     return (
       <motion.div
         ref={ref}
+        data-tour="session-card"
         custom={custom}
         style={{ x: dragX, rotate: cardRotate, scale: cardScale }}
         drag={disabled ? undefined : "x"}
@@ -462,6 +523,71 @@ function SessionPageInner() {
   /* ── Summary search ── */
   const [matchSearch, setMatchSearch] = useState("");
 
+  /* ── Session Spotlight Tutorial ── */
+  const [showSessionTour, setShowSessionTour] = useState(false);
+  const [sessionTourDismissed, setSessionTourDismissed] = useState(false);
+
+  const sessionUserId =
+    session?.user_role === "guest" ? session?.guest_id : session?.host_id;
+  const tourIdentity: TourIdentityInput = useMemo(
+    () => ({ userId: sessionUserId }),
+    [sessionUserId]
+  );
+
+  const activeCardMovie = movies[currentIndex];
+
+  const isDeckReadyForTour = Boolean(
+    (!error || error === "Swipe action could not be recorded.") &&
+    Boolean(session) &&
+    !session?.ended &&
+    !sessionLocked &&
+    !isSessionTerminatedRef.current &&
+    Boolean(session?.host_joined && session?.guest_joined) &&
+    moviesLoaded &&
+    !waitingForPartner &&
+    !showMatch &&
+    !showReQuestionnaire &&
+    !selectedMatchDetail &&
+    !showStreamingSheet &&
+    !showInfoSheet &&
+    !showEndConfirm &&
+    Boolean(activeCardMovie) &&
+    (isManifestDeck
+      ? Boolean(currentDeckCard) && !isDeckCompleted && !isCandidateExhausted
+      : currentIndex < movies.length)
+  );
+
+  const isSessionTourLocked =
+    showSessionTour ||
+    (isDeckReadyForTour &&
+      !sessionTourDismissed &&
+      !hasSeenTour("session", tourIdentity));
+
+  useEffect(() => {
+    if (!isDeckReadyForTour || sessionTourDismissed) return;
+    if (!hasSeenTour("session", tourIdentity)) {
+      setShowSessionTour(true);
+    }
+  }, [isDeckReadyForTour, sessionTourDismissed, tourIdentity]);
+
+  useEffect(() => {
+    if (showSessionTour && (session?.ended || sessionLocked || showMatch)) {
+      setShowSessionTour(false);
+    }
+  }, [showSessionTour, session?.ended, sessionLocked, showMatch]);
+
+  const handleSessionTourComplete = useCallback(() => {
+    setSessionTourDismissed(true);
+    markTourFinished("session", "completed", tourIdentity);
+    setShowSessionTour(false);
+  }, [tourIdentity]);
+
+  const handleSessionTourSkip = useCallback(() => {
+    setSessionTourDismissed(true);
+    markTourFinished("session", "skipped", tourIdentity);
+    setShowSessionTour(false);
+  }, [tourIdentity]);
+
   /* ── Component-scoped swipe eligibility gate ── */
   const canSwipe = Boolean(
     (!error || error === "Swipe action could not be recorded.") &&
@@ -481,6 +607,7 @@ function SessionPageInner() {
     !selectedMatchDetail &&
     !showStreamingSheet &&
     !showInfoSheet &&
+    !isSessionTourLocked &&
     (isManifestDeck ? Boolean(currentDeckCard) && !isDeckCompleted && !isCandidateExhausted : currentIndex < movies.length)
   );
 
@@ -1536,6 +1663,7 @@ function SessionPageInner() {
   ============================ */
 
   async function handleUndo() {
+    if (isSessionTourLocked) return;
     if (isManifestDeck) {
       if (!lastSwipedCard || !session || undoLoading || isSwipePendingRef.current) return;
       setUndoLoading(true);
@@ -1597,7 +1725,7 @@ function SessionPageInner() {
   ============================ */
 
   async function handleSuperLike() {
-    if (!session || superLikeLoading || isSwipePendingRef.current || showMatch || sessionLocked || session.ended) return;
+    if (!canSwipe || isSessionTourLocked || !session || superLikeLoading || isSwipePendingRef.current || showMatch || sessionLocked || session.ended) return;
     const movie = movies[currentIndex];
     if (!movie || !moviesLoaded) return;
     if (swipedMovieIdsRef.current.has(movie.id)) return;
@@ -1642,6 +1770,7 @@ function SessionPageInner() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (isSessionTourLocked) return;
       const target = e.target as HTMLElement | null;
       const isTextInput = target && (
         target.tagName === "INPUT" ||
@@ -1740,6 +1869,7 @@ function SessionPageInner() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     canSwipe,
+    isSessionTourLocked,
     showStreamingSheet,
     showInfoSheet,
     showReQuestionnaire,
@@ -2703,14 +2833,17 @@ function SessionPageInner() {
      MAIN SWIPING UI
   ============================ */
 
-  const movie = movies[currentIndex];
+  const movie = activeCardMovie;
   const nextMovie = movies[currentIndex + 1];
 
   return (
     <div className="bg-background font-sans text-foreground min-h-screen flex flex-col justify-between overflow-hidden max-w-lg mx-auto border-x border-border/40 select-none">
 
       {/* ── Partner status pill (top bar) ── */}
-      <div className="flex items-center justify-between px-6 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/60 z-10 relative">
+      <div
+        data-tour="session-header"
+        className="flex items-center justify-between px-6 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/60 z-10 relative"
+      >
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${
             partnerStatus === "online"  ? "bg-primary" :
@@ -2899,7 +3032,7 @@ function SessionPageInner() {
               movie={movie}
               disabled={!canSwipe}
               onSwipe={(reaction) => handleSwipe(reaction)}
-              onInfoClick={() => setShowInfoSheet(true)}
+              onInfoClick={() => !isSessionTourLocked && setShowInfoSheet(true)}
               posterLoaded={!!posterLoaded[movie.id]}
               onPosterLoad={() => setPosterLoaded((prev) => ({ ...prev, [movie.id]: true }))}
             />
@@ -2913,10 +3046,11 @@ function SessionPageInner() {
 
           {/* Undo */}
           <button
+            data-tour="session-undo"
             onClick={handleUndo}
-            disabled={!lastSwiped || undoLoading}
+            disabled={!lastSwiped || undoLoading || isSessionTourLocked}
             className={`size-12 rounded-full border flex items-center justify-center transition-all active:scale-95 ${
-              lastSwiped && !undoLoading
+              lastSwiped && !undoLoading && !isSessionTourLocked
                 ? "border-border bg-surface text-foreground hover:bg-surface-secondary shadow-sm"
                 : "border-border/40 bg-surface/40 text-foreground-secondary/30 cursor-not-allowed"
             }`}
@@ -2932,6 +3066,7 @@ function SessionPageInner() {
 
           {/* Dislike / Pass */}
           <button
+            data-tour="session-pass"
             onClick={() => handleSwipe("dislike")}
             disabled={!canSwipe}
             className={`size-14 rounded-full border border-border bg-surface flex items-center justify-center shadow-sm transition-all ${
@@ -2947,6 +3082,7 @@ function SessionPageInner() {
 
           {/* Like / Primary CTA */}
           <button
+            data-tour="session-like"
             onClick={() => handleSwipe("like")}
             disabled={!canSwipe}
             className={`size-16 rounded-full bg-primary text-surface flex items-center justify-center shadow-md transition-all ${
@@ -2968,6 +3104,7 @@ function SessionPageInner() {
               <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping pointer-events-none" />
             )}
             <button
+              data-tour="session-superlike"
               onClick={handleSuperLike}
               disabled={!canSwipe}
               className={`size-12 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center justify-center shadow-sm transition-all ${
@@ -2988,7 +3125,10 @@ function SessionPageInner() {
         </div>
 
         {/* Film counter */}
-        <p className="text-center text-[10px] uppercase tracking-widest font-semibold text-foreground-secondary mt-4">
+        <p
+          data-tour="session-progress"
+          className="text-center text-[10px] uppercase tracking-widest font-semibold text-foreground-secondary mt-4"
+        >
           {isManifestDeck
             ? `Film ${deckCardIndex + 1} of ${totalDeckCards}`
             : `Film ${currentIndex + 1} of ${movies.length}`}
@@ -3320,6 +3460,15 @@ function SessionPageInner() {
           </div>
         </div>
       )}
+
+      {/* ── Session Spotlight Tutorial ── */}
+      <SpotlightTour
+        isOpen={showSessionTour}
+        steps={SESSION_TOUR_STEPS}
+        ariaLabel="Screening room tutorial"
+        onComplete={handleSessionTourComplete}
+        onSkip={handleSessionTourSkip}
+      />
     </div>
   );
 }

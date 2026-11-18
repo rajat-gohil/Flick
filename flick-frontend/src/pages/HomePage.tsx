@@ -1,13 +1,96 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import { isGuest, isLoggedIn } from "../lib/auth";
+import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
+import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
 import { prefersReducedMotion } from "../lib/motion";
+
+const HOME_TOUR_STEPS: SpotlightTourStep[] = [
+  {
+    id: "welcome",
+    title: "Welcome to Flick",
+    description:
+      "Discover hand-picked films solo or launch a live screening room to swipe and find mutual matches with a partner.",
+    icon: "theaters",
+    placement: "center",
+    nextLabel: "Start Tour",
+  },
+  {
+    id: "launch-deck",
+    target: '[data-tour="home-launch-deck"]',
+    title: "Launch a Screening Deck",
+    description:
+      "Pick your cinema tradition, languages, and genres, then share the room code or invite link to screen together.",
+    icon: "confirmation_number",
+  },
+  {
+    id: "join-room",
+    target: '[data-tour="home-join-code"]',
+    title: "Join with a Room Code",
+    description:
+      "Have a 6-character code from a partner? Enter it here to jump straight into their live screening deck.",
+    icon: "meeting_room",
+  },
+  {
+    id: "curator-archive",
+    target: [
+      '[data-tour="home-curator-feature"]',
+      '[data-tour="home-curator"]',
+      '[data-tour="home-explore-catalogue"]',
+    ],
+    title: "Curator's Selection & Catalogue",
+    description:
+      "Browse hand-picked spotlights, inspect film details or save to your watchlist, and explore the full archive.",
+    icon: "auto_awesome",
+  },
+  {
+    id: "navigation",
+    target: ['[data-tour="nav-mobile"]', '[data-tour="nav-desktop"]'],
+    title: "Navigate the App",
+    description:
+      "Jump between Screenings (rooms & history), Archive (browse & filter), Watchlist (saved titles), and Profile (taste & settings).",
+    icon: "explore",
+    nextLabel: "Finish",
+  },
+];
+
+function safeStorageGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeStorageSet(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore restricted/unavailable storage errors
+  }
+}
+
+function safeIsLoggedIn(): boolean {
+  try {
+    return isLoggedIn();
+  } catch {
+    return false;
+  }
+}
+
+function safeIsGuest(): boolean {
+  try {
+    return isGuest();
+  } catch {
+    return false;
+  }
+}
 
 /* ============================
    TYPES
@@ -50,7 +133,7 @@ function AvatarPlaceholder({ initials }: { initials: string }) {
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const userDisplayName = localStorage.getItem("display_name") || localStorage.getItem("username") || "";
+  const userDisplayName = safeStorageGet("display_name") || safeStorageGet("username") || "";
 
   // Session & Join State
   const [joinCode, setJoinCode] = useState("");
@@ -78,31 +161,76 @@ export default function HomePage() {
     is_guest?: boolean;
     recovery_code?: string;
   } | null>(null);
+  const [profileResolved, setProfileResolved] = useState<boolean>(() => !safeIsLoggedIn());
+  const [homeTourOpen, setHomeTourOpen] = useState(false);
+  const homeTourDismissedRef = useRef(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [copiedActivationCode, setCopiedActivationCode] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
 
-  /* ── Load user profile for activation status ── */
+  /* ── Load user profile for activation status & canonical tour identity ── */
   useEffect(() => {
-    if (isLoggedIn()) {
-      apiRequest("/api/users/profile/")
-        .then((res: { success?: boolean; user?: typeof profileUser }) => {
-          if (res?.success && res.user) {
-            setProfileUser(res.user);
-            if (res.user.is_guest === false) {
-              localStorage.setItem("is_guest", "false");
-            }
-          }
-        })
-        .catch(() => {});
+    let active = true;
+    if (!safeIsLoggedIn()) {
+      setProfileResolved(true);
+      return;
     }
+    apiRequest("/api/users/profile/")
+      .then((res: { success?: boolean; user?: typeof profileUser }) => {
+        if (!active) return;
+        if (res?.success && res.user) {
+          setProfileUser(res.user);
+          if (res.user.id !== undefined && res.user.id !== null) {
+            safeStorageSet("user_id", String(res.user.id));
+          }
+          if (res.user.is_guest === false) {
+            safeStorageSet("is_guest", "false");
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) {
+          setProfileResolved(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
+
+  const tourIdentity: TourIdentityInput = useMemo(
+    () => ({
+      userId: profileUser?.id,
+      username: profileUser?.username,
+    }),
+    [profileUser?.id, profileUser?.username]
+  );
+
+  useEffect(() => {
+    if (!profileResolved || homeTourDismissedRef.current) return;
+    if (!hasSeenTour("home", tourIdentity)) {
+      setHomeTourOpen(true);
+    }
+  }, [profileResolved, tourIdentity]);
+
+  const handleCompleteHomeTour = () => {
+    homeTourDismissedRef.current = true;
+    markTourFinished("home", "completed", tourIdentity);
+    setHomeTourOpen(false);
+  };
+
+  const handleSkipHomeTour = () => {
+    homeTourDismissedRef.current = true;
+    markTourFinished("home", "skipped", tourIdentity);
+    setHomeTourOpen(false);
+  };
 
   // An account is unactivated ONLY if it is an unconverted guest account.
   // When profile is fetched from backend, profileUser.is_guest is authoritative.
-  const isGuestAccount = profileUser ? Boolean(profileUser.is_guest) : isGuest();
-  const isAccountUnactivated = isLoggedIn() && isGuestAccount;
+  const isGuestAccount = profileUser ? Boolean(profileUser.is_guest) : safeIsGuest();
+  const isAccountUnactivated = safeIsLoggedIn() && isGuestAccount;
 
   /* ── Load recent sessions ── */
   useEffect(() => {
@@ -267,9 +395,13 @@ export default function HomePage() {
   }
 
   function handleLogout() {
-    ["auth_token", "username", "display_name", "email", "user_id"].forEach((k) =>
-      localStorage.removeItem(k)
-    );
+    try {
+      ["auth_token", "username", "display_name", "email", "user_id"].forEach((k) =>
+        localStorage.removeItem(k)
+      );
+    } catch {
+      // Ignore storage errors
+    }
     navigate("/", { replace: true });
   }
 
@@ -387,6 +519,7 @@ export default function HomePage() {
               {/* Primary Action Hub: Launch Screening & Join Code */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 max-w-xl">
                 <button
+                  data-tour="home-launch-deck"
                   onClick={() => navigate("/session/create")}
                   className="flex items-center justify-center gap-2.5 rounded-xl h-12 px-6 bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] group"
                 >
@@ -397,6 +530,7 @@ export default function HomePage() {
                 </button>
 
                 <button
+                  data-tour="home-explore-catalogue"
                   onClick={() => navigate("/discover?view=catalogue")}
                   className="flex items-center justify-center gap-2 rounded-xl h-12 px-5 border border-border hover:border-primary/50 bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
                 >
@@ -411,7 +545,10 @@ export default function HomePage() {
 
             {/* Right Interactive Ticket & Entrance Composition */}
             <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md rounded-2xl border border-border/90 bg-surface p-6 sm:p-7 shadow-lg overflow-hidden">
+              <div
+                data-tour="home-join-code"
+                className="relative mx-auto max-w-md rounded-2xl border border-border/90 bg-surface p-6 sm:p-7 shadow-lg overflow-hidden"
+              >
                 
                 {/* Decorative Celluloid Perforation Top */}
                 <div className="absolute top-0 inset-x-0 h-2 flex justify-between px-3 gap-1 overflow-hidden opacity-30">
@@ -480,7 +617,10 @@ export default function HomePage() {
             SECTION B — THE CURATOR'S SELECTION
         ══════════════════════════════════════════════════════ */}
         <section aria-labelledby="curator-heading" className="space-y-6">
-          <div className="flex items-end justify-between border-b border-border/60 pb-3">
+          <div
+            data-tour="home-curator"
+            className="flex items-end justify-between border-b border-border/60 pb-3"
+          >
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold">
@@ -519,7 +659,10 @@ export default function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
               
               {/* Primary Feature Card */}
-              <div className="lg:col-span-8 rounded-2xl border border-border/80 bg-surface shadow-sm overflow-hidden flex flex-col md:flex-row relative group">
+              <div
+                data-tour="home-curator-feature"
+                className="lg:col-span-8 rounded-2xl border border-border/80 bg-surface shadow-sm overflow-hidden flex flex-col md:flex-row relative group"
+              >
                 
                 {/* Poster / Cinematic Still */}
                 <div className="md:w-5/12 bg-surface-secondary relative aspect-[2/3] md:aspect-auto overflow-hidden">
@@ -1248,6 +1391,15 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* ── First-Visit Homepage Spotlight Tour ── */}
+      <SpotlightTour
+        isOpen={homeTourOpen && !showActivationModal && !selectedMovie}
+        steps={HOME_TOUR_STEPS}
+        ariaLabel="Flick homepage tour"
+        onComplete={handleCompleteHomeTour}
+        onSkip={handleSkipHomeTour}
+      />
 
       {/* ── Mobile Navigation Bar ── */}
       <BottomNav current="home" />

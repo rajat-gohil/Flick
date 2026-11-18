@@ -110,6 +110,7 @@ describe("Phase 3: Frontend Deck Integration & State Machine Contract", () => {
     window.localStorage.setItem("auth_token", "host_token");
     window.localStorage.setItem("username", "cinemahost");
     window.localStorage.setItem("display_name", "Cinema Host");
+    window.localStorage.setItem("flick_tour_session_v1:user:cinemahost", "completed");
 
     (window as any).WebSocket = class MockWebSocket {
       onopen: (() => void) | null = null;

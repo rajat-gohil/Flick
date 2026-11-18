@@ -20,6 +20,7 @@ export default function BottomNav({ current }: BottomNavProps) {
   return (
     <nav
       aria-label="Mobile Navigation"
+      data-tour="nav-mobile"
       className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border/60 bg-background/95 backdrop-blur-md px-3 pt-2 pb-[max(1.25rem,calc(0.5rem+env(safe-area-inset-bottom)))] transition-colors"
     >
       {tabs.map((tab) => {

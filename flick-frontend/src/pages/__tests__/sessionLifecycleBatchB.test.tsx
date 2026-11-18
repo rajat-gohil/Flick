@@ -109,6 +109,7 @@ describe("Phase 6 Batch B: Real-Time Session Synchronization & Swipe Reliability
     window.localStorage.setItem("auth_token", "test_token");
     window.localStorage.setItem("username", "hostuser");
     window.localStorage.setItem("display_name", "Host User");
+    window.localStorage.setItem("flick_tour_session_v1:user:hostuser", "completed");
 
     (window as any).WebSocket = MockWebSocket;
 

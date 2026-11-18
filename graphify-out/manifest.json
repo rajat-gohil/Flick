@@ -1104,15 +1104,15 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/components/BottomNav.tsx": {
-    "mtime": 1793623501.5949805,
-    "seen": 1794898939.9147751,
-    "ast_hash": "6cbc429d091c46cbe7f1ac1d44643711",
+    "mtime": 1794987017.7519903,
+    "seen": 1794987627.340998,
+    "ast_hash": "2ff67483c0b1c079aaaba3b6de36639b",
     "semantic_hash": ""
   },
   "flick-frontend/src/components/CinemaHeader.tsx": {
-    "mtime": 1793623724.6708293,
-    "seen": 1794898939.914776,
-    "ast_hash": "cdcfa8f46d43c647ca857f3a55fbbd90",
+    "mtime": 1794987017.748065,
+    "seen": 1794987627.340999,
+    "ast_hash": "65ed2bf3d4f5cba80840a0d685dbcb88",
     "semantic_hash": ""
   },
   "flick-frontend/src/components/CinematicLoader.tsx": {
@@ -1125,12 +1125,6 @@
     "mtime": 1794591565.9256985,
     "seen": 1794898939.914778,
     "ast_hash": "c599690715912d43fec9300dd6599dc7",
-    "semantic_hash": ""
-  },
-  "flick-frontend/src/components/OnboardingOverlay.tsx": {
-    "mtime": 1793626166.7289662,
-    "seen": 1794898939.914779,
-    "ast_hash": "7498ceb089007eabf27754ae908cb859",
     "semantic_hash": ""
   },
   "flick-frontend/src/components/RecoveryCodeModal.tsx": {
@@ -1266,9 +1260,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/HomePage.tsx": {
-    "mtime": 1794911438.9399803,
-    "seen": 1794911536.815283,
-    "ast_hash": "f5f9ab9d524afa99875287add111a14a",
+    "mtime": 1794989033.3622813,
+    "seen": 1794989146.857787,
+    "ast_hash": "cdbc691e3974db4f4b9e0fa2bd1c64af",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/JoinViaLink.tsx": {
@@ -1302,9 +1296,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/ProfilePage.tsx": {
-    "mtime": 1794911502.7728708,
-    "seen": 1794911536.815289,
-    "ast_hash": "6f6f2b6c7715cb5b6450f82783a1ca49",
+    "mtime": 1794989033.3857627,
+    "seen": 1794989146.857793,
+    "ast_hash": "6bb8a4515305f0e21e6f4db7e52f1474",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/RegisterPage.tsx": {
@@ -1326,9 +1320,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionPage.tsx": {
-    "mtime": 1794914067.2516963,
-    "seen": 1794914114.193791,
-    "ast_hash": "bceb31b5180227ee127b4fa65cfef969",
+    "mtime": 1794989033.2463925,
+    "seen": 1794989146.8577971,
+    "ast_hash": "532b3d5f19783c21e68f1bd3f20a16d3",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionsListPage.tsx": {
@@ -1398,9 +1392,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/phase3DeckIntegration.test.tsx": {
-    "mtime": 1793789316.7437065,
-    "seen": 1794898939.9148202,
-    "ast_hash": "c2cb7f2e584a6074adcd2f2a95785ce7",
+    "mtime": 1794987531.774395,
+    "seen": 1794987627.3410509,
+    "ast_hash": "8e367b9a3aa253fe4ca35b67be0eeeaa",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/phase3Remediation.test.tsx": {
@@ -1422,9 +1416,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/sessionLifecycleBatchB.test.tsx": {
-    "mtime": 1793905111.124937,
-    "seen": 1794898939.914824,
-    "ast_hash": "fd3a25628035858dfb53155e03f98f67",
+    "mtime": 1794987531.7805912,
+    "seen": 1794987627.341055,
+    "ast_hash": "bc71b53df9fe8859f8a435c08267677a",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/webSocketMetadataFallback.test.tsx": {
@@ -2079,6 +2073,24 @@
     "mtime": 1794909917.647948,
     "seen": 1794910339.958016,
     "ast_hash": "e208510a7cdf8ea20faf95be52ba93b3",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/components/SpotlightTour.tsx": {
+    "mtime": 1794989119.5731733,
+    "seen": 1794989146.8577652,
+    "ast_hash": "d93269f602ccf4a757e6e8458daa5858",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/lib/tutorial.ts": {
+    "mtime": 1794987103.8416464,
+    "seen": 1794987627.341017,
+    "ast_hash": "3bcc1589ba23dc43036932a8bb05a2b7",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/pages/__tests__/tutorialSystem.test.tsx": {
+    "mtime": 1794989119.6229346,
+    "seen": 1794989146.857815,
+    "ast_hash": "7db211f91dd4b054050ec41a7de93a09",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

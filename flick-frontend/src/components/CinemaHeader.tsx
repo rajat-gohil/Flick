@@ -73,7 +73,11 @@ export default function CinemaHeader({
         </div>
 
         {/* ── Center: Desktop Editorial Nav Links ── */}
-        <nav aria-label="Desktop Navigation" className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav
+          aria-label="Desktop Navigation"
+          data-tour="nav-desktop"
+          className="hidden md:flex items-center gap-1 lg:gap-2"
+        >
           {navLinks.map((link) => {
             const isActive = current === link.id;
             return (

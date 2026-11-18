@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest, ApiError } from "../lib/api";
 import { isGuest } from "../lib/auth";
+import { resetAllTours } from "../lib/tutorial";
 import { useTheme } from "../context/ThemeContext";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
 type UserProfile = {
+  id?: number;
   username: string;
   email: string;
   date_joined?: string;
@@ -15,6 +17,14 @@ type UserProfile = {
   avatar_url?: string;
   display_name?: string;
 };
+
+function safeIsGuest(): boolean {
+  try {
+    return isGuest();
+  } catch {
+    return false;
+  }
+}
 
 function MenuItem({
   icon,
@@ -93,6 +103,16 @@ export default function ProfilePage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
+  const [tutorialsResetNotice, setTutorialsResetNotice] = useState(false);
+  const resetNoticeTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetNoticeTimerRef.current !== null) {
+        window.clearTimeout(resetNoticeTimerRef.current);
+      }
+    };
+  }, []);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -101,8 +121,22 @@ export default function ProfilePage() {
         setUser(response.user);
         setNewUsername(response.user.username);
         setNewDisplayName(response.user.display_name || "");
+        if (response.user.id !== undefined && response.user.id !== null) {
+          try {
+            const nextUserId = String(response.user.id);
+            if (localStorage.getItem("user_id") !== nextUserId) {
+              localStorage.setItem("user_id", nextUserId);
+            }
+          } catch {
+            // Ignore storage access errors
+          }
+        }
         if (response.user.display_name) {
-          localStorage.setItem("display_name", response.user.display_name);
+          try {
+            localStorage.setItem("display_name", response.user.display_name);
+          } catch {
+            // Ignore storage access errors
+          }
         }
         if (response.user.avatar_url) setAvatarPreview(response.user.avatar_url);
         if (response.user.email_verified !== undefined) setEmailVerified(response.user.email_verified);
@@ -113,6 +147,22 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }, [navigate]);
+
+  const handleReplayTutorials = () => {
+    try {
+      resetAllTours({ userId: user?.id, username: user?.username });
+    } catch {
+      // Ignore storage access errors
+    }
+    setTutorialsResetNotice(true);
+    if (resetNoticeTimerRef.current !== null) {
+      window.clearTimeout(resetNoticeTimerRef.current);
+    }
+    resetNoticeTimerRef.current = window.setTimeout(() => {
+      setTutorialsResetNotice(false);
+      resetNoticeTimerRef.current = null;
+    }, 8000);
+  };
 
   useEffect(() => {
     fetchUserProfile();
@@ -380,7 +430,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Guest Upgrade Callout Banner */}
-        {isGuest() && (
+        {safeIsGuest() && (
           <div className="mb-4 p-4 rounded-xl bg-primary/10 border border-primary/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-start gap-3">
               <span className="material-symbols-outlined text-primary text-[22px] shrink-0 mt-0.5">
@@ -410,11 +460,40 @@ export default function ProfilePage() {
           <MenuItem icon="person" label="Account Security & Access" onClick={() => navigate("/account-settings")} />
           <MenuItem icon="notifications" label="Notification Preferences" onClick={() => navigate("/notifications-settings")} />
           <ThemeToggleItem isDark={isDark} onToggle={toggleTheme} />
+          <MenuItem
+            icon="school"
+            label="Replay Tutorials"
+            onClick={handleReplayTutorials}
+            showChevron={false}
+          />
+          {tutorialsResetNotice && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-3 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="material-symbols-outlined text-primary text-[18px] shrink-0">
+                  check_circle
+                </span>
+                <p className="text-xs font-medium text-foreground leading-snug">
+                  Tutorials reset — visit Home or a Screening to view them again.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/home")}
+                className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center text-xs font-semibold text-primary bg-primary/15 hover:bg-primary/25 px-3.5 rounded-lg transition-colors cursor-pointer touch-manipulation"
+              >
+                Go to Home
+              </button>
+            </div>
+          )}
           <MenuItem icon="security" label="Privacy & Data Policy" onClick={() => navigate("/privacy")} />
           <MenuItem icon="gavel" label="Terms of Service" onClick={() => navigate("/terms")} />
 
           {/* Email verification alert */}
-          {emailVerified === false && !isGuest() && (
+          {emailVerified === false && !safeIsGuest() && (
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
               <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg shrink-0">mail_lock</span>
               <div className="flex-1 min-w-0">
