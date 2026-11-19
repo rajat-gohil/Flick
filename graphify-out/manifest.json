@@ -1236,9 +1236,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/EntryPage.tsx": {
-    "mtime": 1795003140.6956635,
-    "seen": 1795003284.393682,
-    "ast_hash": "fc4adb17d360d63af91ff2e0143e97a7",
+    "mtime": 1795091592.6826706,
+    "seen": 1795091674.583315,
+    "ast_hash": "196fb90f1ad838c65581a7a348356536",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/ForgotPasswordPage.tsx": {
@@ -2115,6 +2115,12 @@
     "mtime": 1795078475.6419885,
     "seen": 1795078497.7096808,
     "ast_hash": "5b7055da58db6a5f165c58bf6d67a811",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/pages/__tests__/entryPageExplanation.test.tsx": {
+    "mtime": 1795091642.0147088,
+    "seen": 1795091674.583338,
+    "ast_hash": "67406ebf33e45b2a6cd94106749b3e8d",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {
