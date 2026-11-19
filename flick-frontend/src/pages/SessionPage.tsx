@@ -228,6 +228,18 @@ function normalizeDeckCard(card: any): Movie {
   };
 }
 
+const preloadedPosters = new Set<string>();
+function preloadPoster(url?: string) {
+  if (!url || typeof window === "undefined" || preloadedPosters.has(url)) return;
+  try {
+    preloadedPosters.add(url);
+    const img = new Image();
+    img.src = url;
+  } catch {
+    // Non-blocking no-op in headless/restricted test environments
+  }
+}
+
 interface MovieSwipeCardProps {
   movie: Movie;
   onSwipe: (reaction: "like" | "dislike") => void;
@@ -477,6 +489,8 @@ function SessionPageInner() {
   const [isManifestDeck, setIsManifestDeck] = useState(false);
   const [currentDeckCard, setCurrentDeckCard] = useState<any>(null);
   const currentDeckCardRef = useRef<any>(null);
+  const [, setNextDeckCard] = useState<any>(null);
+  const nextDeckCardRef = useRef<any>(null);
   const [deckCardIndex, setDeckCardIndex] = useState(0);
   const [totalDeckCards, setTotalDeckCards] = useState(40);
   const [waitingForPartner, setWaitingForPartner] = useState(false);
@@ -915,15 +929,26 @@ function SessionPageInner() {
 
         if (data.card) {
           const normalized = normalizeDeckCard(data.card);
+          const normalizedNext = data.next_card ? normalizeDeckCard(data.next_card) : null;
           setCurrentDeckCard(data.card);
           currentDeckCardRef.current = data.card;
-          setMovies([normalized]);
-          moviesRef.current = [normalized];
+          setNextDeckCard(data.next_card || null);
+          nextDeckCardRef.current = data.next_card || null;
+          const movieList = [normalized, normalizedNext].filter(Boolean) as Movie[];
+          setMovies(movieList);
+          moviesRef.current = movieList;
           setCurrentIndex(0);
           setMoviesLoaded(true);
+          if (normalizedNext?.poster_url) {
+            preloadPoster(normalizedNext.poster_url);
+          }
         } else if (data.is_completed) {
           setCurrentDeckCard(null);
           currentDeckCardRef.current = null;
+          setNextDeckCard(null);
+          nextDeckCardRef.current = null;
+          setMovies([]);
+          moviesRef.current = [];
           setMoviesLoaded(true);
         } else if (data.waiting_for_partner) {
           // No new card yet — partner hasn't caught up. Keep existing card visible
@@ -1510,9 +1535,11 @@ function SessionPageInner() {
         return;
       }
 
+      const upcomingRaw = nextDeckCardRef.current;
+      const currentMovie = movies[0] || normalizeDeckCard(card);
+
       try {
         setSwipeDirection(reaction);
-        const currentMovie = movies[0] || normalizeDeckCard(card);
         setLastSwipedCard({
           card_index: card.card_index,
           movie_id: card.movie_id,
@@ -1526,6 +1553,26 @@ function SessionPageInner() {
         );
 
         setSwipeCount((prev) => prev + 1);
+
+        // Immediate visual promotion: promote already-mounted next card
+        if (upcomingRaw) {
+          const nextNormalized = normalizeDeckCard(upcomingRaw);
+          setCurrentDeckCard(upcomingRaw);
+          currentDeckCardRef.current = upcomingRaw;
+          setDeckCardIndex((prev) => prev + 1);
+          setNextDeckCard(null);
+          nextDeckCardRef.current = null;
+          setMovies([nextNormalized]);
+          moviesRef.current = [nextNormalized];
+        }
+
+        // Release swipe gesture animation lock promptly
+        const exitAnimDuration = prefersReducedMotion() ? 50 : 240;
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setIsSwiping(false);
+          }
+        }, exitAnimDuration);
 
         const idempotencyKey = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
@@ -1580,10 +1627,47 @@ function SessionPageInner() {
 
           if (res.waiting_for_partner) {
             setWaitingForPartner(true);
+            setCurrentDeckCard(null);
+            currentDeckCardRef.current = null;
+            setNextDeckCard(null);
+            nextDeckCardRef.current = null;
+            setMovies([]);
+            moviesRef.current = [];
           } else if (res.is_completed) {
             setIsDeckCompleted(true);
             setCurrentDeckCard(null);
             currentDeckCardRef.current = null;
+            setNextDeckCard(null);
+            nextDeckCardRef.current = null;
+            setMovies([]);
+            moviesRef.current = [];
+          } else if (res.card) {
+            // Guard against late/out-of-order response overwriting newer card
+            if (
+              currentDeckCardRef.current &&
+              typeof currentDeckCardRef.current.card_index === "number" &&
+              currentDeckCardRef.current.card_index > res.card.card_index
+            ) {
+              return;
+            }
+            // Server authoritative promoted card + buffer refill
+            const activeServerCard = res.card;
+            const nextServerCard = res.next_card || null;
+            setCurrentDeckCard(activeServerCard);
+            currentDeckCardRef.current = activeServerCard;
+            setDeckCardIndex(activeServerCard.card_index ?? (deckCardIndex + 1));
+            setNextDeckCard(nextServerCard);
+            nextDeckCardRef.current = nextServerCard;
+
+            const activeNormalized = normalizeDeckCard(activeServerCard);
+            const nextNormalized = nextServerCard ? normalizeDeckCard(nextServerCard) : null;
+            const movieList = [activeNormalized, nextNormalized].filter(Boolean) as Movie[];
+            setMovies(movieList);
+            moviesRef.current = movieList;
+
+            if (nextNormalized?.poster_url) {
+              preloadPoster(nextNormalized.poster_url);
+            }
           } else {
             await fetchDeckCard(id!);
           }
@@ -1866,7 +1950,7 @@ function SessionPageInner() {
       if (!lastSwipedCard || !session || undoLoading || isSwipePendingRef.current) return;
       setUndoLoading(true);
       try {
-        await apiRequest(`/api/sessions/${id}/deck/undo/`, {
+        const undoRes = await apiRequest(`/api/sessions/${id}/deck/undo/`, {
           method: "POST",
           body: JSON.stringify({
             card_index: lastSwipedCard.card_index,
@@ -1877,7 +1961,29 @@ function SessionPageInner() {
         setLastSwiped(null);
         setWaitingForPartner(false);
         setIsDeckCompleted(false);
-        await fetchDeckCard(id!);
+        setSwipeCount((prev) => Math.max(0, prev - 1));
+
+        if (undoRes && undoRes.card) {
+          const restoredCard = undoRes.card;
+          const restoredNext = undoRes.next_card || null;
+          setCurrentDeckCard(restoredCard);
+          currentDeckCardRef.current = restoredCard;
+          setNextDeckCard(restoredNext);
+          nextDeckCardRef.current = restoredNext;
+          setDeckCardIndex(restoredCard.card_index ?? 0);
+          const normalized = normalizeDeckCard(restoredCard);
+          const normalizedNext = restoredNext ? normalizeDeckCard(restoredNext) : null;
+          const movieList = [normalized, normalizedNext].filter(Boolean) as Movie[];
+          setMovies(movieList);
+          moviesRef.current = movieList;
+          setCurrentIndex(0);
+          setMoviesLoaded(true);
+          if (normalizedNext?.poster_url) {
+            preloadPoster(normalizedNext.poster_url);
+          }
+        } else {
+          await fetchDeckCard(id!);
+        }
         trackEvent("deck_swipe_undo", { movie_id: lastSwipedCard.movie_id, card_index: lastSwipedCard.card_index });
       } catch (err: unknown) {
         if (typeof err === "object" && err !== null && "status" in err) {
@@ -3316,6 +3422,20 @@ function SessionPageInner() {
               <h2 className="font-editorial text-2xl font-bold text-white/90 leading-tight truncate">
                 {nextMovie ? nextMovie.title : `Selection ${deckCardIndex + 2} of ${totalDeckCards}`}
               </h2>
+              {nextMovie && (nextMovie.release_year || nextMovie.rating) && (
+                <div className="flex items-center gap-2 mt-1 text-xs text-white/70">
+                  {nextMovie.release_year && <span>{nextMovie.release_year}</span>}
+                  {nextMovie.release_year && nextMovie.rating && <span>•</span>}
+                  {nextMovie.rating && (
+                    <span className="flex items-center gap-0.5">
+                      <span className="material-symbols-outlined text-[13px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>
+                        star
+                      </span>
+                      {Number(nextMovie.rating).toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}

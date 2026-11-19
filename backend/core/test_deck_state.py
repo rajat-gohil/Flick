@@ -430,7 +430,7 @@ class DeckStateAPITests(TestCase):
         self.agreement.save(update_fields=["deck_manifest"])
 
     def test_get_card_delivery_api(self):
-        """GET /api/sessions/<id>/deck/card/ delivers active card."""
+        """GET /api/sessions/<id>/deck/card/ delivers active card and prefetches next_card."""
         url = f"/api/sessions/{self.session.id}/deck/card/"
         res = self.client_host.get(url)
 
@@ -438,8 +438,45 @@ class DeckStateAPITests(TestCase):
         self.assertTrue(res.data["success"])
         self.assertEqual(res.data["card_index"], 0)
         self.assertEqual(res.data["card"]["movie_id"], self.manifest[0]["movie_id"])
+        self.assertIsNotNone(res.data.get("next_card"))
+        self.assertEqual(res.data["next_card"]["card_index"], 1)
+        self.assertEqual(res.data["next_card"]["movie_id"], self.manifest[1]["movie_id"])
 
-    def test_candidate_exhaustion_returns_structured_response_without_500(self):
+    def test_post_swipe_response_api(self):
+        """POST /api/sessions/<id>/deck/swipe/ records response, advances cursor, and delivers next card buffer."""
+        url = f"/api/sessions/{self.session.id}/deck/swipe/"
+        m0_id = self.manifest[0]["movie_id"]
+
+        payload = {
+            "card_index": 0,
+            "movie_id": m0_id,
+            "reaction": "like",
+        }
+        res = self.client_host.post(url, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(res.data["success"])
+        self.assertEqual(res.data["next_card_index"], 1)
+        self.assertFalse(res.data["jointly_resolved"])
+        self.assertIsNotNone(res.data.get("card"))
+        self.assertEqual(res.data["card"]["card_index"], 1)
+        self.assertEqual(res.data["card"]["movie_id"], self.manifest[1]["movie_id"])
+        self.assertIsNotNone(res.data.get("next_card"))
+        self.assertEqual(res.data["next_card"]["card_index"], 2)
+        self.assertEqual(res.data["next_card"]["movie_id"], self.manifest[2]["movie_id"])
+
+    def test_deck_buffer_last_card_has_null_next_card(self):
+        """When delivering the final card in the manifest, next_card is safely None."""
+        self.agreement.host_card_index = len(self.manifest) - 1
+        self.agreement.save(update_fields=["host_card_index"])
+
+        url = f"/api/sessions/{self.session.id}/deck/card/"
+        res = self.client_host.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["card_index"], len(self.manifest) - 1)
+        self.assertIsNotNone(res.data["card"])
+        self.assertIsNone(res.data["next_card"])
+        self.assertFalse(res.data["has_more"])
         """GET /api/sessions/<id>/deck/card/ returns structured exhausted payload on InsufficientCandidatesError."""
         from unittest.mock import patch
         from core.services.manifest import InsufficientCandidatesError

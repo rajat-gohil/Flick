@@ -522,15 +522,15 @@
     "semantic_hash": ""
   },
   "backend/core/services/deck_state.py": {
-    "mtime": 1794591914.1380312,
-    "seen": 1794592072.01316,
-    "ast_hash": "be8c34a49e8a64d864e2b5200402868a",
+    "mtime": 1795077711.704378,
+    "seen": 1795078497.709548,
+    "ast_hash": "2dd30df2729f6690ddd35670b1db6c94",
     "semantic_hash": ""
   },
   "backend/core/test_deck_state.py": {
-    "mtime": 1793729981.7649224,
-    "seen": 1793790527.8264792,
-    "ast_hash": "5cca4cd165dd1ec5bc52e364d4a10fc3",
+    "mtime": 1795077740.7417243,
+    "seen": 1795078497.709576,
+    "ast_hash": "f51e3271ec727a31308fd498a6391875",
     "semantic_hash": ""
   },
   "backend/core/management/commands/process_proposal_outbox.py": {
@@ -1320,9 +1320,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionPage.tsx": {
-    "mtime": 1795032735.3095198,
-    "seen": 1795032974.284826,
-    "ast_hash": "45d08cfb10f8da8e18ccfb7a90efaff7",
+    "mtime": 1795078420.4228787,
+    "seen": 1795078497.709669,
+    "ast_hash": "80cb97506463b4b167dea51342416765",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionsListPage.tsx": {
@@ -2109,6 +2109,12 @@
     "mtime": 1795032278.413469,
     "seen": 1795032974.2846642,
     "ast_hash": "5d05c259d9b85e918478e166f3643e99",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/pages/__tests__/optimisticDeckBuffer.test.tsx": {
+    "mtime": 1795078475.6419885,
+    "seen": 1795078497.7096808,
+    "ast_hash": "5b7055da58db6a5f165c58bf6d67a811",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

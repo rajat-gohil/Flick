@@ -243,17 +243,50 @@ class DeckAdvancementService:
         return agreement
 
     @classmethod
+    def _build_card_payload(cls, manifest: List[Dict[str, Any]], index: int) -> Optional[Dict[str, Any]]:
+        """
+        Constructs a read-only card delivery payload for a given manifest index.
+        Returns None if index is out of bounds or movie does not exist.
+        """
+        if index < 0 or index >= len(manifest):
+            return None
+        card_meta = manifest[index]
+        movie_id = card_meta.get("movie_id")
+        if not movie_id:
+            return None
+        movie = Movie.objects.filter(id=movie_id).first()
+        if not movie:
+            return None
+        return {
+            "card_index": index,
+            "movie_id": movie.id,
+            "tmdb_id": movie.tmdb_id,
+            "title": movie.title,
+            "overview": movie.overview,
+            "poster_path": movie.poster_path,
+            "backdrop_path": movie.backdrop_path,
+            "rating": movie.rating,
+            "vote_count": movie.vote_count,
+            "release_date": str(movie.release_date) if movie.release_date else None,
+            "slot_type": card_meta.get("slot_type"),
+            "turn": card_meta.get("turn"),
+            "scores": card_meta.get("scores", {}),
+        }
+
+    @classmethod
     def get_current_delivery_card(
         cls,
         session: Session,
         user: Any,
     ) -> Dict[str, Any]:
         """
-        Delivers the active card for the requesting participant based on their independent cursor.
+        Delivers the active card for the requesting participant based on their independent cursor,
+        along with the prefetched next_card to enable instant, zero-placeholder optimistic swiping.
         Guarantees:
         - Host advancing does NOT advance or invalidate Guest cursor.
         - Reconnecting or refreshing resumes cleanly from persisted cursor.
         - Calculates partner lag and flags when buffer limit is exceeded.
+        - Delivery is read-only and does not consume cards or advance cursors.
         """
         if user not in (session.host, session.guest):
             raise PermissionDenied("User is not a participant in this screening session.")
@@ -278,6 +311,7 @@ class DeckAdvancementService:
                 "has_more": False,
                 "is_completed": True,
                 "card": None,
+                "next_card": None,
                 "resolved_card_index": agreement.resolved_card_index,
                 "host_card_index": agreement.host_card_index,
                 "guest_card_index": agreement.guest_card_index,
@@ -285,37 +319,20 @@ class DeckAdvancementService:
                 "waiting_for_partner": False,
             }
 
-        card_meta = manifest[current_index]
-        movie_id = card_meta["movie_id"]
+        card_payload = cls._build_card_payload(manifest, current_index)
+        if not card_payload:
+            raise StaleManifestError(f"Movie referenced in manifest card {current_index} not found.")
 
-        try:
-            movie = Movie.objects.get(id=movie_id)
-        except Movie.DoesNotExist:
-            raise StaleManifestError(f"Movie {movie_id} referenced in manifest card {current_index} not found.")
-
-        card_payload = {
-            "card_index": current_index,
-            "movie_id": movie.id,
-            "tmdb_id": movie.tmdb_id,
-            "title": movie.title,
-            "overview": movie.overview,
-            "poster_path": movie.poster_path,
-            "backdrop_path": movie.backdrop_path,
-            "rating": movie.rating,
-            "vote_count": movie.vote_count,
-            "release_date": str(movie.release_date) if movie.release_date else None,
-            "slot_type": card_meta.get("slot_type"),
-            "turn": card_meta.get("turn"),
-            "scores": card_meta.get("scores", {}),
-        }
+        next_card_payload = cls._build_card_payload(manifest, current_index + 1)
 
         return {
             "session_id": session.id,
             "card_index": current_index,
             "total_cards": total_cards,
-            "has_more": True,
+            "has_more": (current_index + 1 < total_cards),
             "is_completed": False,
             "card": card_payload,
+            "next_card": next_card_payload,
             "resolved_card_index": agreement.resolved_card_index,
             "host_card_index": agreement.host_card_index,
             "guest_card_index": agreement.guest_card_index,
@@ -501,6 +518,8 @@ class DeckAdvancementService:
                         "partner_lag": partner_lag,
                         "waiting_for_partner": waiting_for_partner,
                         "is_completed": (current_cursor >= total_cards),
+                        "card": cls._build_card_payload(manifest, current_cursor) if (current_cursor < total_cards and not waiting_for_partner) else None,
+                        "next_card": cls._build_card_payload(manifest, current_cursor + 1) if (current_cursor + 1 < total_cards and not waiting_for_partner) else None,
                     }
                     if idemp_cache_key:
                         cache.set(idemp_cache_key, idemp_payload, timeout=86400)
@@ -586,6 +605,9 @@ class DeckAdvancementService:
                 superlike_attr if match_formed else None,
             )
 
+            active_card_payload = cls._build_card_payload(manifest, new_cursor) if (new_cursor < total_cards and not waiting_for_partner) else None
+            next_card_payload = cls._build_card_payload(manifest, new_cursor + 1) if (new_cursor + 1 < total_cards and not waiting_for_partner) else None
+
             fresh_payload = {
                 "success": True,
                 "idempotent": False,
@@ -601,6 +623,8 @@ class DeckAdvancementService:
                 "partner_lag": partner_lag,
                 "waiting_for_partner": waiting_for_partner,
                 "is_completed": is_completed,
+                "card": active_card_payload,
+                "next_card": next_card_payload,
             }
             if idemp_cache_key:
                 cache.set(idemp_cache_key, {
@@ -676,10 +700,13 @@ class DeckAdvancementService:
             agreement.resolved_card_index = min(agreement.host_card_index, agreement.guest_card_index)
             agreement.save(update_fields=["host_card_index", "guest_card_index", "resolved_card_index", "updated_at"])
 
+            manifest = agreement.deck_manifest or []
             return {
                 "success": True,
                 "card_index": card_index,
                 "host_card_index": agreement.host_card_index,
                 "guest_card_index": agreement.guest_card_index,
                 "resolved_card_index": agreement.resolved_card_index,
+                "card": cls._build_card_payload(manifest, card_index),
+                "next_card": cls._build_card_payload(manifest, card_index + 1),
             }
