@@ -67,6 +67,7 @@ TMDB_TO_STREAMING_PROVIDER_MAP = {
     8: ["Netflix"],
     119: ["Amazon Prime Video", "Amazon Video", "Amazon Prime Video with Ads", "Amazon Prime Video Free with Ads", "Prime Video"],
     122: ["Disney+ Hotstar", "Hotstar", "JioHotstar"],
+    2336: ["Disney+ Hotstar", "Hotstar", "JioHotstar"],
     350: ["Apple TV", "Apple TV+", "Apple TV Plus", "Apple TV Amazon Channel", "Apple TV Store"],
     220: ["JioCinema"],
     237: ["SonyLIV", "Sony Liv"],
@@ -77,6 +78,7 @@ DEFAULT_STREAMING_PROVIDERS_META = {
     8: {"name": "Netflix", "logo_url": "https://image.tmdb.org/t/p/original/rK1KljqmbvO9HQa1PBFLILWah72.png", "country_code": "IN"},
     119: {"name": "Amazon Prime Video", "logo_url": "https://image.tmdb.org/t/p/original/gMZdpavHmxFNnLpMHwVxfqeux2g.png", "country_code": "IN"},
     122: {"name": "JioHotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
+    2336: {"name": "JioHotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
     350: {"name": "Apple TV+", "logo_url": "https://image.tmdb.org/t/p/original/9icYBfYFcwgCbky5VdGUIKJ4C5i.png", "country_code": "IN"},
     220: {"name": "JioCinema", "logo_url": "", "country_code": "IN"},
     237: {"name": "Sony Liv", "logo_url": "https://image.tmdb.org/t/p/original/coM4QWbmIOa0xJ5cGR9BRmoV25B.png", "country_code": "IN"},
@@ -959,7 +961,13 @@ class CandidateRetrievalService:
 
         watch_provider_id = None
         if getattr(constraints, "streaming_provider_ids", None):
-            watch_provider_id = "|".join(str(p) for p in constraints.streaming_provider_ids if p)
+            raw_pids = [str(p) for p in constraints.streaming_provider_ids if p]
+            # Narrow Hotstar compatibility: expand 122 or 2336 to cover full Indian catalog
+            if "122" in raw_pids and "2336" not in raw_pids:
+                raw_pids.append("2336")
+            elif "2336" in raw_pids and "122" not in raw_pids:
+                raw_pids.append("122")
+            watch_provider_id = "|".join(raw_pids)
 
         try:
             for era in eras_to_query:

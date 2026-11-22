@@ -1,17 +1,17 @@
 # Graph Report - flick-app  (2026-11-22)
 
 ## Corpus Check
-- 270 files · ~406,208 words
+- 270 files · ~406,533 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 59 file(s) not represented in the graph (top: .csv 48, (none) 7, .example 2)
 
 ## Summary
-- 4488 nodes · 9977 edges · 230 communities (100 shown, 130 thin omitted)
+- 4495 nodes · 9988 edges · 188 communities (97 shown, 91 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 1135 edges (avg confidence: 0.93)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `44edd95c`
+- Built from commit: `4262e852`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,27 +19,27 @@
 - StreamingFilterAuditTests
 - Defense-in-Depth Debugging Strategies
 - test_guest_api.py
-- CatalogueJob
+- models.py
 - _make_movie
-- router.tsx
+- apiRequest
 - GuestConversionValidationAndRejectionTests
 - WebSocketAuthenticationAndAuthorizationTests
 - DiscoverPage.tsx
 - vitest
 - SessionDetailSerializer
-- CandidatePool
-- BoutiqueManifestCompilationTests
-- CinemaHeader
+- HardConstraints
+- handle_catalogue_classification
+- partnerWaitingBehavior.test.tsx
 - run_staleness_sweep
 - tutorialSystem.test.tsx
 - DynamicMovieCatalogueTests
 - .get_recommendations
-- SessionPage.tsx
+- SpotlightTour.tsx
 - compilerOptions
-- ProfilePage.tsx
+- HomePage.tsx
 - Batch3WorkerIntegrationTests
 - WebSocketRevocationTests
-- .create_proposal
+- TMDBRateLimiterInMemoryTests
 - ClassicVaultEraFilterTests
 - SessionLifecycleAndQuestionnaireRecoveryTests
 - permissions.py
@@ -47,40 +47,40 @@
 - django_db
 - Root Cause Tracing Techniques
 - compilerOptions
-- RecommendationEvaluationTests
+- set_redis_client
 - MatchConsumer
 - Systematic Debugging
 - manifest.json
 - ProposalAPITestCase
-- GuestSecurityHMACAndVerificationTests
+- CatalogueJob
 - .record_swipe_response
-- GuestSecurityCryptoTests
+- FunctionalAndMobileAuditVerificationTests
 - IntelligenceWorkerProcess
 - backend/package.json
 - UserPreferenceData
-- .agent/skills/ui-ux-pro-max/scripts/core.py
-- tmdb.py
-- SuperLikeReactionMatrixIntegrationTests
+- settings.py
+- _get_tmdb_request_headers
 - ScreeningSessionResultsAndStatsPersistenceTests
 - DesignSystemGenerator
 - views.py
 - AuthenticationAndPermissionTests
-- apiRequest
+- PreferencesPage.tsx
 - .agent/skills/ui-ux-pro-max/scripts/design_system.py
-- react
+- api.ts
 - DesignSystemGenerator
-- merge_guest_activity
+- test_frictionless_onboarding.py
 - scripts
 - 6. Flick-Specific Error Handling Architecture
 - 2xx — Successful Responses
 - React + TypeScript + Vite
 - vercel.json
 - Phase6BatchCRecentSessionsAndStreamingTests
-- .compute_attenuation
+- flick-frontend/package.json
 - evaluate_eligibility_predicates
 - tmdb_rate_limiter.py
 - sw.js
-- ProposalExecutionWorker
+- fetch_cached_tmdb
+- GuestConversionRecoverySecurityTests
 - tsconfig.json
 - SessionJoiningTests
 - GuestActivityTrackingTests
@@ -93,23 +93,23 @@
 - 9. Practical Troubleshooting Playbook
 - PaginationAndResourceLimitTests
 - Batch5PersonalizationEvaluationTests
-- models.py
+- InteractionLog
 - ui-ux-pro-max
 - UserTasteProfile
 - RecommendationDiscoveryTests
-- ProposalLifecycleAndIdempotencyTestCase
-- Session
-- .test_concurrent_http_asgi_requests_through_middleware
+- ProposalExecutionWorker
+- retrieval.py
+- test_observability_and_security.py
 - .authenticate
 - PostgreSQLQueueConcurrencyTests
 - ui-ux-pro-max
 - .agents/skills/ui-ux-pro-max/scripts/design_system.py
-- IndividualRelevanceScorer
+- os
 - TestCase
 - IdentityLinkingService
 - .claim_jobs
-- Match
-- settings.py
+- Session
+- .agent/skills/ui-ux-pro-max/scripts/search.py
 - AuthenticationThrottlingTests
 - production_settings.py
 - Stage3EndToEndProductValidationTests
@@ -117,10 +117,10 @@
 - tmdb_changes.py
 - UniversalLocalNetworkDevConfigurationTests
 - admin.py
-- APIView
-- .enqueue
-- .test_10_successful_deck_regeneration_after_approved_expansion
-- core/urls.py
+- CuratorsSelectionView
+- .claim_jobs
+- LocalizedGenreRetrievalTests
+- RegisterSerializer
 - InteractionLogProcessingStatusTests
 - SoundSynthesizer
 - AdminCommandSecurityTests
@@ -128,100 +128,73 @@
 - Workflow Phases (Summary)
 - AuthRateThrottle
 - CorrelationIdMiddleware
-- SessionExpandConstraintsView
-- GuestRecoveryAPITests
-- DeckSwipeUndoView
+- .generate_targeted_discovery_plan
+- GuestThrottlingTests
 - Pre1990ReleasePeriodFilterTests
 - MovieSerializer
 - eslint.config.js
 - diagnose_lan_connectivity.sh
 - CandidateRetrievalAndEligibilityTests
+- SwipeUndoViewInverseParityTests
 - TestIndianLanguageDiscovery
 - Phase6BatchBBackendTests
 - DeckStateAPITests
-- rank_candidates_for_user
+- compute_session_statistics
 - _assert_safe_local_database
 - middleware.py
-- CorrelationIdMiddlewareTests
+- Command
 - batch_sync_prelaunch.py
 - SecretRedactionLoggerTests
 - @testing-library/jest-dom
 - interface
 - SwipeFailureRecoveryAndEdgeCaseTests
 - Examples
-- GuestProvisioningIdempotency
-- .agents/skills/ui-ux-pro-max/scripts/core.py
+- 2xx — Successful Responses
+- .agent/skills/ui-ux-pro-max/scripts/core.py
 - PasswordResetSecurityTests
-- SuperLikePersistenceAndAttributionTests
+- SuperLikeReactionMatrixIntegrationTests
 - SessionPage.tsx
-- IntelligenceModelsTestCase
+- 5. Deep Dive: HTTP 304 Not Modified & Caching
 - get_correlation_id
-- test_observability_and_security.py
-- GuestProfileModelTests
+- Command
+- .test_concurrent_duplicate_submissions_race_condition
 - TMDBTimeoutError
-- dependencies
+- ThemeContext.tsx
 - MotionAndSessionRegressionAuditTests
-- SwipeHistoryView
 - calculate_preference_score
 - UserIdentityLinkModelTests
 - SessionCodeCollisionTests
-- HealthCheckView
-- BM25
 - MatchListFilteringSecurityTests
-- SecretRedactionFilter
-- .record_decision
+- ConstraintExpansionProposal
 - GuestConversionConcurrencyTests
 - _validate_candidate
 - CoreUserExperienceRepairTests
-- GuestSecurityDeploymentSettingsTests
 - vite.config.ts
-- .test_postgresql_skip_locked_concurrent_interaction_logs_zero_overlap
 - 4xx — Client-Side Errors
 - RecentSessionsTests
-- Movie
+- StreamingProvider
 - .handle
-- LocalNetworkConfigurationTests
-- SessionCreateView
-- TestCase
+- QueueLifecycleAndProvenanceCorrectionTest
 - FrictionlessOnboardingConcurrencyTests
-- Implementation Plan: Batch 4 — Historical Interaction Reconciliation and Identity Linking
 - vercel.json
 - MovieTagRelation
 - Flick — HTTP Status Codes, Server Logs & Error-Handling Reference
 - CorrectSyntheticM1RecordsTest
 - verify-batch-b-browser.js
-- .create_guest
 - SessionHistoryTests
-- .calculate_allocation
-- SessionJoinView
-- WatchlistView
-- WatchlistDetailView
-- GuestActivityMiddleware
+- ManifestCompilerService
 - Batch 4: Historical Interaction Reconciliation & Identity Linking — Task List
 - 7. Background Queue & Worker Numbers
 - .test_concurrent_duplicate_submissions_by_single_user
 - .handle
+- UserProfile
 - HistoricalReconciliationServiceTests
-- update_movie_metadata
+- enrichment_handlers.py
 - 4. Deciphering Server Logs & Trailing Numbers
-- DeleteAccountView
-- Command
-- GuestRecoveryAckView
-- MergeConflictError
 - InMemoryTokenBucket
-- SessionLeaveView
-- RegisterView
-- UserProfileView
 - Command
-- VerifyEmailConfirmView
-- SessionRecentListView
-- GenreListView
-- GuestProvisionView
-- GuestConvertView
-- GuestRecoveryKeyView
-- MovieSyncTMDBView
-- SessionHistoryView
-- os
+- DatabaseConcurrencyAndSwipeReliabilityTests
+- Movie
 
 ## God Nodes (most connected - your core abstractions)
 1. `Movie` - 213 edges
@@ -240,97 +213,97 @@
   docs/HTTP_STATUS_AND_ERROR_HANDLING_GUIDE.md → backend/core/logging.py
 - `Anatomy of a Django/Daphne Access Log` --references--> `CorrelationIdMiddleware`  [INFERRED]
   docs/HTTP_STATUS_AND_ERROR_HANDLING_GUIDE.md → backend/core/middleware.py
-- `Architecture & Data Decisions` --references--> `InteractionLog`  [INFERRED]
-  tasks/plan.md → backend/core/models.py
 - `Worker Leases, Fencing Tokens & Heartbeats` --references--> `StaleLeaseOwnershipError`  [INFERRED]
   docs/HTTP_STATUS_AND_ERROR_HANDLING_GUIDE.md → backend/core/services/catalogue_queue.py
-- `Task 4: Guest Identity Linking Service` --references--> `IdentityLinkingService`  [INFERRED]
-  tasks/plan.md → backend/core/services/identity_linking.py
+- `HTTP 403 Forbidden` --references--> `transition_movie_classification()`  [INFERRED]
+  docs/HTTP_STATUS_AND_ERROR_HANDLING_GUIDE.md → backend/core/services/movie_mutations.py
+- `HTTP 429 Too Many Requests` --references--> `AuthRateThrottle`  [INFERRED]
+  docs/HTTP_STATUS_AND_ERROR_HANDLING_GUIDE.md → backend/core/throttling.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (230 total, 130 thin omitted)
+## Communities (188 total, 91 thin omitted)
 
 ### Community 1 - "Defense-in-Depth Debugging Strategies"
 Cohesion: 0.06
 Nodes (30): Boundary Testing, Checkpoint: Layered debugging complete, Cleanup and teardown, Defense-in-Depth Debugging Strategies, Dependency isolation, Divide and Conquer, Hypothesis Testing Protocol, Input validation (+22 more)
 
 ### Community 2 - "test_guest_api.py"
-Cohesion: 0.08
-Nodes (10): calculate_entropy_bits(), canonicalize_recovery_code(), compute_recovery_lookup_digest(), dummy_verify_recovery_code(), generate_recovery_code(), get_recovery_hmac_key(), hash_recovery_code(), verify_recovery_code() (+2 more)
+Cohesion: 0.03
+Nodes (15): calculate_entropy_bits(), canonicalize_recovery_code(), compute_recovery_lookup_digest(), dummy_verify_recovery_code(), generate_recovery_code(), get_recovery_hmac_key(), hash_recovery_code(), verify_recovery_code() (+7 more)
 
-### Community 3 - "CatalogueJob"
-Cohesion: 0.06
-Nodes (19): Command, register_handler(), CatalogueJob, JobType, Meta, Status, CatalogueQueueError, CatalogueQueueService (+11 more)
+### Community 3 - "models.py"
+Cohesion: 0.09
+Nodes (12): MovieManager, TmdbChangesCheckpoint, Meta, CatalogueQueueError, CatalogueQueueService, JobNotFoundError, StaleLeaseOwnershipError, StalenessSweepService (+4 more)
 
 ### Community 4 - "_make_movie"
-Cohesion: 0.11
-Nodes (6): DryRunImmutabilityTest, _guard_pass(), _make_movie(), _mock_tmdb_response(), QueueLifecycleAndProvenanceCorrectionTest, TMDBVerificationPipelineTest
+Cohesion: 0.12
+Nodes (4): _guard_pass(), _make_movie(), _mock_tmdb_response(), TMDBVerificationPipelineTest
 
-### Community 5 - "router.tsx"
-Cohesion: 0.14
-Nodes (25): AccountSettingsPage, AnimatedRoutes(), AutoJoin, CreateSessionPage, DiscoverPage, EntryPage, ForgotPasswordPage, GuestConvertPage (+17 more)
-
-### Community 6 - "GuestConversionValidationAndRejectionTests"
+### Community 5 - "apiRequest"
 Cohesion: 0.07
-Nodes (3): GuestConversionRecoverySecurityTests, GuestConversionSuccessTests, GuestConversionValidationAndRejectionTests
+Nodes (57): 1. The `ApiError` Class, 2. Automatic Error Message Extraction, 3. Automatic Session Expiration Handling (401 Interceptor), 4. Empty States vs. Actual Errors, Frontend Error Handling (`api.ts` & React), AccountSettingsPage, AnimatedRoutes(), AutoJoin (+49 more)
 
 ### Community 8 - "DiscoverPage.tsx"
-Cohesion: 0.06
-Nodes (41): DeckCardSkeleton(), MatchItemSkeleton(), MovieCardSkeleton(), ShelfSkeleton(), Skeleton(), SkeletonProps, StreamingItemSkeleton(), Provider (+33 more)
+Cohesion: 0.04
+Nodes (67): BottomNav(), BottomNavProps, NavTab, CinemaHeader(), CinemaHeaderProps, backdropVariants, bottomSheetVariants, dialogVariants (+59 more)
 
 ### Community 9 - "vitest"
 Cohesion: 0.05
-Nodes (45): ErrorBoundary, Props, State, ConstraintExhaustionNoticeModal(), ConstraintExhaustionNoticeModalProps, ConstraintProposalData, DecisionInfo, parseDecision() (+37 more)
+Nodes (41): ErrorBoundary, Props, State, ConstraintExhaustionNoticeModal(), ConstraintExhaustionNoticeModalProps, ConstraintProposalData, DecisionInfo, parseDecision() (+33 more)
 
 ### Community 10 - "SessionDetailSerializer"
 Cohesion: 0.05
 Nodes (3): SessionDetailSerializer, Meta, AffinityEvaluationTests
 
-### Community 13 - "CinemaHeader"
+### Community 11 - "HardConstraints"
+Cohesion: 0.06
+Nodes (6): CollaborativeAgreement, CandidatePool, HardConstraints, ManifestLearnedFeedbackIntegrationTests, ReproducibilityAndPersistenceTests, Phase1EndToEndScenarioTestCase
+
+### Community 12 - "handle_catalogue_classification"
 Cohesion: 0.08
-Nodes (39): BottomNav(), BottomNavProps, NavTab, CinemaHeader(), CinemaHeaderProps, UserProfile, CreateSessionPage(), createSession() (+31 more)
+Nodes (6): acquire_tmdb_token(), handle_catalogue_classification(), handle_catalogue_enrichment(), record_tmdb_429(), _tmdb_api_get(), TestIngestionAndProvenance
+
+### Community 13 - "partnerWaitingBehavior.test.tsx"
+Cohesion: 0.12
+Nodes (14): AvatarStack(), RecentSession, SessionCard(), SessionsListPage(), guestSessionResponse, hostSessionData, hostSessionResponse, mockApiRequest (+6 more)
 
 ### Community 14 - "run_staleness_sweep"
-Cohesion: 0.07
-Nodes (5): Command, StalenessSweepCheckpoint, Meta, run_staleness_sweep(), StalenessSweepTests
+Cohesion: 0.08
+Nodes (4): StalenessSweepCheckpoint, Meta, run_staleness_sweep(), StalenessSweepTests
 
 ### Community 15 - "tutorialSystem.test.tsx"
-Cohesion: 0.06
-Nodes (48): SpotlightTourStep, ThemeProvider(), ANON_ID_STORAGE_KEY, formatTourStorageKey(), generateAnonymousId(), getOrCreateAnonymousBrowserId(), getTourStatus(), getTourStorageKey() (+40 more)
+Cohesion: 0.10
+Nodes (28): ANON_ID_STORAGE_KEY, formatTourStorageKey(), generateAnonymousId(), getOrCreateAnonymousBrowserId(), getTourStatus(), getTourStorageKey(), hasSeenTour(), isTourCompletionStatus() (+20 more)
 
 ### Community 16 - "DynamicMovieCatalogueTests"
-Cohesion: 0.05
-Nodes (3): DynamicMovieCatalogueTests, FunctionalAndMobileAuditVerificationTests, StreamingProviderAvailabilityTests
+Cohesion: 0.08
+Nodes (3): get_or_create_movie_from_tmdb(), DynamicMovieCatalogueTests, StreamingProviderAvailabilityTests
 
-### Community 18 - "SessionPage.tsx"
-Cohesion: 0.07
-Nodes (36): ComputedLayout, computeTourLayout(), findVisibleTarget(), GestureHintCue(), getClampedTooltipWidth(), getViewportSize(), isFixedOrStickyElement(), isSameLayout() (+28 more)
+### Community 18 - "SpotlightTour.tsx"
+Cohesion: 0.16
+Nodes (18): ComputedLayout, computeTourLayout(), findVisibleTarget(), GestureHintCue(), getClampedTooltipWidth(), getViewportSize(), isFixedOrStickyElement(), isSameLayout() (+10 more)
 
 ### Community 19 - "compilerOptions"
 Cohesion: 0.09
 Nodes (21): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, jsx, lib, module, moduleDetection, moduleResolution (+13 more)
 
-### Community 20 - "ProfilePage.tsx"
-Cohesion: 0.09
-Nodes (39): RouteLoadingFallback(), AuthShell(), generateUsernameSuggestions(), getPasswordStrength(), CinematicLoader(), CinematicLoaderProps, RecoveryCodeModal(), RecoveryCodeModalProps (+31 more)
-
-### Community 21 - "Batch3WorkerIntegrationTests"
-Cohesion: 0.08
-Nodes (3): _beat(), reset_handlers(), Batch3WorkerIntegrationTests
+### Community 20 - "HomePage.tsx"
+Cohesion: 0.11
+Nodes (33): identifyUser(), resetAnalyticsIdentity(), convertGuestAccount(), AuthUser, clearAuthState, getCurrentUser(), isGuest(), isLoggedIn() (+25 more)
 
 ### Community 22 - "WebSocketRevocationTests"
 Cohesion: 0.08
 Nodes (8): broadcast_credential_revocation(), WebSocketRevocationTests, run(), run(), run(), run(), run(), run()
 
-### Community 26 - "permissions.py"
-Cohesion: 0.17
-Nodes (4): configure_sqlite_pragmas(), CoreConfig, CoreConfig, IsOwner
+### Community 23 - "TMDBRateLimiterInMemoryTests"
+Cohesion: 0.08
+Nodes (3): parse_retry_after(), reset_rate_limiter(), TMDBRateLimiterInMemoryTests
 
-### Community 27 - "MovieMutationsTestCase"
-Cohesion: 0.09
-Nodes (3): transition_movie_classification(), MovieMutationsTestCase, HTTP 403 Forbidden
+### Community 26 - "permissions.py"
+Cohesion: 0.15
+Nodes (4): configure_sqlite_pragmas(), CoreConfig, CoreConfig, IsOwner
 
 ### Community 28 - "django_db"
 Cohesion: 0.03
@@ -344,9 +317,9 @@ Nodes (26): Checkpoint: When investigation is complete, Common Root Cause Patter
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib, module, moduleDetection, moduleResolution, noEmit (+11 more)
 
-### Community 31 - "RecommendationEvaluationTests"
-Cohesion: 0.07
-Nodes (10): compute_cohort_divergence(), compute_negative_response_rate(), compute_preference_alignment(), compute_shelf_diversity(), compute_unexposed_discovery_ratio(), _extract_movie_id(), _extract_movie_tokens(), RecommendationEvaluationService (+2 more)
+### Community 31 - "set_redis_client"
+Cohesion: 0.11
+Nodes (3): set_redis_client(), TMDBRateLimiterProductionFailClosedTests, TMDBRateLimiterRedisLuaMockTests
 
 ### Community 33 - "Systematic Debugging"
 Cohesion: 0.12
@@ -356,113 +329,117 @@ Nodes (15): Do not use this skill when, Examples, First move, Guardrails, Inputs
 Cohesion: 0.12
 Nodes (16): background_color, categories, description, display, icons, lang, name, orientation (+8 more)
 
-### Community 37 - ".record_swipe_response"
-Cohesion: 0.06
-Nodes (3): submit_guest(), submit_host(), submit_swipe()
+### Community 36 - "CatalogueJob"
+Cohesion: 0.17
+Nodes (7): CatalogueJob, JobType, Meta, Status, handle_full_reconciliation(), handle_sync_changes_feed(), to_json_safe()
 
 ### Community 39 - "IntelligenceWorkerProcess"
-Cohesion: 0.08
-Nodes (3): Command, IntelligenceWorkerProcess, IntelligenceWorkerTasteHandlerTests
+Cohesion: 0.07
+Nodes (4): Command, IntelligenceWorkerProcess, _beat(), register_handler()
 
 ### Community 40 - "backend/package.json"
 Cohesion: 0.36
 Nodes (7): devDependencies, autoprefixer@^10.4.23, postcss@^8.5.6, tailwindcss@^4.1.18, tailwindcss, autoprefixer, postcss
 
 ### Community 41 - "UserPreferenceData"
-Cohesion: 0.09
-Nodes (4): normalize_candidate_metadata(), MovieIntelligenceData, UserPreferenceData, ScoringServiceTestCase
+Cohesion: 0.04
+Nodes (9): CollaborativeDeckScorer, ScoredCandidate, normalize_candidate_metadata(), rank_candidates_for_user(), IndividualRelevanceScorer, MovieIntelligenceData, UserPreferenceData, RoomRecommendationScenariosTestCase (+1 more)
 
-### Community 42 - ".agent/skills/ui-ux-pro-max/scripts/core.py"
-Cohesion: 0.20
-Nodes (5): detect_domain(), _load_csv(), search(), _search_csv(), search_stack()
-
-### Community 43 - "tmdb.py"
-Cohesion: 0.06
-Nodes (32): Command, recalculate_movie_eligibility(), discover_movies(), _fetch(), fetch_cached_tmdb(), format_tmdb_movie(), get_enhanced_movie_details(), get_genres_map() (+24 more)
+### Community 43 - "_get_tmdb_request_headers"
+Cohesion: 0.08
+Nodes (22): _fetch(), format_tmdb_movie(), get_enhanced_movie_details(), get_genres_map(), get_movie_by_tmdb_id(), _fetch(), get_movie_genres(), get_now_playing_movies() (+14 more)
 
 ### Community 47 - "views.py"
-Cohesion: 0.05
-Nodes (23): GenreSerializer, Meta, ProposalOutboxMessageSerializer, Meta, RegisterSerializer, Meta, SessionSerializer, Meta (+15 more)
+Cohesion: 0.02
+Nodes (51): StandardResultsSetPagination, SwipeHistoryPagination, DeckStateError, InvalidCardIndexError, StaleManifestError, ReplenishmentInProgressError, DeckCardDeliveryView, DeckSwipeResponseView (+43 more)
 
-### Community 49 - "apiRequest"
-Cohesion: 0.05
-Nodes (49): 1. The `ApiError` Class, 2. Automatic Error Message Extraction, 3. Automatic Session Expiration Handling (401 Interceptor), 4. Empty States vs. Actual Errors, Frontend Error Handling (`api.ts` & React), ApiError, apiRequest(), buildDeduplicationKey() (+41 more)
+### Community 49 - "PreferencesPage.tsx"
+Cohesion: 0.14
+Nodes (14): OptionIcon(), PreferencesPage(), buildPreferences(), checkSessionState(), handleNext(), handleSubmit(), loadAuthoritativeState(), Question (+6 more)
 
 ### Community 50 - ".agent/skills/ui-ux-pro-max/scripts/design_system.py"
 Cohesion: 0.14
 Nodes (8): _detect_page_type(), format_ascii_box(), format_markdown(), format_master_md(), format_page_override_md(), generate_design_system(), _generate_intelligent_overrides(), persist_design_system()
 
-### Community 51 - "react"
-Cohesion: 0.14
-Nodes (20): react-dom@^19.2.0, App(), AppRouter(), AuthRecoveryPrompt(), AuthRecoveryPromptProps, ProvisionContinuationScreen(), ProvisionContinuationScreenProps, provisionGuest() (+12 more)
+### Community 51 - "api.ts"
+Cohesion: 0.08
+Nodes (35): AuthRecoveryPrompt(), AuthRecoveryPromptProps, ProvisionContinuationScreen(), ProvisionContinuationScreenProps, RecoveryCodeModal(), RecoveryCodeModalProps, acknowledgeRecovery(), ApiError (+27 more)
 
-### Community 53 - "merge_guest_activity"
-Cohesion: 0.15
-Nodes (4): merge_guest_activity(), normalize_pair(), GuestMergeServiceTests, patched_select_for_update()
+### Community 53 - "test_frictionless_onboarding.py"
+Cohesion: 0.05
+Nodes (25): GuestProfile, Meta, GuestProvisioningIdempotency, Meta, SessionChemistry, Meta, UserTasteSignal, Meta (+17 more)
 
 ### Community 54 - "scripts"
 Cohesion: 0.33
 Nodes (6): scripts, build, dev, lint, preview, test
 
 ### Community 55 - "6. Flick-Specific Error Handling Architecture"
-Cohesion: 0.22
-Nodes (9): 1. Custom Exception Handler (`backend/backend/exceptions.py`), 1. The Movie Database (TMDB), 2. Redis, 2. Secret Redaction Filter (`core/logging.py`), 3. PostgreSQL & SQLite, 3. Request Correlation ID Middleware (`core/middleware.py`), 6. Flick-Specific Error Handling Architecture, Backend Error Handling (DRF, Exceptions & Middleware) (+1 more)
+Cohesion: 0.40
+Nodes (5): 1. Custom Exception Handler (`backend/backend/exceptions.py`), 2. Secret Redaction Filter (`core/logging.py`), 3. Request Correlation ID Middleware (`core/middleware.py`), 6. Flick-Specific Error Handling Architecture, Backend Error Handling (DRF, Exceptions & Middleware)
 
 ### Community 56 - "2xx — Successful Responses"
-Cohesion: 0.13
-Nodes (15): 2xx — Successful Responses, 3. Complete HTTP Status Code Guide, 3xx — Redirection & Caching, 5xx — Server-Side & Upstream Errors, HTTP 200 OK, HTTP 201 Created, HTTP 202 Accepted, HTTP 204 No Content (+7 more)
+Cohesion: 0.20
+Nodes (10): 3. Complete HTTP Status Code Guide, 3xx — Redirection & Caching, 5xx — Server-Side & Upstream Errors, HTTP 301 Moved Permanently, HTTP 302 Found / Temporary Redirect, HTTP 304 Not Modified, HTTP 500 Internal Server Error, HTTP 502 Bad Gateway (+2 more)
 
 ### Community 57 - "React + TypeScript + Vite"
 Cohesion: 0.50
 Nodes (3): Expanding the ESLint configuration, React Compiler, React + TypeScript + Vite
 
 ### Community 59 - "Phase6BatchCRecentSessionsAndStreamingTests"
-Cohesion: 0.10
-Nodes (3): reset_tmdb_session(), Phase6BatchCRecentSessionsAndStreamingTests, Phase6BatchCTMDBReliabilityTests
+Cohesion: 0.08
+Nodes (6): _create_tmdb_session(), get_tmdb_session(), reset_tmdb_session(), Phase6BatchCRecentSessionsAndStreamingTests, Phase6BatchCTMDBReliabilityTests, worker()
+
+### Community 60 - "flick-frontend/package.json"
+Cohesion: 0.15
+Nodes (12): lucide-react@^0.577.0, material-symbols@^0.40.2, tailwindcss@^4.1.18, @types/node@^24.10.1, tailwindcss, name, private, type (+4 more)
 
 ### Community 61 - "evaluate_eligibility_predicates"
-Cohesion: 0.05
-Nodes (9): validate_movie_language(), MovieQuerySet, evaluate_eligibility_predicates(), movie_genres_changed_handler(), register_eligibility_signals(), EligibilityPredicatesOptionBTests, LanguageValidationTests, MovieEligibilityModelAndSignalTests (+1 more)
+Cohesion: 0.06
+Nodes (7): validate_movie_language(), MovieQuerySet, evaluate_eligibility_predicates(), EligibilityPredicatesOptionBTests, LanguageValidationTests, MovieEligibilityModelAndSignalTests, MovieQuerySetRestrictionTests
 
 ### Community 62 - "tmdb_rate_limiter.py"
-Cohesion: 0.04
-Nodes (16): acquire_tmdb_token(), calculate_cooldown_with_jitter(), get_rate_limiter_status(), get_redis_client(), is_production(), parse_retry_after(), record_tmdb_429(), _redis_eval_acquire() (+8 more)
+Cohesion: 0.09
+Nodes (11): get_movie_watch_providers(), acquire_tmdb_token(), calculate_cooldown_with_jitter(), get_rate_limiter_status(), get_redis_client(), is_production(), record_tmdb_429(), _redis_eval_acquire() (+3 more)
 
-### Community 65 - "ProposalExecutionWorker"
-Cohesion: 0.15
-Nodes (3): Command, ProposalExecutionWorker, ProposalOutboxProcessBatchView
+### Community 64 - "fetch_cached_tmdb"
+Cohesion: 0.09
+Nodes (3): fetch_cached_tmdb(), redact_sensitive_params(), TestReliabilityAndRetrieval
 
 ### Community 70 - "HistoricalReconciliationService"
 Cohesion: 0.19
 Nodes (6): HistoricalReconciliationService, map_swipe_reaction(), reconcile_historical_interactions(), Task 3: Historical Interaction Reconciliation Service & Command, Checkpoint 2: Reconciliation & Identity Complete, Phase 2: Reconciliation & Identity
 
 ### Community 74 - "flick-frontend/package.json"
-Cohesion: 0.12
-Nodes (21): devDependencies, jsdom@^30.1.3, tailwindcss@^4.1.18, @testing-library/react@^16.3.3, @types/canvas-confetti@^1.9.0, @types/node@^24.10.1, @types/react@^19.2.5, @types/react-dom@^19.2.3 (+13 more)
+Cohesion: 0.15
+Nodes (13): devDependencies, jsdom@^30.1.3, @testing-library/react@^16.3.3, @types/canvas-confetti@^1.9.0, @types/react@^19.2.5, @types/react-dom@^19.2.3, typescript@~5.9.3, vitest@^5.1.0 (+5 more)
 
 ### Community 79 - "9. Practical Troubleshooting Playbook"
 Cohesion: 0.12
 Nodes (17): 10. `502 Bad Gateway`, 11. `503 Service Unavailable`, 12. `504 Gateway Timeout`, 13. `ConnectionResetError(54, 'Connection reset by peer')`, 14. `ECONNREFUSED 127.0.0.1:8000`, 15. `AbortError: The operation was aborted`, 16. `CatalogueJob status = failed_permanent`, 1. `200 55` (+9 more)
 
-### Community 83 - "models.py"
-Cohesion: 0.05
-Nodes (31): Genre, GuestProfile, Meta, InteractionLog, Meta, MovieExposure, MovieKeyword, MovieManager (+23 more)
+### Community 83 - "InteractionLog"
+Cohesion: 0.04
+Nodes (42): InteractionLog, Meta, MovieExposure, MovieKeyword, MovieTag, UserIdentityLink, LinkType, Meta (+34 more)
 
 ### Community 84 - "ui-ux-pro-max"
 Cohesion: 0.07
 Nodes (29): Accessibility, Available Domains, Available Stacks, Common Rules for Professional UI, Example Workflow, How to Use This Skill, Icons & Visual Elements, Interaction (+21 more)
 
-### Community 88 - "Session"
-Cohesion: 0.03
-Nodes (35): CollaborativeAgreement, ConstraintExpansionProposal, Meta, ProposalOutboxMessage, Meta, Session, SessionOccasionState, calculate_questionnaire_similarity() (+27 more)
+### Community 87 - "ProposalExecutionWorker"
+Cohesion: 0.04
+Nodes (8): Command, ConstraintExpansionProposalSerializer, Meta, ProposalExecutionWorker, ProposalService, ProposalLifecycleAndIdempotencyTestCase, ProposalOutboxWorkerTestCase, ProposalServiceTestCase
 
-### Community 89 - ".test_concurrent_http_asgi_requests_through_middleware"
-Cohesion: 0.15
-Nodes (5): CorrelationIdFilter, SecretRedactionFormatter, CorrelationIdConcurrencyTests, async_view(), __init__()
-
-### Community 90 - ".authenticate"
+### Community 88 - "retrieval.py"
 Cohesion: 0.10
-Nodes (3): EmailOrUsernameModelBackend, AuthenticationLoggingSecurityTests, LoginView
+Nodes (13): SessionOccasionState, calculate_questionnaire_similarity(), calculate_screening_affinity(), calculate_session_statistics(), calculate_taste_compatibility(), normalize_user_preferences(), TransientReplenishmentError, CandidateRetrievalService (+5 more)
+
+### Community 89 - "test_observability_and_security.py"
+Cohesion: 0.12
+Nodes (4): CorrelationIdFilter, SecretRedactionFilter, SecretRedactionFormatter, CorrelationIdConcurrencyTests
+
+### Community 91 - "PostgreSQLQueueConcurrencyTests"
+Cohesion: 0.12
+Nodes (3): PostgreSQLQueueConcurrencyTests, do_enqueue(), worker_task()
 
 ### Community 92 - "ui-ux-pro-max"
 Cohesion: 0.07
@@ -472,84 +449,64 @@ Nodes (29): Accessibility, Available Domains, Available Stacks, Common Rules for
 Cohesion: 0.14
 Nodes (8): _detect_page_type(), format_ascii_box(), format_markdown(), format_master_md(), format_page_override_md(), generate_design_system(), _generate_intelligent_overrides(), persist_design_system()
 
-### Community 94 - "IndividualRelevanceScorer"
-Cohesion: 0.12
-Nodes (3): CollaborativeDeckScorer, ScoredCandidate, RoomRecommendationScenariosTestCase
-
 ### Community 95 - "TestCase"
-Cohesion: 0.12
-Nodes (3): EmailVerificationTests, GenreIntegrationTests, SessionLifecycleTests
+Cohesion: 0.09
+Nodes (4): EmailVerificationTests, GenreIntegrationTests, LocalNetworkConfigurationTests, SessionLifecycleTests
 
-### Community 98 - "Match"
+### Community 98 - "Session"
 Cohesion: 0.03
-Nodes (20): Match, Meta, SessionStats, WatchlistItem, Meta, GuestConversionDataIntegrityTests, ConcurrencyAndAtomicityTests, SessionQueryOptimizationTests (+12 more)
-
-### Community 99 - "settings.py"
-Cohesion: 0.08
-Nodes (4): format_output(), format_output(), main(), start.sh script
+Nodes (28): Match, Meta, Session, SessionStats, Swipe, Meta, SessionSerializer, Meta (+20 more)
 
 ### Community 101 - "production_settings.py"
 Cohesion: 0.16
 Nodes (3): scrub_sentry_event(), scrub_value(), SentryScrubberTests
 
 ### Community 104 - "tmdb_changes.py"
-Cohesion: 0.04
-Nodes (14): Command, TmdbChangesCheckpoint, Meta, handle_full_reconciliation(), handle_sync_changes_feed(), to_json_safe(), poll_tmdb_changes(), PollerLockedError (+6 more)
+Cohesion: 0.06
+Nodes (5): Command, poll_tmdb_changes(), TmdbChangesService, PollTmdbChangesCommandTests, TmdbChangesServiceTests
 
 ### Community 106 - "admin.py"
 Cohesion: 0.20
 Nodes (11): CustomUserAdmin, GenreAdmin, MatchAdmin, MovieAdmin, MovieStreamingAvailabilityAdmin, SessionAdmin, SessionStatsAdmin, StreamingProviderAdmin (+3 more)
 
-### Community 107 - "APIView"
-Cohesion: 0.11
-Nodes (7): DiscoverView, GenreSyncTMDBView, GuestRotateCodeView, PasswordResetConfirmView, ProposalDetailView, SessionDetailView, UpdateUsernameView
-
-### Community 110 - "core/urls.py"
-Cohesion: 0.14
-Nodes (8): MovieCreateView, MovieDeleteView, MovieDetailView, MovieUpdateView, ProposalApproveView, ProposalDecideView, ProposalRejectView, SessionStatusView
+### Community 109 - "LocalizedGenreRetrievalTests"
+Cohesion: 0.08
+Nodes (3): LocalizedGenreRetrievalTests, fake_ingest(), fake_ingest()
 
 ### Community 115 - "Workflow Phases (Summary)"
 Cohesion: 0.25
 Nodes (7): Common Rationalisations, Phase 1: Root Cause Investigation, Phase 2: Pattern Analysis, Phase 3: Hypothesis and Testing, Phase 4: Implementation, Phases, Red Flags, and Common Rationalisations, Workflow Phases (Summary)
 
 ### Community 116 - "AuthRateThrottle"
-Cohesion: 0.12
-Nodes (8): AuthRateThrottle, GuestProvisionThrottle, GuestRecoverThrottle, GuestRecoveryKeyThrottle, PasswordResetRateThrottle, PasswordResetRequestView, SendVerificationEmailView, HTTP 429 Too Many Requests
+Cohesion: 0.16
+Nodes (6): AuthRateThrottle, GuestProvisionThrottle, GuestRecoverThrottle, GuestRecoveryKeyThrottle, PasswordResetRateThrottle, LoginView
 
 ### Community 117 - "CorrelationIdMiddleware"
-Cohesion: 0.22
-Nodes (3): reset_correlation_id(), set_correlation_id(), CorrelationIdMiddleware
-
-### Community 118 - "SessionExpandConstraintsView"
-Cohesion: 0.19
-Nodes (4): ConstraintExpansionProposalSerializer, Meta, ProposalListCreateView, SessionExpandConstraintsView
-
-### Community 119 - "GuestRecoveryAPITests"
-Cohesion: 0.05
-Nodes (4): ExistingRegisteredUserCompatibilityTests, GuestProvisioningAPITests, GuestRecoveryAPITests, GuestThrottlingTests
+Cohesion: 0.10
+Nodes (4): reset_correlation_id(), set_correlation_id(), CorrelationIdMiddleware, CorrelationIdMiddlewareTests
 
 ### Community 122 - "MovieSerializer"
-Cohesion: 0.12
-Nodes (5): MovieSerializer, Meta, CompleteCatalogueView, CuratorsSelectionView, YourArchiveView
+Cohesion: 0.09
+Nodes (9): MovieSerializer, Meta, SwipeSerializer, Meta, DiscoverView, normalize_pair(), CompleteCatalogueView, _safe_analytics_callback() (+1 more)
 
 ### Community 123 - "eslint.config.js"
 Cohesion: 0.15
 Nodes (12): eslint@^9.39.1, @eslint/js@^9.39.1, eslint-plugin-react-hooks@^7.0.1, eslint-plugin-react-refresh@^0.4.24, globals@^16.5.0, typescript-eslint@^8.46.4, eslint, @eslint/js (+4 more)
 
-### Community 127 - "TestIndianLanguageDiscovery"
+### Community 125 - "CandidateRetrievalAndEligibilityTests"
 Cohesion: 0.04
-Nodes (6): DiscoveryQuerySpec, IndianCatalogueCoverageReport, IndianCatalogueDiscoveryService, TestIndianLanguageDiscovery, TestIngestionAndProvenance, TestReliabilityAndRetrieval
+Nodes (3): FilmNoirClassifier, WorldCinemaClassifier, CandidateRetrievalAndEligibilityTests
 
 ### Community 131 - "_assert_safe_local_database"
-Cohesion: 0.21
+Cohesion: 0.22
 Nodes (5): _assert_safe_local_database(), _resolve_canonical_db_path(), SafetyGuardDebugFalseTest, SafetyGuardEngineTest, SafetyGuardPathTest
 
 ### Community 132 - "middleware.py"
 Cohesion: 0.16
-Nodes (4): _ensure_admin_account(), get_user_from_token_key(), TokenAuthMiddleware, TokenAuthMiddlewareStack()
+Nodes (4): get_user_from_token_key(), GuestActivityMiddleware, TokenAuthMiddleware, TokenAuthMiddlewareStack()
 
 ### Community 134 - "batch_sync_prelaunch.py"
-Cohesion: 0.21
+Cohesion: 0.27
 Nodes (3): Command, _make_session(), _tmdb_get()
 
 ### Community 137 - "interface"
@@ -560,77 +517,73 @@ Nodes (5): interface, display_name, short_description, policy, allow_implicit_in
 Cohesion: 0.40
 Nodes (4): Example 1: Test failure with stack trace, Example 2: Intermittent test failure, Example 3: Regression after a commit, Examples
 
-### Community 140 - "GuestProvisioningIdempotency"
-Cohesion: 0.29
-Nodes (3): GuestProvisioningIdempotency, Meta, GuestProvisioningIdempotencyTests
+### Community 140 - "2xx — Successful Responses"
+Cohesion: 0.40
+Nodes (5): 2xx — Successful Responses, HTTP 200 OK, HTTP 201 Created, HTTP 202 Accepted, HTTP 204 No Content
 
-### Community 141 - ".agents/skills/ui-ux-pro-max/scripts/core.py"
-Cohesion: 0.12
-Nodes (6): BM25, detect_domain(), _load_csv(), search(), _search_csv(), search_stack()
+### Community 141 - ".agent/skills/ui-ux-pro-max/scripts/core.py"
+Cohesion: 0.06
+Nodes (12): BM25, detect_domain(), _load_csv(), search(), _search_csv(), search_stack(), BM25, detect_domain() (+4 more)
 
 ### Community 144 - "SessionPage.tsx"
-Cohesion: 0.17
-Nodes (22): trackEvent(), getWsBaseUrl(), getWsUrl(), prefersReducedMotion(), AutoJoin(), join(), MOVIE_FACTS, toggleWatchlist() (+14 more)
+Cohesion: 0.09
+Nodes (38): DeckCardSkeleton(), MatchItemSkeleton(), MovieCardSkeleton(), ShelfSkeleton(), Skeleton(), SkeletonProps, StreamingItemSkeleton(), Provider (+30 more)
+
+### Community 145 - "5. Deep Dive: HTTP 304 Not Modified & Caching"
+Cohesion: 0.40
+Nodes (5): 5. Deep Dive: HTTP 304 Not Modified & Caching, Conditional Requests (ETag & Last-Modified), How Browser Caching Works, How Caching Is Implemented in Flick, When 304 Is Healthy vs When It Is a Problem
 
 ### Community 146 - "get_correlation_id"
-Cohesion: 0.24
-Nodes (4): get_correlation_id(), run_all(), worker(), failing_view()
+Cohesion: 0.17
+Nodes (6): get_correlation_id(), run_all(), worker(), async_view(), __init__(), failing_view()
 
 ### Community 149 - "TMDBTimeoutError"
 Cohesion: 0.12
-Nodes (5): TMDBAPIError, TMDBServiceError, TMDBTimeoutError, StreamingOptionsRemediationTests, MovieStreamingOptionsView
+Nodes (4): TMDBAPIError, TMDBServiceError, StreamingOptionsRemediationTests, MovieStreamingOptionsView
 
-### Community 150 - "dependencies"
-Cohesion: 0.18
-Nodes (11): dependencies, canvas-confetti@^1.9.4, framer-motion@^12.31.0, lucide-react@^0.577.0, material-symbols@^0.40.2, posthog-js@^1.319.0, react@^19.2.0, react-router-dom@^7.12.0 (+3 more)
+### Community 150 - "ThemeContext.tsx"
+Cohesion: 0.08
+Nodes (26): dependencies, canvas-confetti@^1.9.4, framer-motion@^12.31.0, posthog-js@^1.319.0, react@^19.2.0, react-dom@^19.2.0, react-router-dom@^7.12.0, App() (+18 more)
 
-### Community 152 - "SwipeHistoryView"
-Cohesion: 0.22
-Nodes (4): StandardResultsSetPagination, SwipeHistoryPagination, MovieListView, SwipeHistoryView
-
-### Community 160 - ".record_decision"
-Cohesion: 0.13
-Nodes (6): ProposalError, ProposalExpiredError, ProposalInvalidStateError, ProposalNotFoundError, ProposalPermissionDeniedError, ProposalSupersededError
+### Community 160 - "ConstraintExpansionProposal"
+Cohesion: 0.08
+Nodes (12): ConstraintExpansionProposal, Meta, ProposalOutboxMessage, Meta, ProposalError, ProposalExpiredError, ProposalInvalidStateError, ProposalNotFoundError (+4 more)
 
 ### Community 165 - "vite.config.ts"
 Cohesion: 0.22
 Nodes (6): @tailwindcss/vite@^4.1.18, vite@^7.2.4, @vitejs/plugin-react@^5.1.1, @tailwindcss/vite, vite, @vitejs/plugin-react
 
 ### Community 167 - "4xx — Client-Side Errors"
-Cohesion: 0.20
-Nodes (10): 4xx — Client-Side Errors, HTTP 400 Bad Request, HTTP 401 Unauthorized, HTTP 404 Not Found, HTTP 405 Method Not Allowed, HTTP 408 Request Timeout, HTTP 409 Conflict, HTTP 413 Content Too Large (+2 more)
+Cohesion: 0.17
+Nodes (12): 4xx — Client-Side Errors, HTTP 400 Bad Request, HTTP 401 Unauthorized, HTTP 403 Forbidden, HTTP 404 Not Found, HTTP 405 Method Not Allowed, HTTP 408 Request Timeout, HTTP 409 Conflict (+4 more)
 
-### Community 169 - "Movie"
-Cohesion: 0.06
-Nodes (13): Command, Command, Movie, MovieStreamingAvailability, Meta, StreamingProvider, _movie_contains(), _movie_get() (+5 more)
+### Community 169 - "StreamingProvider"
+Cohesion: 0.21
+Nodes (5): Command, Command, MovieStreamingAvailability, Meta, StreamingProvider
+
+### Community 173 - "QueueLifecycleAndProvenanceCorrectionTest"
+Cohesion: 0.17
+Nodes (3): DryRunImmutabilityTest, LimitValidationTest, QueueLifecycleAndProvenanceCorrectionTest
 
 ### Community 174 - "FrictionlessOnboardingConcurrencyTests"
 Cohesion: 0.15
 Nodes (6): FrictionlessOnboardingConcurrencyTests, worker(), worker(), worker(), merge_worker(), thread_b()
 
-### Community 175 - "Implementation Plan: Batch 4 — Historical Interaction Reconciliation and Identity Linking"
-Cohesion: 0.22
-Nodes (8): Architecture & Data Decisions, Detailed Tasks, Implementation Plan: Batch 4 — Historical Interaction Reconciliation and Identity Linking, Risks and Mitigations, Task 4: Guest Identity Linking Service, Task 5: Durable Taste Engine Service & Job Handler, Task 7: Comprehensive Verification & PostgreSQL Concurrency Tests, Work Breakdown & Dependencies
-
 ### Community 178 - "Flick — HTTP Status Codes, Server Logs & Error-Handling Reference"
-Cohesion: 0.13
-Nodes (14): 10. Glossary of Key Technical Terms, 1. Quick-Reference Cheat Sheet, 2. What Are HTTP Status Codes?, 5. Deep Dive: HTTP 304 Not Modified & Caching, 8. Frontend & Build-Related Numbers, At a Glance: What Do These Numbers Mean?, Conditional Requests (ETag & Last-Modified), Flick — HTTP Status Codes, Server Logs & Error-Handling Reference (+6 more)
+Cohesion: 0.20
+Nodes (9): 10. Glossary of Key Technical Terms, 1. Quick-Reference Cheat Sheet, 2. What Are HTTP Status Codes?, 8. Frontend & Build-Related Numbers, At a Glance: What Do These Numbers Mean?, Flick — HTTP Status Codes, Server Logs & Error-Handling Reference, Port Numbers, Table of Contents (+1 more)
 
 ### Community 179 - "CorrectSyntheticM1RecordsTest"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (4): _resolve_staff_user(), _build_candidate_queryset(), CorrectSyntheticM1RecordsTest, _guard_pass()
 
 ### Community 180 - "verify-batch-b-browser.js"
 Cohesion: 0.21
 Nodes (5): puppeteer-core@^25.16.0, SCREENSHOT_DIR, SCREENSHOT_DIR, SCREENSHOT_DIR, puppeteer-core
 
-### Community 181 - ".create_guest"
-Cohesion: 0.24
-Nodes (5): is_taste_profile_customized(), reap_abandoned_guests(), AbandonedGuestReaperTests, FrictionlessOnboardingBaseTestCase, GuestViewsTests
-
-### Community 183 - ".calculate_allocation"
-Cohesion: 0.08
-Nodes (3): HamiltonManifestAllocatorTests, NormalManifestCompilationTests, ShortageRedistributionAndFloorTests
+### Community 183 - "ManifestCompilerService"
+Cohesion: 0.05
+Nodes (10): ActiveManifestImmutableError, HamiltonManifestAllocator, InsufficientCandidatesError, ManifestCompilationError, ManifestCompilerService, compute_learned_feedback_from_logs(), BoutiqueManifestCompilationTests, HamiltonManifestAllocatorTests (+2 more)
 
 ### Community 189 - "Batch 4: Historical Interaction Reconciliation & Identity Linking — Task List"
 Cohesion: 0.50
@@ -640,32 +593,40 @@ Nodes (3): Batch 4: Historical Interaction Reconciliation & Identity Linking —
 Cohesion: 0.40
 Nodes (5): 7. Background Queue & Worker Numbers, Queue Priorities & Fair Scheduling Quotas, Retry Limits, Exponential Backoff & Quarantine, TMDB Dual-Bucket Rate Limiter Constants, Worker Leases, Fencing Tokens & Heartbeats
 
+### Community 193 - "UserProfile"
+Cohesion: 0.11
+Nodes (4): UserProfile, ExistingRegisteredUserCompatibilityTests, GuestRecoveryConcurrencyTests, GuestProvisionView
+
+### Community 202 - "enrichment_handlers.py"
+Cohesion: 0.07
+Nodes (7): _inspect_target_records(), check_deterministic_identity(), is_synthetic_movie(), normalize_title(), transition_movie_classification(), update_movie_metadata(), _validate_field_provenance_updates()
+
 ### Community 204 - "4. Deciphering Server Logs & Trailing Numbers"
 Cohesion: 0.29
 Nodes (7): 4. Deciphering Server Logs & Trailing Numbers, Anatomy of a Django/Daphne Access Log, What Do the Trailing Numbers Mean? (The 55 vs 1989 Mystery), Why does `/api/curators-selection/` show `200 1989`?, Why does `/api/users/profile/` show `200 55`?, Why does `GET /api/movies/` show `304 -` or `304 0`?, WSGI vs ASGI Logging Differences
 
-### Community 210 - "MergeConflictError"
-Cohesion: 0.20
-Nodes (4): MergeConflictError, MergeInputError, GuestMergeView, GuestRecoverView
+### Community 211 - "InMemoryTokenBucket"
+Cohesion: 0.15
+Nodes (5): InMemoryTokenBucket, 1. The Movie Database (TMDB), 2. Redis, 3. PostgreSQL & SQLite, External Service Failure Modes (TMDB, Redis, Postgres)
 
-### Community 262 - "os"
-Cohesion: 0.09
-Nodes (6): Command, Command, fetch_tmdb_movies(), _create_tmdb_session(), get_tmdb_session(), worker()
+### Community 262 - "Movie"
+Cohesion: 0.05
+Nodes (22): Command, Command, Command, Genre, Movie, GenreSerializer, Meta, ProposalOutboxMessageSerializer (+14 more)
 
 ## Knowledge Gaps
-- **130 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **91 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Movie` connect `Movie` to `Phase6BatchBBackendTests`, `DeckStateAPITests`, `rank_candidates_for_user`, `CatalogueJob`, `_make_movie`, `StreamingFilterAuditTests`, `batch_sync_prelaunch.py`, `SessionDetailSerializer`, `CandidatePool`, `BoutiqueManifestCompilationTests`, `SwipeFailureRecoveryAndEdgeCaseTests`, `run_staleness_sweep`, `SuperLikePersistenceAndAttributionTests`, `DynamicMovieCatalogueTests`, `IntelligenceModelsTestCase`, `Batch3WorkerIntegrationTests`, `TMDBTimeoutError`, `MotionAndSessionRegressionAuditTests`, `ClassicVaultEraFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `SwipeHistoryView`, `MovieMutationsTestCase`, `django_db`, `MatchListFilteringSecurityTests`, `RecommendationEvaluationTests`, `_validate_candidate`, `CoreUserExperienceRepairTests`, `IntelligenceWorkerProcess`, `UserPreferenceData`, `.handle`, `tmdb.py`, `SuperLikeReactionMatrixIntegrationTests`, `ScreeningSessionResultsAndStatsPersistenceTests`, `FrictionlessOnboardingConcurrencyTests`, `views.py`, `TestCase`, `AuthenticationAndPermissionTests`, `CorrectSyntheticM1RecordsTest`, `.create_guest`, `merge_guest_activity`, `.calculate_allocation`, `SessionHistoryTests`, `WatchlistView`, `Phase6BatchCRecentSessionsAndStreamingTests`, `evaluate_eligibility_predicates`, `.handle`, `HistoricalReconciliationServiceTests`, `DiscoverTests`, `HardConstraintFilter`, `update_movie_metadata`, `PaginationAndResourceLimitTests`, `Batch5PersonalizationEvaluationTests`, `models.py`, `UserTasteProfile`, `RecommendationDiscoveryTests`, `ProposalLifecycleAndIdempotencyTestCase`, `Session`, `PostgreSQLQueueConcurrencyTests`, `IndividualRelevanceScorer`, `.claim_jobs`, `Match`, `MovieSyncTMDBView`, `Stage3EndToEndProductValidationTests`, `ArchiveShelvesService`, `tmdb_changes.py`, `admin.py`, `APIView`, `core/urls.py`, `InteractionLogProcessingStatusTests`, `WatchlistTests`, `Pre1990ReleasePeriodFilterTests`, `MovieSerializer`, `CandidateRetrievalAndEligibilityTests`, `TestIndianLanguageDiscovery`?**
-  _High betweenness centrality (0.228) - this node is a cross-community bridge._
+- **Why does `Movie` connect `Movie` to `Phase6BatchBBackendTests`, `DeckStateAPITests`, `StreamingFilterAuditTests`, `models.py`, `_make_movie`, `batch_sync_prelaunch.py`, `SessionDetailSerializer`, `HardConstraints`, `handle_catalogue_classification`, `SwipeFailureRecoveryAndEdgeCaseTests`, `run_staleness_sweep`, `SuperLikeReactionMatrixIntegrationTests`, `DynamicMovieCatalogueTests`, `Batch3WorkerIntegrationTests`, `TMDBTimeoutError`, `MotionAndSessionRegressionAuditTests`, `ClassicVaultEraFilterTests`, `SessionLifecycleAndQuestionnaireRecoveryTests`, `MovieMutationsTestCase`, `MatchListFilteringSecurityTests`, `ConstraintExpansionProposal`, `_validate_candidate`, `CoreUserExperienceRepairTests`, `FunctionalAndMobileAuditVerificationTests`, `StreamingProvider`, `.handle`, `UserPreferenceData`, `ScreeningSessionResultsAndStatsPersistenceTests`, `FrictionlessOnboardingConcurrencyTests`, `QueueLifecycleAndProvenanceCorrectionTest`, `AuthenticationAndPermissionTests`, `views.py`, `CorrectSyntheticM1RecordsTest`, `test_frictionless_onboarding.py`, `SessionHistoryTests`, `ManifestCompilerService`, `Phase6BatchCRecentSessionsAndStreamingTests`, `evaluate_eligibility_predicates`, `.handle`, `fetch_cached_tmdb`, `HistoricalReconciliationServiceTests`, `DiscoverTests`, `HardConstraintFilter`, `enrichment_handlers.py`, `PaginationAndResourceLimitTests`, `Batch5PersonalizationEvaluationTests`, `InteractionLog`, `UserTasteProfile`, `RecommendationDiscoveryTests`, `ProposalExecutionWorker`, `retrieval.py`, `PostgreSQLQueueConcurrencyTests`, `DatabaseConcurrencyAndSwipeReliabilityTests`, `.claim_jobs`, `Session`, `Stage3EndToEndProductValidationTests`, `ArchiveShelvesService`, `tmdb_changes.py`, `admin.py`, `LocalizedGenreRetrievalTests`, `InteractionLogProcessingStatusTests`, `WatchlistTests`, `Pre1990ReleasePeriodFilterTests`, `MovieSerializer`, `CandidateRetrievalAndEligibilityTests`, `SwipeUndoViewInverseParityTests`, `TestIndianLanguageDiscovery`?**
+  _High betweenness centrality (0.238) - this node is a cross-community bridge._
 - **Are the 133 inferred relationships involving `Movie` (e.g. with `Command` and `Command`) actually correct?**
   _`Movie` has 133 INFERRED edges - model-reasoned connections that need verification._
 - **Should `StreamingFilterAuditTests` be split into smaller, more focused modules?**
-  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Why does `6. Flick-Specific Error Handling Architecture` connect `6. Flick-Specific Error Handling Architecture` to `apiRequest`, `Flick — HTTP Status Codes, Server Logs & Error-Handling Reference`?**
-  _High betweenness centrality (0.171) - this node is a cross-community bridge._
+  _Cohesion score 0.09090909090909091 - nodes in this community are weakly interconnected._
+- **Why does `6. Flick-Specific Error Handling Architecture` connect `6. Flick-Specific Error Handling Architecture` to `Flick — HTTP Status Codes, Server Logs & Error-Handling Reference`, `InMemoryTokenBucket`, `apiRequest`?**
+  _High betweenness centrality (0.170) - this node is a cross-community bridge._
 - **Are the 84 inferred relationships involving `Session` (e.g. with `MatchConsumer` and `SessionDetailSerializer`) actually correct?**
   _`Session` has 84 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Defense-in-Depth Debugging Strategies` be split into smaller, more focused modules?**

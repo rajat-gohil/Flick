@@ -502,10 +502,23 @@ def discover_movies(
     if region:
         params["region"] = region.strip().upper()
 
+    wp_param = None
     if watch_provider_id:
-        params["with_watch_providers"] = str(watch_provider_id)
         effective_watch_region = (watch_region or region or getattr(settings, "DEFAULT_STREAMING_REGION", "IN") or "IN").strip().upper()
+        wp_str = str(watch_provider_id)
+        # Narrow Hotstar compatibility: TMDB migrated Indian Hotstar catalog from 122 to 2336 (JioHotstar).
+        # Expand 122 or 2336 to '122|2336' for region IN so the full current catalog is returned.
+        if effective_watch_region == "IN":
+            parts = [p.strip() for p in re.split(r"[,|+]", wp_str) if p.strip()]
+            if ("122" in parts or "2336" in parts) and not ("122" in parts and "2336" in parts):
+                if "122" in parts:
+                    parts.append("2336")
+                elif "2336" in parts:
+                    parts.append("122")
+                wp_str = "|".join(parts)
+        params["with_watch_providers"] = wp_str
         params["watch_region"] = effective_watch_region
+        wp_param = wp_str
 
     cache_key = _make_cache_key(
         "discover",
@@ -516,7 +529,7 @@ def discover_movies(
         "era", era or "any",
         "min_rating", min_rating or "any",
         "region", region or "all",
-        "wp", watch_provider_id or "all",
+        "wp", wp_param or "all",
         "wr", watch_region or "all",
         "vc", effective_vote_count,
         "page", page,

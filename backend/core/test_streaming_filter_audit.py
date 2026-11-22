@@ -59,6 +59,13 @@ class StreamingFilterAuditTests(TestCase):
             country_code="IN",
             is_active=True,
         )
+        # Provider 1: JioHotstar (TMDB IDs 122 and 2336)
+        self.provider_hotstar = StreamingProvider.objects.create(
+            id=1,
+            name="JioHotstar",
+            country_code="IN",
+            is_active=True,
+        )
 
         # Real movie available on Netflix
         self.movie_netflix = Movie.objects.create(
@@ -99,6 +106,27 @@ class StreamingFilterAuditTests(TestCase):
         MovieStreamingAvailability.objects.create(
             movie=self.movie_prime,
             provider=self.provider_prime,
+            monetization_type="flatrate",
+        )
+
+        # Real movie available on Hotstar
+        self.movie_hotstar = Movie.objects.create(
+            tmdb_id=5003,
+            title="Avengers: Endgame (Hotstar)",
+            overview="An authentic superhero movie.",
+            poster_path="/endgame.jpg",
+            rating=8.4,
+            vote_count=2000,
+            original_language="en",
+            release_date=datetime.date(2019, 4, 26),
+            provenance="tmdb_catalogue",
+            display_ready=True,
+            recommendable=True,
+        )
+        self.movie_hotstar.genres.add(self.genre_action)
+        MovieStreamingAvailability.objects.create(
+            movie=self.movie_hotstar,
+            provider=self.provider_hotstar,
             monetization_type="flatrate",
         )
 
@@ -239,3 +267,44 @@ class StreamingFilterAuditTests(TestCase):
 
         self.assertTrue(HardConstraintFilter.matches_all(self.movie_prime, hc_prime))
         self.assertFalse(HardConstraintFilter.matches_all(self.movie_prime, hc_netflix))
+
+    def test_provider_resolver_maps_both_122_and_2336_to_hotstar(self):
+        """Both TMDB provider IDs (122 and 2336) resolve to local JioHotstar ID (1)."""
+        pks_122 = resolve_streaming_provider_ids([122])
+        self.assertIn(self.provider_hotstar.id, pks_122)
+
+        pks_2336 = resolve_streaming_provider_ids([2336])
+        self.assertIn(self.provider_hotstar.id, pks_2336)
+
+    def test_discover_local_fallback_filters_by_hotstar_ids(self):
+        """When TMDB falls back, watch_provider_id=122 and 2336 both return Hotstar movie."""
+        with patch("core.services.tmdb.discover_movies", side_effect=Exception("TMDB offline")):
+            for pid in ["122", "2336", "122|2336"]:
+                res = self.client.get(f"/api/discover/?watch_provider_id={pid}")
+                self.assertEqual(res.status_code, 200)
+                data = res.json()
+                titles = [m["title"] for m in data.get("movies", [])]
+                self.assertIn("Avengers: Endgame (Hotstar)", titles)
+                self.assertNotIn("Extraction (Netflix)", titles)
+                self.assertNotIn("The Rings of Power (Prime)", titles)
+
+    @patch("core.services.tmdb._get_session")
+    def test_discover_movies_expands_hotstar_id_for_in_region(self, mock_get_session):
+        """discover_movies expands watch_provider_id='122' to '122|2336' when watch_region is IN."""
+        from core.services.tmdb import discover_movies
+
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"results": [], "total_pages": 1, "total_results": 0}
+        mock_session_instance = MagicMock()
+        mock_session_instance.get.return_value = mock_resp
+        mock_get_session.return_value = mock_session_instance
+
+        # Call with watch_provider_id="122" and region="IN"
+        discover_movies(page=1, watch_provider_id="122", watch_region="IN")
+
+        # Verify query params passed to TMDB
+        self.assertTrue(mock_session_instance.get.called)
+        call_params = mock_session_instance.get.call_args[1].get("params", {})
+        self.assertEqual(call_params.get("with_watch_providers"), "122|2336")
+        self.assertEqual(call_params.get("watch_region"), "IN")
