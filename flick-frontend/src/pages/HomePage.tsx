@@ -8,6 +8,7 @@ import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tu
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
+import CinemaAdmissionTicket from "../components/CinemaAdmissionTicket";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
 import { usePrefersReducedMotion } from "../lib/motion";
 
@@ -559,46 +560,12 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Primary Action Hub: Launch Screening & Join Code */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 max-w-xl">
-                <div className="relative group">
-                  {!isReduced && (
-                    <motion.div
-                      aria-hidden="true"
-                      animate={{
-                        opacity: [0.35, 0.7, 0.35],
-                        scale: [0.98, 1.03, 0.98],
-                      }}
-                      transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className="absolute -inset-1 rounded-2xl bg-primary/25 blur-md pointer-events-none -z-10"
-                    />
-                  )}
-                  <button
-                    data-tour="home-launch-deck"
-                    onClick={() => navigate("/session/create")}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-xl h-12 px-6 bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] group cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">
-                      confirmation_number
-                    </span>
-                    Launch Screening Deck
-                  </button>
-                </div>
-
-                <button
-                  data-tour="home-explore-catalogue"
-                  onClick={() => navigate("/discover?view=catalogue")}
-                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-5 border border-border hover:border-primary/50 bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[18px] text-foreground-secondary">
-                    explore
-                  </span>
-                  Explore Catalogue
-                </button>
+              {/* Primary Action Hub: Oversized Cinema Admission Ticket */}
+              <div className="pt-2 max-w-xl">
+                <CinemaAdmissionTicket
+                  onLaunch={() => navigate("/session/create")}
+                  onExplore={() => navigate("/discover?view=catalogue")}
+                />
               </div>
 
             </div>

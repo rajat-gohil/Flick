@@ -1260,9 +1260,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/HomePage.tsx": {
-    "mtime": 1795094880.0668967,
-    "seen": 1795094899.255559,
-    "ast_hash": "e587764e8619ed40c406546accbe0b37",
+    "mtime": 1795370580.4469302,
+    "seen": 1795371332.810622,
+    "ast_hash": "427862fa6300fd44c230c0adb58bfda9",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/JoinViaLink.tsx": {
@@ -2235,6 +2235,18 @@
     "mtime": 1795359058.6810637,
     "seen": 1795359317.253412,
     "ast_hash": "dc94c7a55fcb35a9c994189091245d2d",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/components/CinemaAdmissionTicket.tsx": {
+    "mtime": 1795371273.0581863,
+    "seen": 1795371332.81059,
+    "ast_hash": "08fb6b7aefe5cd3e01bbf7c05921c662",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/components/__tests__/cinemaAdmissionTicket.test.tsx": {
+    "mtime": 1795371297.1002393,
+    "seen": 1795371332.8106,
+    "ast_hash": "bd685f2c672120575da0322cb6d44cff",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {
