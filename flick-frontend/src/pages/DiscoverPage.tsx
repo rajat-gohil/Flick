@@ -1,13 +1,36 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { apiRequest } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import StreamingOptions from "../components/StreamingOptions";
 import { MovieCardSkeleton, ShelfSkeleton } from "../components/Skeleton";
-import { bottomSheetVariants, backdropVariants } from "../lib/motion";
+import { bottomSheetVariants, backdropVariants, usePrefersReducedMotion } from "../lib/motion";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
+
+const catalogueGridContainer: Variants = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.035,
+      delayChildren: 0.02,
+    },
+  },
+};
+
+const catalogueCardItem: Variants = {
+  initial: { opacity: 0, y: 14, scale: 0.97 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.28,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
 
 /* ============================
    TYPES
@@ -151,17 +174,19 @@ const EMPTY_FILTERS: Filters = { genre: "", language: "", era: "any", min_rating
 ============================ */
 
 function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  const shouldReduceMotion = usePrefersReducedMotion();
   return (
-    <button
+    <motion.button
+      whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
       onClick={onClick}
-      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 border ${
+      className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95 border cursor-pointer ${
         active
           ? "bg-primary border-primary text-surface font-semibold shadow-xs"
           : "bg-surface border-border text-foreground-secondary hover:border-primary/50 hover:text-foreground"
       }`}
     >
       {label}
-    </button>
+    </motion.button>
   );
 }
 
@@ -169,11 +194,24 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
    NORMALIZER FOR ARCHIVE SHELVES
 ============================ */
 
-function normalizeArchiveShelves(data: any): ArchiveShelf[] {
+type RawShelfItem = {
+  id?: string;
+  slug?: string;
+  title?: string;
+  name?: string;
+  subtitle?: string;
+  icon?: string;
+  anchor_movie?: Movie | null;
+  movies?: Movie[];
+  results?: Movie[];
+};
+
+function normalizeArchiveShelves(data: unknown): ArchiveShelf[] {
   const result: ArchiveShelf[] = [];
   if (!data || typeof data !== "object") return result;
 
-  const rawShelves = data.shelves || data;
+  const dataObj = data as Record<string, unknown>;
+  const rawShelves = (dataObj.shelves || dataObj) as Record<string, RawShelfItem | Movie[]> | RawShelfItem[];
 
   const shelfDefs = [
     {
@@ -228,7 +266,7 @@ function normalizeArchiveShelves(data: any): ArchiveShelf[] {
   }
 
   for (const def of shelfDefs) {
-    const val = rawShelves[def.id];
+    const val = (rawShelves as Record<string, RawShelfItem | Movie[]>)[def.id];
     if (!val) continue;
 
     let movies: Movie[] = [];
@@ -239,13 +277,14 @@ function normalizeArchiveShelves(data: any): ArchiveShelf[] {
     if (Array.isArray(val)) {
       movies = val;
     } else if (typeof val === "object" && val !== null) {
-      if (Array.isArray(val.movies)) movies = val.movies;
-      else if (Array.isArray(val.results)) movies = val.results;
-      if (val.title) title = val.title;
-      if (val.subtitle) subtitle = val.subtitle;
-      if (val.anchor_movie) {
-        anchor = val.anchor_movie;
-        if (!val.title && anchor?.title) {
+      const itemObj = val as RawShelfItem;
+      if (Array.isArray(itemObj.movies)) movies = itemObj.movies;
+      else if (Array.isArray(itemObj.results)) movies = itemObj.results;
+      if (itemObj.title) title = itemObj.title;
+      if (itemObj.subtitle) subtitle = itemObj.subtitle;
+      if (itemObj.anchor_movie) {
+        anchor = itemObj.anchor_movie;
+        if (!itemObj.title && anchor?.title) {
           title = `Because You Liked ${anchor.title}`;
         }
       }
@@ -525,6 +564,7 @@ function MovieCard({
   onTap: (movie: Movie) => void;
 }) {
   const [imgError, setImgError] = useState(false);
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   function handleBookmark(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
@@ -532,8 +572,11 @@ function MovieCard({
   }
 
   return (
-    <div
-      className="relative rounded-xl overflow-hidden bg-surface border border-border hover:border-primary/50 group flex flex-col cursor-pointer transition-all active:scale-[0.98] shadow-xs"
+    <motion.div
+      whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.015 }}
+      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="relative rounded-xl overflow-hidden bg-surface border border-border hover:border-primary/50 group flex flex-col cursor-pointer transition-colors shadow-xs hover:shadow-md h-full"
       onClick={() => onTap(movie)}
     >
       <div className="relative overflow-hidden bg-surface-secondary" style={{ aspectRatio: "2/3" }}>
@@ -541,7 +584,7 @@ function MovieCard({
           <img
             src={movie.poster_url}
             alt={movie.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -554,13 +597,14 @@ function MovieCard({
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
 
         {movie.rating != null && (
-          <div className="absolute top-2 left-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded px-1.5 py-0.5">
+          <div className="absolute top-2 left-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded px-1.5 py-0.5 shadow-2xs">
             <span className="material-symbols-outlined text-primary text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
             <span className="text-[10px] font-bold text-white">{movie.rating.toFixed(1)}</span>
           </div>
         )}
 
-        <button
+        <motion.button
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
           onClick={handleBookmark}
           className="absolute top-1 right-1 size-11 flex items-center justify-center z-10 cursor-pointer"
           aria-label={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
@@ -568,7 +612,7 @@ function MovieCard({
           <span
             className={`size-9 rounded-full flex items-center justify-center backdrop-blur-sm transition-all shadow-xs pointer-events-none ${
               inWatchlist
-                ? "bg-primary text-surface"
+                ? "bg-primary text-surface scale-105"
                 : "bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
             }`}
           >
@@ -579,16 +623,18 @@ function MovieCard({
               bookmark
             </span>
           </span>
-        </button>
+        </motion.button>
       </div>
 
-      <div className="p-2.5 sm:p-3 flex flex-col gap-0.5 flex-1">
-        <p className="font-editorial text-xs sm:text-sm font-semibold text-foreground leading-snug line-clamp-1">{movie.title}</p>
-        <p className="text-[10px] sm:text-xs text-foreground-secondary">
-          {movie.release_year ?? ""}
-          {movie.release_year && movie.original_language ? " · " : ""}
-          {movie.original_language ? movie.original_language.toUpperCase() : ""}
-        </p>
+      <div className="p-2.5 sm:p-3 flex flex-col gap-0.5 flex-1 justify-between">
+        <div>
+          <p className="font-editorial text-xs sm:text-sm font-semibold text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">{movie.title}</p>
+          <p className="text-[10px] sm:text-xs text-foreground-secondary">
+            {movie.release_year ?? ""}
+            {movie.release_year && movie.original_language ? " · " : ""}
+            {movie.original_language ? movie.original_language.toUpperCase() : ""}
+          </p>
+        </div>
         {movie.explanation?.matched_signals && movie.explanation.matched_signals.length > 0 && (
           <div className="mt-1">
             <span className="inline-block text-[9px] font-mono text-primary truncate max-w-full">
@@ -597,7 +643,7 @@ function MovieCard({
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -617,18 +663,21 @@ function HeroCard({
   onTap: (movie: Movie) => void;
 }) {
   const [imgError, setImgError] = useState(false);
+  const shouldReduceMotion = usePrefersReducedMotion();
   const imageUrl = movie.backdrop_url || movie.poster_url;
 
   return (
-    <div
-      className="relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border shadow-md h-52 sm:h-72 md:h-80 lg:h-96"
+    <motion.div
+      whileHover={shouldReduceMotion ? undefined : { scale: 1.008 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border shadow-md hover:shadow-xl transition-shadow h-52 sm:h-72 md:h-80 lg:h-96"
       onClick={() => onTap(movie)}
     >
       {!imgError && imageUrl ? (
         <img
           src={imageUrl}
           alt={movie.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           onError={() => setImgError(true)}
         />
       ) : (
@@ -639,29 +688,30 @@ function HeroCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
       {/* Featured badge */}
-      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-1 bg-primary text-surface rounded-md px-2.5 py-1">
+      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-1 bg-primary text-surface rounded-md px-2.5 py-1 shadow-xs">
         <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
         <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Spotlight Selection</span>
       </div>
 
       {/* Watchlist */}
-      <button
+      <motion.button
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); onWatchlist(movie); }}
         className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 size-11 flex items-center justify-center z-10 cursor-pointer"
         aria-label="Save to watchlist"
       >
         <span
           className={`size-9 sm:size-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all pointer-events-none ${
-            inWatchlist ? "bg-primary text-surface" : "bg-black/50 text-white hover:bg-black/70"
+            inWatchlist ? "bg-primary text-surface scale-105" : "bg-black/50 text-white hover:bg-black/70"
           }`}
         >
           <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
         </span>
-      </button>
+      </motion.button>
 
       {/* Info */}
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
-        <h3 className="font-editorial text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight line-clamp-1">{movie.title}</h3>
+        <h3 className="font-editorial text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight line-clamp-1 group-hover:text-primary transition-colors">{movie.title}</h3>
         <div className="flex items-center gap-2 mt-1 sm:mt-2 text-xs sm:text-sm text-white/80">
           {movie.rating != null && (
             <span className="flex items-center gap-0.5 text-primary font-semibold">
@@ -673,7 +723,7 @@ function HeroCard({
           {movie.overview && <span className="line-clamp-1 text-white/70 text-xs sm:text-sm flex-1">{movie.overview}</span>}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -695,6 +745,7 @@ function ArchiveShelfSection({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -736,22 +787,24 @@ function ArchiveShelfSection({
           )}
         </div>
         <div className="hidden md:flex items-center gap-1.5">
-          <button
+          <motion.button
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
             aria-label="Scroll left"
-            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
             aria-label="Scroll right"
-            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-          </button>
+          </motion.button>
         </div>
       </div>
       <div
@@ -815,6 +868,7 @@ function SearchBar({
 export default function DiscoverPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   // Read initial query parameters
   const urlView = searchParams.get("view");
@@ -977,7 +1031,14 @@ export default function DiscoverPage() {
           params.set("sort_by", sortMap[sort] || "popularity.desc");
         }
 
-        let data: any = null;
+        let data: {
+          success?: boolean;
+          movies?: Movie[];
+          results?: Movie[];
+          has_more?: boolean;
+          count?: number;
+          total_results?: number;
+        } | null = null;
         try {
           data = await apiRequest(`/api/discover/?${params.toString()}`);
         } catch (discErr) {
@@ -1233,38 +1294,61 @@ export default function DiscoverPage() {
 
       {/* ── Surface Navigation Tabs (Your Archive vs Complete Catalogue) ── */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 flex items-center justify-center shrink-0">
-        <div className="inline-flex rounded-xl p-1 bg-surface border border-border shadow-xs">
-          <button
+        <div className="inline-flex rounded-xl p-1 bg-surface border border-border shadow-xs relative">
+          <motion.button
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
             onClick={() => handleViewChange("archive")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition-all ${
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition-colors z-10 cursor-pointer ${
               activeView === "archive"
-                ? "bg-primary text-surface shadow-xs font-bold"
-                : "text-foreground-secondary hover:text-foreground hover:bg-surface-secondary/60 font-semibold"
+                ? "text-surface font-bold"
+                : "text-foreground-secondary hover:text-foreground font-semibold"
             }`}
           >
+            {activeView === "archive" && (
+              <motion.div
+                layoutId={shouldReduceMotion ? undefined : "discoverViewPill"}
+                transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
+                className="absolute inset-0 rounded-lg bg-primary shadow-xs -z-10"
+              />
+            )}
             <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
             Your Archive
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
             onClick={() => handleViewChange("catalogue")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition-all ${
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition-colors z-10 cursor-pointer ${
               activeView === "catalogue"
-                ? "bg-primary text-surface shadow-xs font-bold"
-                : "text-foreground-secondary hover:text-foreground hover:bg-surface-secondary/60 font-semibold"
+                ? "text-surface font-bold"
+                : "text-foreground-secondary hover:text-foreground font-semibold"
             }`}
           >
+            {activeView === "catalogue" && (
+              <motion.div
+                layoutId={shouldReduceMotion ? undefined : "discoverViewPill"}
+                transition={{ type: "spring", stiffness: 420, damping: 34, mass: 0.8 }}
+                className="absolute inset-0 rounded-lg bg-primary shadow-xs -z-10"
+              />
+            )}
             <span className="material-symbols-outlined text-[16px]">local_library</span>
             Live Catalogue
-          </button>
+          </motion.button>
         </div>
       </div>
 
       <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col pb-20 md:pb-10">
-        {/* =======================================================
-            SURFACE 1: YOUR ARCHIVE (Personalized Shelves)
-        ======================================================= */}
-        {activeView === "archive" && (
-          <main className="flex-1 pt-2 pb-8">
+        <AnimatePresence mode="wait" initial={false}>
+          {/* =======================================================
+              SURFACE 1: YOUR ARCHIVE (Personalized Shelves)
+          ======================================================= */}
+          {activeView === "archive" ? (
+            <main key="archive-view" className="flex-1 pt-2 pb-8">
+              <motion.div
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              >
             {!isAuthenticated ? (
               <div className="mx-4 sm:mx-6 lg:mx-8 my-8 p-8 sm:p-10 rounded-3xl border border-border/80 bg-surface text-center space-y-4 max-w-2xl mx-auto shadow-sm">
                 <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
@@ -1377,16 +1461,21 @@ export default function DiscoverPage() {
                 </div>
               </div>
             )}
+              </motion.div>
           </main>
-        )}
-
-        {/* =======================================================
-            SURFACE 2: COMPLETE CATALOGUE (Unpersonalized Browsing)
-        ======================================================= */}
-        {activeView === "catalogue" && (
-          <main className="flex-1 pb-8">
-            {/* Search Bar */}
-            <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={clearSearch} />
+        ) : (
+          /* =======================================================
+              SURFACE 2: COMPLETE CATALOGUE (Unpersonalized Browsing)
+          ======================================================= */
+          <main key="catalogue-view" className="flex-1 pb-8">
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Search Bar */}
+              <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={clearSearch} />
 
             {/* Live Streaming Platforms Filter Bar */}
             <div className="flex items-center gap-2 px-4 sm:px-6 lg:px-8 py-2.5 overflow-x-auto hide-scrollbar shrink-0 bg-surface/50 border-b border-border/40">
@@ -1397,13 +1486,14 @@ export default function DiscoverPage() {
               {STREAMING_PLATFORMS.map((plat) => {
                 const isActive = (filters.provider || "") === plat.id;
                 return (
-                  <button
+                  <motion.button
                     key={plat.id || "__all__"}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
                     onClick={() => {
                       setFilters((f) => ({ ...f, provider: isActive ? "" : plat.id }));
                       setActiveMood(null);
                     }}
-                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
+                    className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all border cursor-pointer ${
                       isActive
                         ? "bg-primary text-surface border-primary font-bold shadow-xs scale-105"
                         : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-primary/50"
@@ -1411,7 +1501,7 @@ export default function DiscoverPage() {
                   >
                     <span className="material-symbols-outlined text-[14px]">{plat.icon}</span>
                     <span>{plat.label}</span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
@@ -1421,8 +1511,9 @@ export default function DiscoverPage() {
               {/* Mood Quick Picks */}
               <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-0.5">
                 {MOODS.map((mood) => (
-                  <button
+                  <motion.button
                     key={mood.id}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
                     onClick={() => applyMood(mood)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border cursor-pointer ${
                       activeMood === mood.label
@@ -1432,7 +1523,7 @@ export default function DiscoverPage() {
                   >
                     <span className="material-symbols-outlined text-[15px]">{mood.icon}</span>
                     <span>{mood.label}</span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
 
@@ -1440,8 +1531,9 @@ export default function DiscoverPage() {
               <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar shrink-0 md:pl-2 md:border-l md:border-border/50">
                 <span className="text-[10px] font-mono text-foreground-secondary uppercase tracking-wider shrink-0 font-semibold">Sort:</span>
                 {SORT_OPTIONS.map((opt) => (
-                  <button
+                  <motion.button
                     key={opt.value}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
                     onClick={() => setCatalogueSort(opt.value)}
                     className={`shrink-0 px-2.5 py-1 rounded-md text-[11px] font-mono font-medium transition-all border cursor-pointer ${
                       catalogueSort === opt.value
@@ -1450,7 +1542,7 @@ export default function DiscoverPage() {
                     }`}
                   >
                     {opt.label}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -1548,29 +1640,40 @@ export default function DiscoverPage() {
                   <p className="text-xs text-foreground-secondary max-w-xs -mt-1 leading-relaxed">
                     Adjust your search keywords or broaden your filter parameters to discover films across the catalogue.
                   </p>
-                  <button
+                  <motion.button
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
                     onClick={clearFilters}
-                    className="mt-2 px-4 py-2 rounded-xl bg-primary text-surface text-xs font-semibold uppercase tracking-wider shadow-sm"
+                    className="mt-2 px-4 py-2 rounded-xl bg-primary text-surface text-xs font-semibold uppercase tracking-wider shadow-sm cursor-pointer"
                   >
                     Clear Filters
-                  </button>
+                  </motion.button>
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5">
+                  <motion.div
+                    key={`grid-${filters.genre}-${filters.era}-${filters.language}-${filters.provider}-${catalogueSort}-${searchQuery}`}
+                    variants={shouldReduceMotion ? undefined : catalogueGridContainer}
+                    initial={shouldReduceMotion ? false : "initial"}
+                    animate="animate"
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4 md:gap-5"
+                  >
                     {movies.map((movie, idx) => {
                       const isMarked = watchlistIds.has(movie.tmdb_id) || (movie.id != null && watchlistIds.has(movie.id));
                       return (
-                        <MovieCard
+                        <motion.div
                           key={`cat-${movie.tmdb_id || movie.id || idx}`}
-                          movie={movie}
-                          inWatchlist={isMarked}
-                          onWatchlist={toggleWatchlist}
-                          onTap={setSelectedMovie}
-                        />
+                          variants={shouldReduceMotion ? undefined : catalogueCardItem}
+                        >
+                          <MovieCard
+                            movie={movie}
+                            inWatchlist={isMarked}
+                            onWatchlist={toggleWatchlist}
+                            onTap={setSelectedMovie}
+                          />
+                        </motion.div>
                       );
                     })}
-                  </div>
+                  </motion.div>
 
                   <div ref={sentinelRef} className="h-10 mt-5 flex items-center justify-center">
                     {loadingMore && (
@@ -1591,8 +1694,10 @@ export default function DiscoverPage() {
                 </>
               )}
             </div>
+            </motion.div>
           </main>
         )}
+        </AnimatePresence>
       </div>
 
       {/* ── Mobile Navigation ── */}

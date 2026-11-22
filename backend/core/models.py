@@ -268,8 +268,25 @@ class Match(models.Model):
     """
     Created when both users like the same movie in a session.
     """
+    ATTRIBUTION_CHOICES = [
+        ("none", "None"),
+        ("host", "Host"),
+        ("guest", "Guest"),
+        ("mutual", "Mutual"),
+        ("unknown", "Unknown"),
+    ]
+
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    attribution = models.CharField(
+        max_length=16,
+        choices=ATTRIBUTION_CHOICES,
+        null=True,
+        blank=True,
+        default=None,
+        db_index=True,
+        help_text="Historical Super-Like attribution at match-formation time"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -283,16 +300,44 @@ class Match(models.Model):
     def __str__(self):
         return f"Match: {self.movie.title} ({self.session.code})"
 
+    def save(self, *args, **kwargs):
+        if self.attribution is None and self.session_id and self.movie_id:
+            try:
+                session = self.session
+                host_id = session.host_id
+                guest_id = session.guest_id
+                if host_id and guest_id and host_id != guest_id:
+                    swipes = list(Swipe.objects.filter(session_id=self.session_id, movie_id=self.movie_id))
+                    host_rx = next((s.reaction for s in swipes if s.user_id == host_id), None)
+                    guest_rx = next((s.reaction for s in swipes if s.user_id == guest_id), None)
+                    if host_rx and guest_rx:
+                        if host_rx == Swipe.SUPERLIKE and guest_rx == Swipe.SUPERLIKE:
+                            self.attribution = "mutual"
+                        elif host_rx == Swipe.SUPERLIKE:
+                            self.attribution = "host"
+                        elif guest_rx == Swipe.SUPERLIKE:
+                            self.attribution = "guest"
+                        else:
+                            self.attribution = "none"
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
+
     @property
     def superlike_attribution(self) -> str:
         """
-        Derives Super-Like attribution directly from persisted Swipe records.
+        Derives Super-Like attribution directly from persisted attribution if present,
+        or dynamically from persisted Swipe records if unpersisted.
         Returns:
             'mutual': Both host and guest submitted Super-Like
             'host': Only host submitted Super-Like
             'guest': Only guest submitted Super-Like
             'none': Ordinary match (neither participant Super-Liked)
+            'unknown': Historical attribution cannot be established (e.g. missing swipes)
         """
+        if self.attribution is not None:
+            return self.attribution
+
         swipes = getattr(self, "_cached_swipes", None)
         if swipes is None:
             swipes = list(Swipe.objects.filter(session_id=self.session_id, movie_id=self.movie_id))
@@ -300,12 +345,16 @@ class Match(models.Model):
         host_id = self.session.host_id
         guest_id = self.session.guest_id
 
+        # Self-paired session with incomplete swipes cannot establish original roles
+        if host_id == guest_id and len(swipes) < 2:
+            return "unknown"
+
         host_rx = None
         guest_rx = None
         for s in swipes:
-            if s.user_id == host_id:
+            if s.user_id == host_id and host_rx is None:
                 host_rx = s.reaction
-            elif s.user_id == guest_id:
+            elif s.user_id == guest_id and guest_rx is None:
                 guest_rx = s.reaction
 
         if host_rx == Swipe.SUPERLIKE and guest_rx == Swipe.SUPERLIKE:
@@ -314,7 +363,11 @@ class Match(models.Model):
             return "host"
         elif guest_rx == Swipe.SUPERLIKE:
             return "guest"
-        return "none"
+        elif host_rx is not None and guest_rx is not None:
+            return "none"
+        elif host_rx is not None or guest_rx is not None:
+            return "unknown"
+        return "unknown"
 
     @property
     def match_type(self) -> str:
@@ -323,13 +376,16 @@ class Match(models.Model):
             'mutual_superlike': Both participants superliked
             'superlike': Exactly one participant superliked
             'ordinary': Both participants liked
+            'unknown': Incomplete historical attribution
         """
         attr = self.superlike_attribution
         if attr == "mutual":
             return "mutual_superlike"
         elif attr in ("host", "guest"):
             return "superlike"
-        return "ordinary"
+        elif attr == "none":
+            return "ordinary"
+        return "unknown"
     
 
     # Data Capture #
@@ -1157,6 +1213,35 @@ class StalenessSweepCheckpoint(models.Model):
 
     def __str__(self):
         return f"StalenessSweepCheckpoint({self.sweep_name}, last_id={self.last_scanned_id}, in_progress={self.is_in_progress})"
+
+
+class GuestProvisioningIdempotency(models.Model):
+    """
+    Deduplication and bearer capability table for guest provisioning requests.
+    Valid for 15 minutes.
+    """
+    idempotency_key = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="Client-generated unique provisioning idempotency key",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="provisioning_idempotency",
+        help_text="Created guest user associated with this idempotency key",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["idempotency_key", "expires_at"]),
+        ]
+
+    def __str__(self):
+        return f"GuestProvisioningIdempotency({self.idempotency_key[:8]}... -> User {self.user_id})"
 
 
 # -------------------------------------------------

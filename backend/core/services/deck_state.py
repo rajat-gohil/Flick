@@ -565,7 +565,26 @@ class DeckAdvancementService:
                 is_partner_positive = partner_swipe.reaction in (Swipe.LIKE, Swipe.SUPERLIKE)
 
                 if is_my_positive and is_partner_positive:
-                    match, match_created = Match.objects.get_or_create(session=session, movie_id=movie_id)
+                    if is_host:
+                        host_rx = reaction
+                        guest_rx = partner_swipe.reaction
+                    else:
+                        host_rx = partner_swipe.reaction
+                        guest_rx = reaction
+                    if host_rx == Swipe.SUPERLIKE and guest_rx == Swipe.SUPERLIKE:
+                        initial_attr = "mutual"
+                    elif host_rx == Swipe.SUPERLIKE:
+                        initial_attr = "host"
+                    elif guest_rx == Swipe.SUPERLIKE:
+                        initial_attr = "guest"
+                    else:
+                        initial_attr = "none"
+
+                    match, match_created = Match.objects.get_or_create(
+                        session=session,
+                        movie_id=movie_id,
+                        defaults={"attribution": initial_attr},
+                    )
                     match_formed = True
                     superlike_attr = match.superlike_attribution
                     match_type_str = match.match_type

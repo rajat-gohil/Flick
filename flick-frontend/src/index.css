@@ -129,24 +129,26 @@ h1, h2, h3, .font-editorial {
 }
 
 /* ── Motion & Skeleton Shimmer ─────────────────────────── */
-@keyframes shimmer {
+@keyframes shimmer-diagonal {
   0% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
 }
 
 .animate-shimmer {
   background: linear-gradient(
-    90deg,
-    var(--surface-secondary) 0%,
-    var(--border) 50%,
-    var(--surface-secondary) 100%
+    110deg,
+    var(--surface-secondary) 15%,
+    var(--border) 40%,
+    color-mix(in srgb, var(--primary) 14%, var(--border)) 50%,
+    var(--border) 60%,
+    var(--surface-secondary) 85%
   );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite ease-in-out;
+  background-size: 250% 100%;
+  animation: shimmer-diagonal 2s infinite ease-in-out;
 }
 
 @keyframes pulse-subtle {

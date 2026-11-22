@@ -73,9 +73,9 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="5. Contact & Privacy Office">
-              For privacy inquiries or data rights requests, write to{" "}
-              <a href="mailto:privacy@flickapp.in" className="text-primary hover:underline">
-                privacy@flickapp.in
+              For privacy inquiries, data stewardship questions, or data rights requests, write to{" "}
+              <a href="mailto:discoverflick@gmail.com" className="text-primary hover:underline">
+                discoverflick@gmail.com
               </a>.
             </Section>
 

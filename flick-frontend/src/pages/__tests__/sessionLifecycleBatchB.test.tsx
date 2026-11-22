@@ -199,6 +199,94 @@ describe("Phase 6 Batch B: Real-Time Session Synchronization & Swipe Reliability
     vi.useRealTimers();
   });
 
+  it("Req 3: Caps reconnect attempts on repeated abnormal closures (code 1006) while preserving fallback polling for active session", async () => {
+    vi.useFakeTimers();
+    let pollCount = 0;
+    let sessionState = { ...baseSession, ended: false };
+
+    mockApiRequest.mockImplementation((endpoint: string) => {
+      if (endpoint === "/api/sessions/55/") {
+        pollCount++;
+        return Promise.resolve({ session: sessionState });
+      }
+      if (endpoint === "/api/sessions/55/deck/card/") {
+        return Promise.resolve({ success: true, card_index: 0, total_cards: 40, card: sampleCard });
+      }
+      if (endpoint === "/api/watchlist/") return Promise.resolve({ watchlist: [] });
+      if (endpoint.includes("/matches/")) return Promise.resolve({ matches: [] });
+      return Promise.resolve({});
+    });
+
+    // Subclass MockWebSocket to simulate handshakes that are rejected before open
+    class RejectingWebSocket extends MockWebSocket {
+      constructor(url: string, protocols?: string | string[]) {
+        super(url, protocols);
+        this.readyState = MockWebSocket.CLOSED;
+      }
+    }
+    (window as any).WebSocket = RejectingWebSocket;
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={["/session/55"]}>
+        <Routes>
+          <Route path="/session/:id" element={<SessionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(wsInstances.length).toBe(1);
+
+    // Simulate successive abnormal closures (e.g. handshake rejected with HTTP 403, browser sees 1006)
+    for (let i = 0; i < 6; i++) {
+      const currentWs = wsInstances[wsInstances.length - 1];
+      await act(async () => {
+        currentWs.onclose?.({ code: 1006, reason: "" });
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
+      });
+    }
+
+    // Reconnection is capped at 5 retry attempts (initial + 5 retries = 6 total instances)
+    expect(wsInstances.length).toBeLessThanOrEqual(6);
+
+    // Advance 30 seconds - confirm no further WebSocket reconnects are triggered
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30000);
+    });
+    expect(wsInstances.length).toBeLessThanOrEqual(6);
+
+    // VERIFY: Fallback polling SURVIVED retry exhaustion and keeps active session synchronized
+    const countAfterExhaustion = pollCount;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12500); // 2 interval ticks (6000ms each)
+    });
+    expect(pollCount).toBeGreaterThan(countAfterExhaustion);
+
+    // VERIFY: Polling stops when session actually terminates
+    sessionState = { ...baseSession, ended: true };
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6500); // trigger poll that receives ended: true
+    });
+    const countAtTermination = pollCount;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(18000); // advance 3 more intervals
+    });
+    expect(pollCount).toBe(countAtTermination);
+
+    // VERIFY: Unmount cleanup stops timers
+    unmount();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(18000);
+    });
+    expect(pollCount).toBe(countAtTermination);
+
+    vi.useRealTimers();
+  });
+
   it("Req 4 & 5: Controlled fallback polling (6s) activates ONLY when WS is disconnected and stops upon termination", async () => {
     vi.useFakeTimers();
     let pollCount = 0;

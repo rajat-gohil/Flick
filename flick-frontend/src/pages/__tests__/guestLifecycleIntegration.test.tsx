@@ -86,7 +86,7 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
      1. GUEST ONBOARDING & PROVISIONING
      =================================================================== */
   describe("Guest Onboarding & Provisioning Flow", () => {
-    it("provisions a guest account when 'Start Exploring' is clicked and displays the recovery code", async () => {
+    it("provisions a guest account when 'Start Exploring' is clicked and navigates directly to /home without modal", async () => {
       mockApiRequest.mockResolvedValueOnce({
         success: true,
         token: "guest_token_12345",
@@ -128,11 +128,9 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
       expect(isLoggedIn()).toBe(true);
       expect(isGuest()).toBe(true);
 
-      // Verify RecoveryCodeModal is presented
+      // Verify silent navigation straight to home dashboard without blocking modal
       await waitFor(() => {
-        expect(screen.getByText(/your guest recovery code/i)).toBeDefined();
-        expect(screen.getByTestId("recovery-code-display").textContent).toContain("4F9K");
-        expect(screen.getByTestId("recovery-code-display").textContent).toContain("0R5T");
+        expect(screen.getByText("Home Dashboard")).toBeDefined();
       });
 
       // Raw recovery code must NEVER be saved in localStorage
@@ -140,30 +138,18 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
       expect(JSON.stringify(window.localStorage)).not.toContain("4F9K-2M8P");
     });
 
-    it("requires explicit acknowledgment before dismissing the recovery code modal", async () => {
-      mockApiRequest.mockResolvedValueOnce({
-        success: true,
-        token: "guest_token_12345",
-        recovery_code: "4F9K-2M8P-7Q1X-0R5T",
-        user: { id: 42, username: "guest_42", is_guest: true },
-      });
+    it("requires explicit acknowledgment before dismissing the recovery code modal when viewed on demand", async () => {
+      const onConfirm = vi.fn();
 
       render(
-        <ThemeProvider>
-          <MemoryRouter initialEntries={["/"]}>
-            <Routes>
-              <Route path="/" element={<EntryPage />} />
-              <Route path="/home" element={<div>Home Dashboard</div>} />
-            </Routes>
-          </MemoryRouter>
-        </ThemeProvider>
+        <RecoveryCodeModal
+          isOpen={true}
+          recoveryCode="4F9K-2M8P-7Q1X-0R5T"
+          onConfirm={onConfirm}
+        />
       );
 
-      fireEvent.click(screen.getByRole("button", { name: /start exploring/i }));
-
-      await waitFor(() => {
-        expect(screen.getByText(/your guest recovery code/i)).toBeDefined();
-      });
+      expect(screen.getByText(/your guest recovery code/i)).toBeDefined();
 
       const continueBtn = screen.getByRole("button", { name: /i've saved my code/i });
       // Button must be disabled until user checks acknowledgment
@@ -175,11 +161,7 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
       expect(continueBtn.hasAttribute("disabled")).toBe(false);
 
       fireEvent.click(continueBtn);
-
-      // Navigates to home
-      await waitFor(() => {
-        expect(screen.getByText("Home Dashboard")).toBeDefined();
-      });
+      expect(onConfirm).toHaveBeenCalled();
     });
 
     it("handles clipboard copying with manual selection fallback", async () => {

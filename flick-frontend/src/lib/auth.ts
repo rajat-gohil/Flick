@@ -110,7 +110,41 @@ export function logout() {
   localStorage.removeItem("email");
   localStorage.removeItem("is_guest");
   localStorage.removeItem("guest_uuid");
+  localStorage.removeItem("flick_provisioning_key");
+  localStorage.removeItem("flick_provisioning_key_ts");
+  try {
+    localStorage.setItem(
+      "flick_auth_sync",
+      JSON.stringify({ type: "LOGOUT", ts: Date.now() })
+    );
+  } catch {
+    // ignore
+  }
   resetAnalyticsIdentity();
 }
 
 export const clearAuthState = logout;
+
+/**
+ * Cross-tab storage listener for multi-tab synchronization.
+ * Listens for auth_token changes and flick_auth_sync invalidation events.
+ */
+export function initAuthSyncListener(onSync?: (key: string, value: string | null) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === "auth_token" || event.key === "flick_auth_sync") {
+      if (onSync) {
+        onSync(event.key, event.newValue);
+      }
+      window.dispatchEvent(
+        new CustomEvent("flick:cross_tab_sync", {
+          detail: { key: event.key, newValue: event.newValue },
+        })
+      );
+    }
+  };
+
+  window.addEventListener("storage", handleStorage);
+  return () => window.removeEventListener("storage", handleStorage);
+}

@@ -499,6 +499,13 @@ export default function ProfilePage() {
           )}
           <MenuItem icon="security" label="Privacy & Data Policy" onClick={() => navigate("/privacy")} />
           <MenuItem icon="gavel" label="Terms of Service" onClick={() => navigate("/terms")} />
+          <MenuItem
+            icon="mail"
+            label="Support & Feedback"
+            onClick={() => {
+              window.location.href = "mailto:discoverflick@gmail.com?subject=Flick Support & Feedback";
+            }}
+          />
 
           {/* Email verification alert */}
           {emailVerified === false && !safeIsGuest() && (

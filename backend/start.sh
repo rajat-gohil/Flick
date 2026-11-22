@@ -7,7 +7,11 @@ echo "🧱 Running database migrations..."
 python manage.py migrate --noinput
 
 echo "👑 Ensuring superuser exists..."
-python manage.py create_admin --username rajat --email rgohil27@gmail.com --password 'XSladE98!' || true
+if [[ -n "$DJANGO_SUPERUSER_PASSWORD" ]] || [[ -n "$DJANGO_ADMIN_PASSWORD" ]]; then
+  python manage.py create_admin || true
+else
+  echo "ℹ️ Initial admin provisioning skipped (neither DJANGO_SUPERUSER_PASSWORD nor DJANGO_ADMIN_PASSWORD set)."
+fi
 
 # Optional one-time / manual syncs
 # These should NOT run on every deploy

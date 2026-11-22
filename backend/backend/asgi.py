@@ -13,15 +13,36 @@ from core.middleware import TokenAuthMiddlewareStack
 django_asgi_app = get_asgi_application()
 
 def _ensure_admin_account():
+    username = (
+        os.getenv("DJANGO_ADMIN_USERNAME")
+        or os.getenv("DJANGO_SUPERUSER_USERNAME")
+    )
+    password = (
+        os.getenv("DJANGO_ADMIN_PASSWORD")
+        or os.getenv("DJANGO_SUPERUSER_PASSWORD")
+    )
+    email = (
+        os.getenv("DJANGO_ADMIN_EMAIL")
+        or os.getenv("DJANGO_SUPERUSER_EMAIL")
+        or ""
+    )
+
+    # Fail-closed: never create or reset admin when credentials are not explicitly supplied
+    if not (username and password):
+        return
+
     try:
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        user, _ = User.objects.get_or_create(username="rajat", defaults={"email": "rgohil27@gmail.com"})
-        user.set_password("XSladE98!")
-        user.is_superuser = True
-        user.is_staff = True
-        user.is_active = True
-        user.save()
+        # Never reset an existing administrator password on application startup
+        if User.objects.filter(username=username).exists():
+            return
+
+        User.objects.create_superuser(
+            username=str(username).strip(),
+            email=str(email).strip(),
+            password=str(password)
+        )
     except Exception as e:
         import logging
         logging.getLogger("core").warning("Could not auto-ensure admin account: %s", e)

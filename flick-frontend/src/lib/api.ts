@@ -229,7 +229,7 @@ export async function apiRequest(
     }
 
     if (!response.ok) {
-      // On 401 Unauthorized for authenticated endpoints, clear invalid auth state and redirect
+      // On 401 Unauthorized for authenticated endpoints, clear invalid auth state, clear provisioning key, and broadcast
       if (response.status === 401 && !isPublicEndpoint(normalizedEndpoint)) {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("username");
@@ -237,15 +237,24 @@ export async function apiRequest(
         localStorage.removeItem("user_id");
         localStorage.removeItem("is_guest");
         localStorage.removeItem("guest_uuid");
+        localStorage.removeItem("flick_provisioning_key");
+        localStorage.removeItem("flick_provisioning_key_ts");
 
-        if (
-          typeof window !== "undefined" &&
-          window.location.pathname !== "/login" &&
-          window.location.pathname !== "/register" &&
-          window.location.pathname !== "/recover" &&
-          window.location.pathname !== "/"
-        ) {
-          window.location.href = "/login";
+        // Broadcast cross-tab invalidation
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(
+              "flick_auth_sync",
+              JSON.stringify({ type: "AUTH_EXPIRED", ts: Date.now() })
+            );
+          } catch {
+            // ignore storage quota errors
+          }
+          window.dispatchEvent(
+            new CustomEvent("flick:auth_expired", {
+              detail: { endpoint: normalizedEndpoint },
+            })
+          );
         }
       }
 
@@ -348,9 +357,13 @@ export interface GuestConvertResponse {
   };
 }
 
-export async function provisionGuest(displayName?: string): Promise<GuestProvisionResponse> {
+export async function provisionGuest(
+  displayName?: string,
+  idempotencyKey?: string
+): Promise<GuestProvisionResponse> {
   return apiRequest("/api/auth/guest-provision/", {
     method: "POST",
+    headers: idempotencyKey ? { "X-Idempotency-Key": idempotencyKey } : {},
     body: JSON.stringify(displayName ? { display_name: displayName } : {}),
   });
 }

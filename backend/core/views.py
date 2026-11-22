@@ -46,13 +46,15 @@ from .models import (
     Movie, Swipe, Match, Session, Genre, MovieExposure,
     SessionStats, UserTasteSignal, SessionChemistry,
     MovieTagRelation, MovieTag, WatchlistItem, UserProfile,
-    StreamingProvider, MovieStreamingAvailability, GuestProfile
+    StreamingProvider, MovieStreamingAvailability, GuestProfile,
+    GuestProvisioningIdempotency
 )
 from .serializers import MovieSerializer, RegisterSerializer, SwipeSerializer, SessionDetailSerializer
 from .pagination import StandardResultsSetPagination, SwipeHistoryPagination
 from .throttling import (
     AuthRateThrottle, PasswordResetRateThrottle,
-    GuestProvisionThrottle, GuestRecoverThrottle
+    GuestProvisionThrottle, GuestRecoverThrottle,
+    GuestRecoveryKeyThrottle,
 )
 from .guest_security import (
     generate_recovery_code,
@@ -442,10 +444,47 @@ class GuestProvisionView(APIView):
     Initialize an anonymous persistent guest account.
     Creates a User with unusable password, companion GuestProfile, UserProfile, and DRF Token.
     Returns single-exposure Crockford Base32 recovery credential.
+    Supports X-Idempotency-Key header for duplicate-safe provisioning and short-lived replay.
     """
     permission_classes = [AllowAny]
     authentication_classes = [TokenAuthentication]
     throttle_classes = [GuestProvisionThrottle]
+
+    def _handle_replay(self, record):
+        now = timezone.now()
+        if now >= record.expires_at:
+            return Response(
+                {"success": False, "error": "Provisioning replay capability is expired or no longer available."},
+                status=status.HTTP_410_GONE,
+            )
+        if not record.user.is_active:
+            return Response(
+                {"success": False, "error": "Provisioning replay capability is expired or no longer available."},
+                status=status.HTTP_410_GONE,
+            )
+        if not hasattr(record.user, "guest_profile") or record.user.guest_profile.is_claimed:
+            return Response(
+                {"success": False, "error": "Provisioning replay capability is expired or no longer available."},
+                status=status.HTTP_410_GONE,
+            )
+        token = Token.objects.filter(user=record.user).first()
+        if not token:
+            return Response(
+                {"success": False, "error": "Provisioning replay capability is expired or no longer available."},
+                status=status.HTTP_410_GONE,
+            )
+        return Response({
+            "success": True,
+            "token": token.key,
+            "recovery_code": record.user.guest_profile.recovery_code,
+            "user": {
+                "id": record.user.id,
+                "username": record.user.username,
+                "display_name": record.user.first_name,
+                "guest_uuid": str(record.user.guest_profile.id),
+                "is_guest": True,
+            }
+        }, status=status.HTTP_200_OK)
 
     def post(self, request):
         if request.user and request.user.is_authenticated:
@@ -453,6 +492,16 @@ class GuestProvisionView(APIView):
                 "success": False,
                 "error": "Authenticated users cannot create a new guest account."
             }, status=status.HTTP_400_BAD_REQUEST)
+
+        idempotency_key = (
+            request.headers.get("X-Idempotency-Key")
+            or request.META.get("HTTP_X_IDEMPOTENCY_KEY")
+        )
+        if idempotency_key:
+            idempotency_key = str(idempotency_key).strip()[:64]
+            record = GuestProvisioningIdempotency.objects.filter(idempotency_key=idempotency_key).first()
+            if record:
+                return self._handle_replay(record)
 
         # Optional display_name provided in request body
         display_name = ""
@@ -465,6 +514,8 @@ class GuestProvisionView(APIView):
         recovery_code = generate_recovery_code()
         digest = compute_recovery_lookup_digest(recovery_code)
         v_hash = hash_recovery_code(recovery_code)
+
+        is_replay = False
 
         try:
             with transaction.atomic():
@@ -502,6 +553,31 @@ class GuestProvisionView(APIView):
 
                 token = Token.objects.create(user=user)
 
+                if idempotency_key:
+                    try:
+                        with transaction.atomic():
+                            GuestProvisioningIdempotency.objects.create(
+                                idempotency_key=idempotency_key,
+                                user=user,
+                                expires_at=timezone.now() + timedelta(minutes=15),
+                            )
+                    except IntegrityError:
+                        # Simultaneous race on unique idempotency_key:
+                        # Another concurrent transaction committed or is committing.
+                        # Mark outer transaction for rollback so this redundant guest is not persisted.
+                        transaction.set_rollback(True)
+                        is_replay = True
+
+            if is_replay:
+                # Winner has committed; recover existing record immediately without polling/backoff
+                record = GuestProvisioningIdempotency.objects.filter(idempotency_key=idempotency_key).first()
+                if record:
+                    return self._handle_replay(record)
+                return Response(
+                    {"success": False, "error": "Provisioning replay capability is expired or no longer available."},
+                    status=status.HTTP_410_GONE,
+                )
+
             return Response({
                 "success": True,
                 "token": token.key,
@@ -529,7 +605,7 @@ class GuestRecoverView(APIView):
     Rotates the active DRF auth token and establishes a retry-safe recovery handoff window.
     """
     permission_classes = [AllowAny]
-    authentication_classes = []
+    authentication_classes = [TokenAuthentication]
     throttle_classes = [GuestRecoverThrottle]
 
     def post(self, request):
@@ -565,7 +641,7 @@ class GuestRecoverView(APIView):
             try:
                 with transaction.atomic():
                     # Query candidate profile locking row for concurrency safety
-                    profile = GuestProfile.objects.select_for_update().select_related("user", "user__profile").filter(
+                    profile = GuestProfile.objects.select_for_update(of=("self",)).filter(
                         Q(recovery_lookup_digest=digest) |
                         Q(previous_recovery_lookup_digest=digest, previous_recovery_expires_at__gt=now)
                     ).first()
@@ -578,9 +654,10 @@ class GuestRecoverView(APIView):
                         }, status=status.HTTP_400_BAD_REQUEST)
 
                     if profile.is_claimed:
+                        dummy_verify_recovery_code()
                         return Response({
                             "success": False,
-                            "error": "This account has already been registered with email and password. Please sign in with your credentials."
+                            "error": "Invalid recovery code."
                         }, status=status.HTTP_400_BAD_REQUEST)
 
                     # Determine which hash matched
@@ -596,6 +673,31 @@ class GuestRecoverView(APIView):
                             "success": False,
                             "error": "Invalid recovery code."
                         }, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Check if authenticated permanent user is performing an account merge
+                    is_permanent_user = (
+                        request.user
+                        and request.user.is_authenticated
+                        and not (hasattr(request.user, "guest_profile") and not request.user.guest_profile.is_claimed)
+                    )
+                    if is_permanent_user:
+                        from core.services.guest_merge import merge_guest_activity, MergeConflictError, MergeInputError
+                        try:
+                            merge_result = merge_guest_activity(profile.user, request.user)
+                            return Response({
+                                "success": True,
+                                "message": "Guest account merged successfully.",
+                                **merge_result,
+                            }, status=status.HTTP_200_OK)
+                        except MergeConflictError as e:
+                            return Response({"success": False, "error": str(e)}, status=status.HTTP_409_CONFLICT)
+                        except MergeInputError as e:
+                            return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+                    # Generate replacement recovery credential
+                    new_code = generate_recovery_code()
+                    new_digest = compute_recovery_lookup_digest(new_code)
+                    new_hash = hash_recovery_code(new_code)
 
                     # Generate replacement recovery credential
                     new_code = generate_recovery_code()
@@ -617,9 +719,12 @@ class GuestRecoverView(APIView):
                     profile.last_active_at = now
                     profile.save()
 
-                    # Rotate DRF Token (Strictly delete + create, not get_or_create)
+                    # Rotate DRF Token strictly
                     Token.objects.filter(user=profile.user).delete()
                     new_token = Token.objects.create(user=profile.user)
+
+                    # Purge prior provisioning replay idempotency records on credential rotation
+                    GuestProvisioningIdempotency.objects.filter(user=profile.user).delete()
 
                     # Dispatch WebSocket revocation after successful transaction commit
                     user_id = profile.user.id
@@ -666,6 +771,47 @@ class GuestRecoverView(APIView):
             "handoff_pending": True
         }, status=status.HTTP_200_OK)
 
+
+
+class GuestRecoveryKeyView(APIView):
+    """
+    On-demand retrieval of Crockford Base32 recovery code for authenticated active guest.
+    Protected by Cache-Control: no-store and rate limiting.
+    """
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [GuestRecoveryKeyThrottle]
+
+    def get(self, request):
+        user = request.user
+        if not user.is_active:
+            return Response(
+                {"success": False, "error": "Account is inactive."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        guest_profile = GuestProfile.objects.filter(user=user).first()
+        if not guest_profile or guest_profile.is_claimed:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Recovery key is only available for active, unconverted guest accounts.",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        logger.info("Guest recovery key revealed", extra={"user_id": user.id})
+
+        resp = Response(
+            {
+                "success": True,
+                "recovery_code": guest_profile.recovery_code,
+            },
+            status=status.HTTP_200_OK,
+        )
+        resp["Cache-Control"] = "no-store, no-cache, must-revalidate, private, max-age=0"
+        resp["Pragma"] = "no-cache"
+        resp["Expires"] = "0"
+        return resp
 
 
 class GuestRecoveryAckView(APIView):
@@ -828,9 +974,9 @@ class GuestConvertView(APIView):
         for attempt in range(max_retries):
             try:
                 with transaction.atomic():
-                    # Lock rows
+                    # Lock rows: GuestProfile first, then User (compatible lock hierarchy)
+                    profile = GuestProfile.objects.select_for_update(of=("self",)).get(user_id=request.user.pk)
                     user = User.objects.select_for_update().get(pk=request.user.pk)
-                    profile = GuestProfile.objects.select_for_update().get(user=user)
 
                     if profile.is_claimed:
                         return Response({
@@ -873,12 +1019,16 @@ class GuestConvertView(APIView):
                     # Retire all guest recovery credentials permanently
                     profile.is_claimed = True
                     profile.claimed_at = timezone.now()
+                    profile.recovery_code = ""
                     profile.recovery_lookup_digest = ""
                     profile.recovery_verification_hash = ""
                     profile.previous_recovery_lookup_digest = ""
                     profile.previous_recovery_verification_hash = ""
                     profile.previous_recovery_expires_at = None
                     profile.save()
+
+                    # Purge any provisioning replay idempotency records on conversion
+                    GuestProvisioningIdempotency.objects.filter(user=user).delete()
 
                     # Preserve existing token or create if missing
                     token, _ = Token.objects.get_or_create(user=user)
@@ -918,6 +1068,53 @@ class GuestConvertView(APIView):
                 "is_guest": False,
             }
         }, status=status.HTTP_200_OK)
+
+
+class GuestMergeView(APIView):
+    """
+    Direct authenticated endpoint for merging an anonymous guest account into
+    the calling permanent user's account.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        guest_user_id = request.data.get("guest_user_id") or request.data.get("guest_id")
+        if not guest_user_id:
+            return Response(
+                {"success": False, "error": "guest_user_id is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        User = get_user_model()
+        guest_user = None
+        try:
+            if isinstance(guest_user_id, int) or (isinstance(guest_user_id, str) and guest_user_id.isdigit()):
+                guest_user = User.objects.get(id=int(guest_user_id))
+            else:
+                guest_profile = GuestProfile.objects.filter(
+                    Q(id=guest_user_id) | Q(user__username=guest_user_id)
+                ).first()
+                if guest_profile:
+                    guest_user = guest_profile.user
+                else:
+                    guest_user = User.objects.get(username=guest_user_id)
+        except (User.DoesNotExist, ValueError):
+            return Response(
+                {"success": False, "error": "Guest user not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        from core.services.guest_merge import merge_guest_activity, MergeConflictError, MergeInputError
+
+        try:
+            result = merge_guest_activity(guest_user, request.user)
+            return Response({"success": True, **result}, status=status.HTTP_200_OK)
+        except MergeConflictError as exc:
+            return Response({"success": False, "error": str(exc)}, status=status.HTTP_409_CONFLICT)
+        except MergeInputError as exc:
+            return Response({"success": False, "error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
@@ -1676,7 +1873,7 @@ class SwipeCreateView(APIView):
                     try:
                         from django.db import connection
                         if connection.vendor == "postgresql":
-                            session = Session.objects.select_for_update().select_related("host", "guest").get(id=session_obj.id)
+                            session = Session.objects.select_for_update(of=("self",)).select_related("host", "guest").get(id=session_obj.id)
                         else:
                             session = Session.objects.select_related("host", "guest").get(id=session_obj.id)
                     except Session.DoesNotExist:
@@ -1784,7 +1981,23 @@ class SwipeCreateView(APIView):
                         partner_positive = partner_swipe.reaction in (Swipe.LIKE, Swipe.SUPERLIKE)
 
                         if my_positive and partner_positive:
-                            match, created = Match.objects.get_or_create(session=session, movie=movie)
+                            is_host = (request.user == session.host)
+                            host_rx = reaction if is_host else partner_swipe.reaction
+                            guest_rx = partner_swipe.reaction if is_host else reaction
+                            if host_rx == Swipe.SUPERLIKE and guest_rx == Swipe.SUPERLIKE:
+                                initial_attr = "mutual"
+                            elif host_rx == Swipe.SUPERLIKE:
+                                initial_attr = "host"
+                            elif guest_rx == Swipe.SUPERLIKE:
+                                initial_attr = "guest"
+                            else:
+                                initial_attr = "none"
+
+                            match, created = Match.objects.get_or_create(
+                                session=session,
+                                movie=movie,
+                                defaults={"attribution": initial_attr},
+                            )
                             match_created = True
                             superlike_attr = match.superlike_attribution
                             match_type_str = match.match_type
@@ -2982,7 +3195,7 @@ class PasswordResetRequestView(APIView):
                     f"{reset_link}\n\n"
                     f"If you did not request this, please ignore this email.\n"
                 ),
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@flickapp.com"),
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "discoverflick@gmail.com"),
                 recipient_list=[user.email],
                 fail_silently=False,
             )
@@ -3284,7 +3497,7 @@ class SendVerificationEmailView(APIView):
             send_mail(
                 subject="Verify your Flick email",
                 message=f"Hi {user.username},\n\nPlease click the link below to verify your email address:\n\n{verify_url}\n\nThank you,\nFlick Team",
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@flickapp.in"),
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "discoverflick@gmail.com"),
                 recipient_list=[user.email],
                 fail_silently=False,
             )
@@ -3381,7 +3594,7 @@ class SessionRecentListView(APIView):
                     "initials": s.host.username[:2].upper() if s.host.username else "HO",
                 }
             ]
-            if s.guest:
+            if s.guest and s.guest_id != s.host_id:
                 participants.append({
                     "username": s.guest.username,
                     "initials": s.guest.username[:2].upper() if s.guest.username else "GU",
@@ -3449,7 +3662,9 @@ class SessionHistoryView(APIView):
 
         history = []
         for s in sessions:
-            if user == s.host:
+            if s.host_id == s.guest_id:
+                partner_username = ""
+            elif user == s.host:
                 partner_username = s.guest.username if s.guest else "Waiting for partner"
             else:
                 partner_username = s.host.username if s.host else ""

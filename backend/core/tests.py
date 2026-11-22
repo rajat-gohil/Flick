@@ -736,6 +736,21 @@ class RecentSessionsTests(TestCase):
         self.assertEqual(s["name"], "Horror Night")
         self.assertEqual(len(s["participants"]), 2)
 
+    def test_self_paired_recent_session_lists_single_participant(self):
+        """Self-paired sessions (host == guest) list user once in participants."""
+        Session.objects.create(
+            host=self.user1,
+            guest=self.user1,
+            genre=self.genre,
+            code="REC002"
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.user1_token.key}")
+        res = self.client.get("/api/sessions/recent/")
+        self.assertEqual(res.status_code, 200)
+        s_self = next(s for s in res.data["sessions"] if s["code"] == "REC002")
+        self.assertEqual(len(s_self["participants"]), 1)
+        self.assertEqual(s_self["participants"][0]["username"], self.user1.username)
+
 
 class WatchlistTests(TestCase):
     def setUp(self):
@@ -1142,6 +1157,22 @@ class SessionHistoryTests(TestCase):
         history = res.data.get("history", [])
         self.assertEqual(len(history), 1)
         self.assertEqual(history[0]["partner_username"], "archivist_host")
+
+    def test_self_paired_session_history_partner_username_is_empty(self):
+        """Self-paired sessions (host == guest) return partner_username = '' rather than presenting user as own partner."""
+        from django.utils import timezone
+        Session.objects.create(
+            code="SELF01",
+            host=self.host,
+            guest=self.host,
+            ended_at=timezone.now(),
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.host_token.key}")
+        res = self.client.get("/api/sessions/history/")
+        self.assertEqual(res.status_code, 200)
+        history = res.data.get("history", [])
+        self.assertEqual(len(history), 1)
+        self.assertEqual(history[0]["partner_username"], "")
 
     def test_session_detail_dynamic_route_remains_functional(self):
         s = Session.objects.create(
@@ -1725,6 +1756,29 @@ class WebSocketAuthenticationAndAuthorizationTests(TransactionTestCase):
             connected, code = await comm.connect()
             self.assertFalse(connected)
             self.assertEqual(code, 4001)
+            await comm.disconnect()
+
+        asyncio.run(run())
+
+    def test_ended_session_connection_rejected(self):
+        """Connections to ended/closed sessions are rejected with close code 4003 before group add or presence broadcast."""
+        import asyncio
+        from channels.testing import WebsocketCommunicator
+        from backend.asgi import application
+        from django.utils import timezone
+
+        self.session.ended_at = timezone.now()
+        self.session.save(update_fields=["ended_at"])
+
+        async def run():
+            comm = WebsocketCommunicator(
+                application,
+                f"/ws/session/{self.session.id}/",
+                subprotocols=["token", self.host_token.key]
+            )
+            connected, code = await comm.connect()
+            self.assertFalse(connected)
+            self.assertEqual(code, 4003)
             await comm.disconnect()
 
         asyncio.run(run())

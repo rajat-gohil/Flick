@@ -328,6 +328,72 @@ describe("Phase 3: Frontend Deck Integration & State Machine Contract", () => {
     expect(screen.getByText(/Priority Interest/i)).not.toBeNull();
   });
 
+  it("Slice 3b: handles unknown match attribution safely without displaying false Priority Interest badge", async () => {
+    mockApiRequest.mockImplementation((endpoint: string, options?: any) => {
+      if (endpoint === "/api/sessions/100/") {
+        return Promise.resolve(mockSessionDetails);
+      }
+      if (endpoint === "/api/sessions/100/deck/card/") {
+        return Promise.resolve({
+          success: true,
+          session_id: 100,
+          card_index: 0,
+          total_cards: 40,
+          has_more: true,
+          is_completed: false,
+          card: sampleCard1,
+          resolved_card_index: 0,
+          waiting_for_partner: false,
+        });
+      }
+      if (endpoint === "/api/sessions/100/deck/swipe/") {
+        return Promise.resolve({
+          success: true,
+          idempotent: false,
+          card_index: 0,
+          next_card_index: 1,
+          jointly_resolved: true,
+          match_formed: true,
+          superlike_attribution: "unknown",
+          match_type: "unknown",
+          resolved_card_index: 1,
+          host_card_index: 1,
+          guest_card_index: 1,
+          partner_lag: 0,
+          waiting_for_partner: false,
+          is_completed: false,
+        });
+      }
+      if (endpoint === "/api/watchlist/") return Promise.resolve({ watchlist: [] });
+      if (endpoint.includes("/matches/")) return Promise.resolve({ matches: [] });
+      return Promise.resolve({});
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/session/100"]}>
+        <Routes>
+          <Route path="/session/:id" element={<SessionPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Inception")).not.toBeNull();
+    });
+
+    const likeButton = screen.getByLabelText("Recommend");
+    fireEvent.click(likeButton);
+
+    // Mutual match banner appears with Consensus Reached text
+    await waitFor(() => {
+      expect(screen.getByText("Consensus Reached")).not.toBeNull();
+    });
+
+    // Verifies match attribution DOES NOT display false priority interest indicator
+    expect(screen.queryByTestId("match-attribution-badge")).toBeNull();
+    expect(screen.queryByText(/Priority Interest/i)).toBeNull();
+  });
+
   /* -----------------------------------------------------------------
      Slice 4: Participant Undo Operation
      ----------------------------------------------------------------- */

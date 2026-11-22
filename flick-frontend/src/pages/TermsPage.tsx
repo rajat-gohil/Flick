@@ -44,7 +44,11 @@ export default function TermsPage() {
             </Section>
 
             <Section title="3. Member Credentials">
-              You remain responsible for maintaining the confidentiality of your authentication credentials and for all collaborative activities carried out through your member account. Notify us promptly at support@flickapp.in if you suspect unauthorized access.
+              You remain responsible for maintaining the confidentiality of your authentication credentials and for all collaborative activities carried out through your member account. Notify us promptly at{" "}
+              <a href="mailto:discoverflick@gmail.com" className="text-primary hover:underline">
+                discoverflick@gmail.com
+              </a>{" "}
+              if you suspect unauthorized access.
             </Section>
 
             <Section title="4. Standards of Conduct">
@@ -81,9 +85,9 @@ export default function TermsPage() {
             </Section>
 
             <Section title="9. Contact">
-              For legal inquiries, contact{" "}
-              <a href="mailto:legal@flickapp.in" className="text-primary hover:underline">
-                legal@flickapp.in
+              For legal inquiries or account support, contact{" "}
+              <a href="mailto:discoverflick@gmail.com" className="text-primary hover:underline">
+                discoverflick@gmail.com
               </a>.
             </Section>
 

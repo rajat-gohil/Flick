@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "../lib/api";
+import { usePrefersReducedMotion } from "../lib/motion";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -19,6 +21,7 @@ type WatchlistItem = {
 
 export default function WatchlistPage() {
   const navigate = useNavigate();
+  const shouldReduceMotion = usePrefersReducedMotion();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unwatched" | "watched">("all");
@@ -94,13 +97,24 @@ export default function WatchlistPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex-1 h-8 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border ${
+              className={`flex-1 h-8 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border relative overflow-hidden ${
                 filter === f
-                  ? "bg-primary border-primary text-surface shadow-xs"
+                  ? "border-primary text-surface shadow-xs"
                   : "bg-surface border-border text-foreground-secondary hover:text-foreground"
               }`}
             >
-              {f === "all" ? "All" : f === "unwatched" ? "Pending" : "Viewed"}
+              {filter === f && (
+                <motion.span
+                  layoutId="watchlistFilterPill"
+                  className="absolute inset-0 bg-primary rounded-lg -z-0"
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 420, damping: 34, mass: 0.8 }
+                  }
+                />
+              )}
+              <span className="relative z-10">{f === "all" ? "All" : f === "unwatched" ? "Pending" : "Viewed"}</span>
             </button>
           ))}
         </div>
@@ -137,90 +151,111 @@ export default function WatchlistPage() {
 
           {!loading && filtered.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-              {filtered.map(item => (
-                <div
-                  key={item.id}
-                  className={`flex gap-3.5 rounded-xl border p-3.5 sm:p-4 transition-all ${
-                    item.watched
-                      ? "bg-surface/50 border-border/50 opacity-70"
-                      : "bg-surface border-border hover:border-primary/40 shadow-xs"
-                  }`}
-                >
-                  {/* Poster */}
-                  <div className="shrink-0 w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden bg-surface-secondary border border-border shadow-xs">
-                    {item.poster_url ? (
-                      <img
-                        src={item.poster_url}
-                        alt={item.movie_title}
-                        className={`w-full h-full object-cover transition-all ${item.watched ? "grayscale opacity-60" : ""}`}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-foreground-secondary">
-                        <span className="material-symbols-outlined text-[20px]">movie</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                    <div>
-                      <h3 className={`font-editorial text-sm sm:text-base font-semibold leading-tight line-clamp-2 mb-1.5 ${
-                        item.watched ? "line-through text-foreground-secondary" : "text-foreground"
-                      }`}>
-                        {item.movie_title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-foreground-secondary">
-                        {item.rating && (
-                          <span className="flex items-center gap-0.5 text-primary font-semibold">
-                            <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                            {item.rating.toFixed(1)}
-                          </span>
-                        )}
-                        {item.release_year && <span>{item.release_year}</span>}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {item.trailer_url && (
-                        <a
-                          href={item.trailer_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 h-7 px-3 rounded-md bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-[11px] font-medium transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">play_arrow</span>
-                          Trailer
-                        </a>
-                      )}
-                      <button
-                        onClick={() => toggleWatched(item.movie_id, item.watched)}
-                        disabled={togglingId === item.movie_id}
-                        className={`flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-colors border ${
-                          item.watched
-                            ? "bg-surface-secondary border-border text-foreground-secondary hover:text-foreground"
-                            : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {item.watched ? "replay" : "check_circle"}
-                        </span>
-                        {item.watched ? "Rewatch" : "Mark Viewed"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Remove Button with 44px Touch Target Area */}
-                  <button
-                    onClick={() => removeItem(item.movie_id)}
-                    disabled={removingId === item.movie_id}
-                    className="shrink-0 size-11 flex items-center justify-center text-foreground-secondary hover:text-error hover:bg-surface-secondary transition-colors rounded-full self-start -mr-2 -mt-2 active:scale-90 cursor-pointer"
-                    aria-label="Remove from watchlist"
+              <AnimatePresence mode="popLayout">
+                {filtered.map(item => (
+                  <motion.div
+                    layout={!shouldReduceMotion}
+                    key={item.id}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={
+                      shouldReduceMotion
+                        ? { opacity: 0 }
+                        : { opacity: 0, scale: 0.9, y: -8, transition: { duration: 0.2 } }
+                    }
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className={`flex gap-3.5 rounded-xl border p-3.5 sm:p-4 transition-colors ${
+                      item.watched
+                        ? "bg-surface/50 border-border/50 opacity-70"
+                        : "bg-surface border-border hover:border-primary/40 shadow-xs"
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-[18px]">close</span>
-                  </button>
-                </div>
-              ))}
+                    {/* Poster */}
+                    <div className="shrink-0 w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden bg-surface-secondary border border-border shadow-xs">
+                      {item.poster_url ? (
+                        <img
+                          src={item.poster_url}
+                          alt={item.movie_title}
+                          className={`w-full h-full object-cover transition-all ${item.watched ? "grayscale opacity-60" : ""}`}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-foreground-secondary">
+                          <span className="material-symbols-outlined text-[20px]">movie</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                      <div>
+                        <h3 className={`font-editorial text-sm sm:text-base font-semibold leading-tight line-clamp-2 mb-1.5 ${
+                          item.watched ? "line-through text-foreground-secondary" : "text-foreground"
+                        }`}>
+                          {item.movie_title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-foreground-secondary">
+                          {item.rating && (
+                            <span className="flex items-center gap-0.5 text-primary font-semibold">
+                              <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                              {item.rating.toFixed(1)}
+                            </span>
+                          )}
+                          {item.release_year && <span>{item.release_year}</span>}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        {item.trailer_url && (
+                          <a
+                            href={item.trailer_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 h-7 px-3 rounded-md bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-[11px] font-medium transition-all active:scale-95"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">play_arrow</span>
+                            Trailer
+                          </a>
+                        )}
+                        <motion.button
+                          whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+                          onClick={() => toggleWatched(item.movie_id, item.watched)}
+                          disabled={togglingId === item.movie_id}
+                          className={`flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-colors border ${
+                            item.watched
+                              ? "bg-surface-secondary border-border text-foreground-secondary hover:text-foreground"
+                              : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
+                          }`}
+                        >
+                          <motion.span
+                            animate={
+                              togglingId === item.movie_id && !shouldReduceMotion
+                                ? { scale: [1, 1.3, 1], rotate: [0, 15, 0] }
+                                : { scale: 1, rotate: 0 }
+                            }
+                            transition={{ duration: 0.28, type: "spring", stiffness: 400, damping: 16 }}
+                            className="material-symbols-outlined text-[14px]"
+                          >
+                            {item.watched ? "replay" : "check_circle"}
+                          </motion.span>
+                          <span>{item.watched ? "Rewatch" : "Mark Viewed"}</span>
+                        </motion.button>
+                      </div>
+                    </div>
+
+                    {/* Remove Button with 44px Touch Target Area */}
+                    <motion.button
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.88 }}
+                      onClick={() => removeItem(item.movie_id)}
+                      disabled={removingId === item.movie_id}
+                      className="shrink-0 size-11 flex items-center justify-center text-foreground-secondary hover:text-error hover:bg-surface-secondary transition-colors rounded-full self-start -mr-2 -mt-2 active:scale-90 cursor-pointer"
+                      aria-label="Remove from watchlist"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">close</span>
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </main>

@@ -60,6 +60,7 @@ const MOTION_PROPS = new Set([
   "whileTap",
   "whileHover",
   "custom",
+  "layoutId",
 ]);
 
 function filterDomProps(props: Record<string, unknown>): Record<string, unknown> {

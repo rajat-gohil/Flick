@@ -213,7 +213,7 @@ class GuestRecoveryAPITests(TestCase):
             format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("already been registered with email and password", response.json()["error"])
+        self.assertEqual(response.json()["error"], "Invalid recovery code.")
 
 
 class RecoveryHandoffReliabilityTests(TestCase):
@@ -355,14 +355,22 @@ class GuestThrottlingTests(TestCase):
         cache.clear()
         self.client = APIClient()
 
+    def tearDown(self):
+        cache.clear()
+
     def test_provision_throttling_triggers_429(self):
-        """Exceeding 10 provisions per minute triggers 429 Too Many Requests."""
-        for i in range(10):
-            res = self.client.post("/api/auth/guest-provision/", {}, format="json")
+        """Repeated unauthenticated requests exceeding configured rate from one REMOTE_ADDR trigger 429."""
+        from django.conf import settings
+        rate_str = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"].get("guest_provision", "10/minute")
+        limit = int(rate_str.split("/")[0])
+        fixed_ip = "198.51.100.42"
+
+        for _ in range(limit):
+            res = self.client.post("/api/auth/guest-provision/", {}, format="json", REMOTE_ADDR=fixed_ip)
             self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
-        # 11th request triggers throttle
-        throttled_res = self.client.post("/api/auth/guest-provision/", {}, format="json")
+        # Request exceeding limit must be throttled with HTTP 429
+        throttled_res = self.client.post("/api/auth/guest-provision/", {}, format="json", REMOTE_ADDR=fixed_ip)
         self.assertEqual(throttled_res.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
     def test_recover_throttling_triggers_429(self):

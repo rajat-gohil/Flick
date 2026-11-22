@@ -45,6 +45,15 @@ class MatchConsumer(AsyncWebsocketConsumer):
             await self.close(code=4003)
             return
 
+        # 3.5 Lifecycle check: reject connections to closed / ended sessions
+        if session.ended_at is not None:
+            logger.warning(
+                "WebSocket rejected: session=%s already ended at %s; rejecting user_id=%s",
+                self.session_id, session.ended_at, self.user.id
+            )
+            await self.close(code=4003)
+            return
+
         # 4. Negotiate subprotocol if requested by client (e.g. 'token')
         subprotocols = self.scope.get("subprotocols", [])
         chosen_subprotocol = None

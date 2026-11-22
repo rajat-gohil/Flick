@@ -7,7 +7,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Va
 import StreamingOptions from "../components/StreamingOptions";
 import CinematicLoader from "../components/CinematicLoader";
 import { DeckCardSkeleton, MatchItemSkeleton, StreamingItemSkeleton } from "../components/Skeleton";
-import { bottomSheetVariants, backdropVariants, prefersReducedMotion } from "../lib/motion";
+import { bottomSheetVariants, backdropVariants, prefersReducedMotion, usePrefersReducedMotion } from "../lib/motion";
 import { ConstraintExhaustionNoticeModal } from "../components/session/ConstraintExhaustionNoticeModal";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
@@ -28,8 +28,8 @@ type Movie = {
   release_year?: number;
   trailer_url?: string;
   metadataStatus?: "pending" | "success" | "failed";
-  superlike_attribution?: "none" | "host" | "guest" | "mutual";
-  match_type?: "ordinary" | "superlike" | "mutual_superlike";
+  superlike_attribution?: "none" | "host" | "guest" | "mutual" | "unknown";
+  match_type?: "ordinary" | "superlike" | "mutual_superlike" | "unknown";
 };
 
 type Match = {
@@ -45,8 +45,8 @@ type Match = {
   overview?: string;
   genres?: string[];
   original_language?: string;
-  superlike_attribution?: "none" | "host" | "guest" | "mutual";
-  match_type?: "ordinary" | "superlike" | "mutual_superlike";
+  superlike_attribution?: "none" | "host" | "guest" | "mutual" | "unknown";
+  match_type?: "ordinary" | "superlike" | "mutual_superlike" | "unknown";
 };
 
 type Session = {
@@ -465,6 +465,8 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
 function SessionPageInner() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const shouldReduceMotion = usePrefersReducedMotion();
+  const [savedBurstId, setSavedBurstId] = useState<number | null>(null);
 
   /* ----------------------------
      STATE
@@ -813,6 +815,8 @@ function SessionPageInner() {
           body: JSON.stringify({ movie_id: movieId, session_id: sessionId }),
         });
         setWatchlistedIds(prev => new Set([...prev, movieId]));
+        setSavedBurstId(movieId);
+        setTimeout(() => setSavedBurstId(null), 1200);
         trackEvent("watchlist_added", { movie_id: movieId, session_id: sessionId, source: "session" });
       }
     } catch { /* ignored */ }
@@ -1165,6 +1169,8 @@ function SessionPageInner() {
       fallbackPollTimer = window.setInterval(() => {
         if (!isDisposed && !isSessionTerminatedRef.current) {
           pollSessionRef.current();
+        } else {
+          stopFallbackPolling();
         }
       }, 6000);
     }
@@ -1249,8 +1255,14 @@ function SessionPageInner() {
           return;
         }
 
-        // Temporary interruption: activate controlled 6-second fallback polling while reconnecting
+        // Temporary interruption or transport failure: maintain controlled 6-second fallback polling to keep active session synchronized
         startFallbackPolling();
+
+        // Exhausted reconnect limit: stop further WebSocket reconnection attempts, but preserve fallback polling while session remains active
+        if (retryCount >= 5) {
+          console.warn(`[Flick WS] Max reconnect attempts reached (retries=${retryCount}); stopping WS reconnect while preserving fallback polling.`);
+          return;
+        }
 
         // Resilient reconnect with exponential backoff + full random jitter capped at 10s
         const backoffMs = Math.min(1000 * Math.pow(1.5, retryCount), 10000) + Math.random() * 500;
@@ -1302,7 +1314,7 @@ function SessionPageInner() {
             const incomingRating = data.rating ?? deckMovie?.rating;
             const incomingYear = data.release_year ?? deckMovie?.release_year;
             const incomingSuperlikeAttr = data.superlike_attribution || "none";
-            const incomingMatchType = data.match_type || (incomingSuperlikeAttr === "mutual" ? "mutual_superlike" : incomingSuperlikeAttr !== "none" ? "superlike" : "ordinary");
+            const incomingMatchType = data.match_type || (incomingSuperlikeAttr === "mutual" ? "mutual_superlike" : (incomingSuperlikeAttr === "host" || incomingSuperlikeAttr === "guest") ? "superlike" : incomingSuperlikeAttr === "unknown" ? "unknown" : "ordinary");
             let shouldFetch = false;
 
             setMatchQueue((prev) => {
@@ -2323,6 +2335,15 @@ function SessionPageInner() {
             <div className="rounded-xl bg-surface-secondary/70 border border-border p-3 flex flex-col items-center">
               <span data-testid="stat-affinity-percent" className="font-editorial text-2xl font-bold text-foreground">{effectiveAffinity}%</span>
               <span className="text-[10px] uppercase tracking-wider text-foreground-secondary font-medium mt-0.5">Affinity</span>
+              <div className="w-full bg-border/60 h-1.5 rounded-full mt-2 overflow-hidden">
+                <motion.div
+                  data-testid="recap-affinity-progress"
+                  className="h-full bg-primary rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, Math.max(0, effectiveAffinity))}%` }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 120, damping: 20 }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -2693,9 +2714,32 @@ function SessionPageInner() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md overflow-y-auto overscroll-contain p-3 sm:p-6 pb-4 sm:pb-8 flex flex-col items-center justify-center"
+        className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md overflow-y-auto overscroll-contain p-3 sm:p-6 pb-4 sm:pb-8 flex flex-col items-center justify-center relative"
       >
-        <div className="max-w-sm w-full flex-1 flex flex-col justify-between py-1 sm:py-3 my-auto max-h-full">
+        {/* Theatre Spotlight Radial Glow */}
+        <motion.div
+          aria-hidden="true"
+          data-testid="match-theatre-spotlight"
+          initial={shouldReduceMotion ? { opacity: 0.4 } : { opacity: 0, scale: 0.7 }}
+          animate={{
+            opacity: shouldReduceMotion ? 0.4 : [0.45, 0.75, 0.45],
+            scale: shouldReduceMotion ? 1 : [0.95, 1.15, 0.95],
+          }}
+          transition={
+            shouldReduceMotion
+              ? { duration: 0.2 }
+              : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+          }
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] sm:w-[480px] h-[340px] sm:h-[480px] rounded-full pointer-events-none -z-10"
+          style={{
+            background:
+              matchedMovie.match_type === "mutual_superlike"
+                ? "radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.08) 50%, transparent 75%)"
+                : "radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.08) 50%, transparent 75%)",
+          }}
+        />
+
+        <div className="max-w-sm w-full flex-1 flex flex-col justify-between py-1 sm:py-3 my-auto max-h-full relative z-10">
 
           {/* Header */}
           <motion.div
@@ -2704,13 +2748,23 @@ function SessionPageInner() {
             transition={{ delay: 0.1, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             className="text-center pt-0 mb-0.5"
           >
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5 block">
+            <motion.span
+              data-testid="match-stamp-badge"
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.6, rotate: -6 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0.15 }
+                  : { delay: 0.22, type: "spring", stiffness: 420, damping: 16 }
+              }
+              className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-0.5 inline-block"
+            >
               {matchedMovie.match_type === "mutual_superlike"
                 ? "★ Mutual Super-Like ★"
                 : matchedMovie.match_type === "superlike"
                 ? "★ Super-Liked Discovery ★"
                 : "Consensus Reached"}
-            </span>
+            </motion.span>
             <h1 className="font-editorial text-xl sm:text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-0.5">
               {matchedMovie.match_type === "mutual_superlike"
                 ? "Double Super-Like!"
@@ -2725,25 +2779,42 @@ function SessionPageInner() {
                 ? "A Super-Like unlocked this film recommendation."
                 : "Both viewers expressed interest in this film."}
             </p>
-            {matchedMovie.superlike_attribution && matchedMovie.superlike_attribution !== "none" && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-[11px] font-bold uppercase tracking-wider mt-1.5">
+            {matchedMovie.superlike_attribution && ["mutual", "host", "guest"].includes(matchedMovie.superlike_attribution) && (
+              <motion.div
+                data-testid="match-attribution-badge"
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 1.35, rotate: -4 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={
+                  shouldReduceMotion
+                    ? { duration: 0.15 }
+                    : { delay: 0.3, type: "spring", stiffness: 400, damping: 15 }
+                }
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-[11px] font-bold uppercase tracking-wider mt-1.5"
+              >
                 <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                 <span>
                   {matchedMovie.superlike_attribution === "mutual"
                     ? "Mutual Priority Interest"
                     : matchedMovie.superlike_attribution === "host"
                     ? session?.user_role === "host" ? "Priority Interest (Your Selection)" : "Priority Interest (Partner's Selection)"
-                    : session?.user_role === "guest" ? "Priority Interest (Your Selection)" : "Priority Interest (Partner's Selection)"}
+                    : matchedMovie.superlike_attribution === "guest"
+                    ? session?.user_role === "guest" ? "Priority Interest (Your Selection)" : "Priority Interest (Partner's Selection)"
+                    : ""}
                 </span>
-              </div>
+              </motion.div>
             )}
           </motion.div>
 
           {/* Stacked poster cards */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.84, rotateY: 15 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ delay: 0.18, type: "spring", stiffness: 320, damping: 22 }}
+            data-testid="match-poster-stage"
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0.2 }
+                : { delay: 0.16, type: "spring", stiffness: 300, damping: 22 }
+            }
             className="relative w-full max-w-[120px] sm:max-w-[160px] md:max-w-[190px] aspect-[2/3] mx-auto my-1.5 sm:my-3 shrink-0"
           >
             {/* Back rotated card */}
@@ -2828,21 +2899,36 @@ function SessionPageInner() {
               </a>
             )}
 
-            <button
+            <motion.button
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
               onClick={() => toggleWatchlist(matchedMovie.id, Number(id))}
               disabled={watchlistLoading === matchedMovie.id}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 sm:py-2 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 sm:py-2 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all relative overflow-hidden ${
                 watchlistedIds.has(matchedMovie.id)
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-surface hover:bg-surface-secondary text-foreground"
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]"
-                style={{ fontVariationSettings: watchlistedIds.has(matchedMovie.id) ? "'FILL' 1" : undefined }}>
+              {savedBurstId === matchedMovie.id && !shouldReduceMotion && (
+                <span
+                  className="absolute inset-0 bg-primary/25 animate-ping pointer-events-none rounded-xl"
+                  aria-hidden="true"
+                />
+              )}
+              <motion.span
+                animate={
+                  savedBurstId === matchedMovie.id && !shouldReduceMotion
+                    ? { scale: [1, 1.35, 1], rotate: [0, -10, 0] }
+                    : { scale: 1, rotate: 0 }
+                }
+                transition={{ duration: 0.3, type: "spring", stiffness: 450, damping: 15 }}
+                className="material-symbols-outlined text-[16px]"
+                style={{ fontVariationSettings: watchlistedIds.has(matchedMovie.id) ? "'FILL' 1" : undefined }}
+              >
                 bookmark
-              </span>
-              {watchlistedIds.has(matchedMovie.id) ? "Saved" : "Save"}
-            </button>
+              </motion.span>
+              <span>{watchlistedIds.has(matchedMovie.id) ? "Saved" : "Save"}</span>
+            </motion.button>
           </motion.div>
 
           {/* Streaming options preview */}
@@ -3205,11 +3291,27 @@ function SessionPageInner() {
         className="flex items-center justify-between px-6 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/60 z-10 relative"
       >
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${
-            partnerStatus === "online"  ? "bg-primary" :
-            partnerStatus === "swiping" ? "bg-primary animate-pulse" :
-                                          "bg-foreground-secondary/40"
-          }`} />
+          <div className="relative flex items-center justify-center">
+            {(partnerStatus === "online" || partnerStatus === "swiping") && !shouldReduceMotion && (
+              <span
+                data-testid="partner-radar-pulse"
+                className={`absolute w-3.5 h-3.5 rounded-full bg-primary/30 pointer-events-none ${
+                  partnerStatus === "swiping"
+                    ? "animate-ping opacity-80"
+                    : "animate-[ping_2.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-40"
+                }`}
+                aria-hidden="true"
+              />
+            )}
+            <span
+              data-testid="partner-status-dot"
+              className={`relative w-2 h-2 rounded-full ${
+                partnerStatus === "online"  ? "bg-primary" :
+                partnerStatus === "swiping" ? "bg-primary animate-pulse" :
+                                              "bg-foreground-secondary/40"
+              }`}
+            />
+          </div>
           <span className="text-xs font-medium text-foreground-secondary tracking-wide">
             {partnerStatus === "online"  && (effectivePartnerName ? `${effectivePartnerName} connected` : "Partner connected")}
             {partnerStatus === "swiping" && (effectivePartnerName ? `${effectivePartnerName} reviewing…` : "Partner reviewing…")}
@@ -3251,6 +3353,19 @@ function SessionPageInner() {
           )}
         </div>
       </div>
+
+      {/* ── Live affinity hairline indicator (interpolated spring width) ── */}
+      {typeof session?.affinity_percent === "number" && (
+        <div className="w-full bg-border/40 h-1 overflow-hidden relative" title={`Affinity: ${session.affinity_percent}%`}>
+          <motion.div
+            data-testid="live-affinity-bar"
+            className="h-full bg-primary relative"
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.min(100, Math.max(0, session.affinity_percent))}%` }}
+            transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 140, damping: 24 }}
+          />
+        </div>
+      )}
 
       {/* ── Slot type badge (Collaborative Deck) ── */}
       {isManifestDeck && currentDeckCard?.slot_type && (

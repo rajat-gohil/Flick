@@ -33,7 +33,7 @@ export default function CinemaHeader({
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* ── Left: Brand or Mobile Back ── */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 md:flex-1 justify-start">
           {onBack && (
             <button
               onClick={onBack}
@@ -46,7 +46,7 @@ export default function CinemaHeader({
 
           <div
             onClick={() => navigate("/home")}
-            className={`flex items-center gap-2.5 cursor-pointer select-none group ${onBack ? "hidden md:flex" : "flex"}`}
+            className={`flex items-center gap-2.5 cursor-pointer select-none group shrink-0 ${onBack ? "hidden md:flex" : "flex"}`}
           >
             <img src={logoIcon} alt="Flick" className="h-7 w-auto transition-transform group-hover:scale-105" />
             <span className="font-editorial text-xl font-bold tracking-tight text-foreground">
@@ -76,7 +76,7 @@ export default function CinemaHeader({
         <nav
           aria-label="Desktop Navigation"
           data-tour="nav-desktop"
-          className="hidden md:flex items-center gap-1 lg:gap-2"
+          className="hidden md:flex items-center justify-center gap-1 lg:gap-2 shrink-0"
         >
           {navLinks.map((link) => {
             const isActive = current === link.id;
@@ -100,7 +100,7 @@ export default function CinemaHeader({
         </nav>
 
         {/* ── Right: Custom Actions & Profile / Theme ── */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 md:flex-1 justify-end">
           {rightAction}
 
           {/* Theme switcher */}

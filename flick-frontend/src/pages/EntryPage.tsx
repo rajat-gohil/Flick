@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { provisionGuest, ApiError } from "../lib/api";
-import { saveAuthState } from "../lib/auth";
-import { trackEvent } from "../lib/analytics";
+import { ApiError } from "../lib/api";
+import { coordinateGuestProvisioning } from "../services/guestProvisionCoordinator";
 import RecoveryCodeModal from "../components/RecoveryCodeModal";
 
 /* ============================
@@ -34,18 +33,10 @@ export default function EntryPage() {
     setLoading(true);
 
     try {
-      const data = await provisionGuest();
-      if (data.success && data.token) {
-        // Establish authenticated guest session
-        saveAuthState({
-          token: data.token,
-          user: data.user,
-        });
-        trackEvent("guest_provisioned", { user_id: data.user?.id });
-
-        // Present newly issued recovery code
-        setRecoveryCode(data.recovery_code);
-        setShowModal(true);
+      const data = await coordinateGuestProvisioning();
+      if (data && data.token) {
+        // Silently provisioned, navigate directly to /home without modal
+        navigate("/home", { replace: true });
       } else {
         setError("Unable to initialize guest discovery. Please try again.");
       }
@@ -590,6 +581,12 @@ export default function EntryPage() {
             >
               Privacy
             </button>
+            <a
+              href="mailto:discoverflick@gmail.com"
+              className="hover:text-foreground transition-colors cursor-pointer"
+            >
+              Contact
+            </a>
           </div>
         </footer>
 

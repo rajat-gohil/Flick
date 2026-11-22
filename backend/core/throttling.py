@@ -32,3 +32,12 @@ class GuestRecoverThrottle(AnonRateThrottle):
     """
     scope = "guest_recover"
 
+
+class GuestRecoveryKeyThrottle(AnonRateThrottle):
+    """
+    Rate throttle for guest recovery key retrieval (5/minute per user and IP).
+    """
+    scope = "guest_recovery_key"
+    rate = "5/min"
+
+

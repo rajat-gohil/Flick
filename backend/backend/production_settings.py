@@ -88,7 +88,7 @@ else:
     EMAIL_HOST_USER   = os.environ.get("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Flick <noreply@flickapp.in>")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Flick <discoverflick@gmail.com>")
 
 # ─────────────────────────────────────────────────────────────
 # FRONTEND
@@ -181,10 +181,12 @@ if _sentry_dsn:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
+    from core.sentry_scrubber import scrub_sentry_event
 
     sentry_sdk.init(
         dsn=_sentry_dsn,
         integrations=[DjangoIntegration(), RedisIntegration()],
+        before_send=scrub_sentry_event,
         traces_sample_rate=0.1,   # capture 10% of transactions for performance
         send_default_pii=False,   # don't send user IPs / emails to Sentry
         environment="production",

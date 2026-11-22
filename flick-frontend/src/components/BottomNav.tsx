@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { usePrefersReducedMotion } from "../lib/motion";
 
 export type NavTab = "home" | "sessions" | "discover" | "watchlist" | "profile";
 
@@ -8,6 +10,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ current }: BottomNavProps) {
   const navigate = useNavigate();
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   const tabs: { id: NavTab; label: string; icon: string; path: string }[] = [
     { id: "home",      label: "Home",       icon: "home",      path: "/home"      },
@@ -26,20 +29,37 @@ export default function BottomNav({ current }: BottomNavProps) {
       {tabs.map((tab) => {
         const isActive = current === tab.id;
         return (
-          <button
+          <motion.button
             key={tab.id}
             onClick={() => !isActive && navigate(tab.path)}
             aria-current={isActive ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center justify-center gap-1 py-1 transition-colors ${
-              isActive ? "text-primary" : "text-foreground-secondary hover:text-foreground active:scale-95"
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+            className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-1 rounded-xl transition-colors cursor-pointer select-none ${
+              isActive ? "text-primary" : "text-foreground-secondary hover:text-foreground"
             }`}
           >
-            <span
+            {/* Sliding Active Pill */}
+            {isActive && (
+              <motion.div
+                layoutId={shouldReduceMotion ? undefined : "bottomNavActivePill"}
+                transition={{
+                  type: "spring",
+                  stiffness: 420,
+                  damping: 34,
+                  mass: 0.8,
+                }}
+                className="absolute inset-x-1 inset-y-0 rounded-xl bg-primary/10 border border-primary/20 pointer-events-none -z-10"
+              />
+            )}
+
+            <motion.span
+              animate={shouldReduceMotion ? undefined : { scale: isActive ? 1.08 : 1 }}
+              transition={{ type: "spring", stiffness: 480, damping: 26 }}
               className="material-symbols-outlined text-[22px]"
               style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
             >
               {tab.icon}
-            </span>
+            </motion.span>
             <span
               className={`text-[10px] leading-none uppercase tracking-wider ${
                 isActive ? "font-semibold text-primary" : "font-medium"
@@ -47,7 +67,7 @@ export default function BottomNav({ current }: BottomNavProps) {
             >
               {tab.label}
             </span>
-          </button>
+          </motion.button>
         );
       })}
     </nav>

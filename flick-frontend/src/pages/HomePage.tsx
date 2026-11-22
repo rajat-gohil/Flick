@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
 import { identifyUser, resetAnalyticsIdentity, trackEvent } from "../lib/analytics";
 import { isGuest, isLoggedIn } from "../lib/auth";
@@ -9,7 +9,29 @@ import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
-import { prefersReducedMotion } from "../lib/motion";
+import { usePrefersReducedMotion } from "../lib/motion";
+
+const homeStaggerContainer: Variants = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.02,
+    },
+  },
+};
+
+const homeSectionItem: Variants = {
+  initial: { opacity: 0, y: 12 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.28,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
 
 const HOME_TOUR_STEPS: SpotlightTourStep[] = [
   {
@@ -420,7 +442,7 @@ export default function HomePage() {
     navigate("/", { replace: true });
   }
 
-  const isReduced = prefersReducedMotion();
+  const isReduced = usePrefersReducedMotion();
 
   /* ============================
      RENDER
@@ -479,12 +501,18 @@ export default function HomePage() {
       )}
 
       {/* ── Main Content Container ── */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 pb-28 md:pb-16 space-y-16 md:space-y-24">
-        
-        {/* ══════════════════════════════════════════════════════
-            SECTION A — THE INTERACTIVE SALON ENTRANCE
-        ══════════════════════════════════════════════════════ */}
-        <section aria-labelledby="salon-entrance-heading" className="relative">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 pb-28 md:pb-16">
+        <motion.div
+          variants={isReduced ? undefined : homeStaggerContainer}
+          initial={isReduced ? false : "initial"}
+          animate="animate"
+          className="space-y-16 md:space-y-24"
+        >
+          {/* ══════════════════════════════════════════════════════
+              SECTION A — THE INTERACTIVE SALON ENTRANCE
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <section aria-labelledby="salon-entrance-heading" className="relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left Narrative Broadside */}
@@ -533,21 +561,38 @@ export default function HomePage() {
 
               {/* Primary Action Hub: Launch Screening & Join Code */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 max-w-xl">
-                <button
-                  data-tour="home-launch-deck"
-                  onClick={() => navigate("/session/create")}
-                  className="flex items-center justify-center gap-2.5 rounded-xl h-12 px-6 bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] group"
-                >
-                  <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">
-                    confirmation_number
-                  </span>
-                  Launch Screening Deck
-                </button>
+                <div className="relative group">
+                  {!isReduced && (
+                    <motion.div
+                      aria-hidden="true"
+                      animate={{
+                        opacity: [0.35, 0.7, 0.35],
+                        scale: [0.98, 1.03, 0.98],
+                      }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute -inset-1 rounded-2xl bg-primary/25 blur-md pointer-events-none -z-10"
+                    />
+                  )}
+                  <button
+                    data-tour="home-launch-deck"
+                    onClick={() => navigate("/session/create")}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-xl h-12 px-6 bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] group cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform">
+                      confirmation_number
+                    </span>
+                    Launch Screening Deck
+                  </button>
+                </div>
 
                 <button
                   data-tour="home-explore-catalogue"
                   onClick={() => navigate("/discover?view=catalogue")}
-                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-5 border border-border hover:border-primary/50 bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
+                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-5 border border-border hover:border-primary/50 bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs uppercase tracking-wider transition-all active:scale-[0.98] cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px] text-foreground-secondary">
                     explore
@@ -560,6 +605,21 @@ export default function HomePage() {
 
             {/* Right Interactive Ticket & Entrance Composition */}
             <div className="lg:col-span-5 relative">
+              {!isReduced && (
+                <motion.div
+                  aria-hidden="true"
+                  animate={{
+                    opacity: [0.2, 0.5, 0.2],
+                    scale: [0.98, 1.02, 0.98],
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute -inset-1 rounded-3xl bg-primary/20 blur-xl pointer-events-none -z-10"
+                />
+              )}
               <div
                 data-tour="home-join-code"
                 className="relative mx-auto max-w-md rounded-2xl border border-border/90 bg-surface p-6 sm:p-7 shadow-lg overflow-hidden"
@@ -626,12 +686,14 @@ export default function HomePage() {
             </div>
 
           </div>
-        </section>
+            </section>
+          </motion.div>
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION B — THE CURATOR'S SELECTION
-        ══════════════════════════════════════════════════════ */}
-        <section aria-labelledby="curator-heading" className="space-y-6">
+          {/* ══════════════════════════════════════════════════════
+              SECTION B — THE CURATOR'S SELECTION
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <section aria-labelledby="curator-heading" className="space-y-6">
           <div
             data-tour="home-curator"
             className="flex items-end justify-between border-b border-border/60 pb-3"
@@ -673,11 +735,21 @@ export default function HomePage() {
           ) : curatorMovie ? (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
               
-              {/* Primary Feature Card */}
-              <div
-                data-tour="home-curator-feature"
-                className="lg:col-span-8 rounded-2xl border border-border/80 bg-surface shadow-sm overflow-hidden flex flex-col md:flex-row relative group"
-              >
+              {/* Primary Feature Card with Smooth Crossfade */}
+              <div className="lg:col-span-8 relative">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={curatorMovie.id || curatorMovie.tmdb_id || curatorMovie.title}
+                    initial={isReduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={isReduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                    transition={{
+                      duration: 0.22,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    data-tour="home-curator-feature"
+                    className="rounded-2xl border border-border/80 bg-surface shadow-sm overflow-hidden flex flex-col md:flex-row relative group h-full"
+                  >
                 
                 {/* Poster / Cinematic Still */}
                 <div className="md:w-5/12 bg-surface-secondary relative aspect-[2/3] md:aspect-auto overflow-hidden">
@@ -831,7 +903,9 @@ export default function HomePage() {
                   </div>
 
                 </div>
-              </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
               {/* Secondary Shelf / Curator's Notebook */}
               <div className="lg:col-span-4 rounded-2xl border border-border/80 bg-surface p-5 flex flex-col justify-between space-y-4">
@@ -855,11 +929,19 @@ export default function HomePage() {
                     ) : (
                       curatorShelf.map((m) => {
                       const id = m.id || m.tmdb_id;
+                      const isSelected = curatorMovie && (curatorMovie.id || curatorMovie.tmdb_id) === id;
                       return (
                         <div
                           key={id}
-                          onClick={() => setCuratorMovie(m)}
-                          className="flex items-center gap-3 p-2 rounded-xl border border-border/60 hover:border-primary/50 bg-surface-secondary/40 hover:bg-surface-secondary transition-all cursor-pointer group"
+                          onClick={() => {
+                            setSpotlightImgError(false);
+                            setCuratorMovie(m);
+                          }}
+                          className={`flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer group ${
+                            isSelected
+                              ? "border-primary/70 bg-primary/10 shadow-2xs"
+                              : "border-border/60 hover:border-primary/50 bg-surface-secondary/40 hover:bg-surface-secondary"
+                          }`}
                         >
                           <div className="size-12 rounded-lg bg-surface-secondary overflow-hidden shrink-0 border border-border">
                             {m.poster_url ? (
@@ -907,12 +989,14 @@ export default function HomePage() {
 
             </div>
           ) : null}
-        </section>
+            </section>
+          </motion.div>
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION C — THE CINEMATIC LIBRARY
-        ══════════════════════════════════════════════════════ */}
-        <section aria-labelledby="library-heading" className="space-y-6">
+          {/* ══════════════════════════════════════════════════════
+              SECTION C — THE CINEMATIC LIBRARY
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <section aria-labelledby="library-heading" className="space-y-6">
           <div className="flex items-end justify-between border-b border-border/60 pb-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -1002,12 +1086,14 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </section>
+            </section>
+          </motion.div>
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION D — THE CONVERSATION CORNER
-        ══════════════════════════════════════════════════════ */}
-        <section aria-labelledby="conversation-heading" className="space-y-6">
+          {/* ══════════════════════════════════════════════════════
+              SECTION D — THE CONVERSATION CORNER
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <section aria-labelledby="conversation-heading" className="space-y-6">
           <div className="flex items-end justify-between border-b border-border/60 pb-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -1068,15 +1154,31 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </section>
+            </section>
+          </motion.div>
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION E — THE SCREENING ROOM INVITATION
-        ══════════════════════════════════════════════════════ */}
-        <section aria-labelledby="screening-invitation-heading">
+          {/* ══════════════════════════════════════════════════════
+              SECTION E — THE SCREENING ROOM INVITATION
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <section aria-labelledby="screening-invitation-heading">
           <div className="rounded-3xl border border-primary/30 bg-[#141614] text-[#E8E6E1] p-6 sm:p-10 shadow-xl relative overflow-hidden">
             
-            {/* Theatrical Vignette Ambient Gradient */}
+            {/* Theatrical Vignette Ambient Gradient & Breathing Glow */}
+            {!isReduced ? (
+              <motion.div
+                animate={{
+                  opacity: [0.18, 0.35, 0.18],
+                  scale: [0.99, 1.02, 0.99],
+                }}
+                transition={{
+                  duration: 4.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute inset-0 bg-radial from-primary/25 via-primary/5 to-transparent pointer-events-none"
+              />
+            ) : null}
             <div className="absolute inset-0 bg-radial from-primary/10 via-transparent to-black/60 pointer-events-none" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -1164,41 +1266,44 @@ export default function HomePage() {
 
             </div>
           </div>
-        </section>
+            </section>
+          </motion.div>
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION F — CLOSING NOTES
-        ══════════════════════════════════════════════════════ */}
-        <footer className="pt-8 border-t border-border/60 text-center space-y-3">
-          <p className="font-editorial text-xl sm:text-2xl text-foreground font-medium italic">
-            "That's enough browsing. Time for a film."
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-foreground-secondary pt-2">
-            <button onClick={() => navigate("/discover?view=catalogue")} className="hover:text-foreground transition-colors">
-              Catalogue
-            </button>
-            <span>·</span>
-            <button onClick={() => navigate("/watchlist")} className="hover:text-foreground transition-colors">
-              Watchlist
-            </button>
-            <span>·</span>
-            <button onClick={() => navigate("/sessions")} className="hover:text-foreground transition-colors">
-              Screening Archives
-            </button>
-            <span>·</span>
-            <button onClick={() => navigate("/profile")} className="hover:text-foreground transition-colors">
-              Salon Preferences
-            </button>
-            <span>·</span>
-            <button onClick={handleLogout} className="text-error/80 hover:text-error transition-colors">
-              Sign Out
-            </button>
-          </div>
-          <p className="text-[10px] text-foreground-secondary/50 font-mono pt-2">
-            Flick Independent Cinema Club · Curated Celluloid & Collaborative Discovery
-          </p>
-        </footer>
-
+          {/* ══════════════════════════════════════════════════════
+              SECTION F — CLOSING NOTES
+          ══════════════════════════════════════════════════════ */}
+          <motion.div variants={isReduced ? undefined : homeSectionItem}>
+            <footer className="pt-8 border-t border-border/60 text-center space-y-3">
+              <p className="font-editorial text-xl sm:text-2xl text-foreground font-medium italic">
+                "That's enough browsing. Time for a film."
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-foreground-secondary pt-2">
+                <button onClick={() => navigate("/discover?view=catalogue")} className="hover:text-foreground transition-colors">
+                  Catalogue
+                </button>
+                <span>·</span>
+                <button onClick={() => navigate("/watchlist")} className="hover:text-foreground transition-colors">
+                  Watchlist
+                </button>
+                <span>·</span>
+                <button onClick={() => navigate("/sessions")} className="hover:text-foreground transition-colors">
+                  Screening Archives
+                </button>
+                <span>·</span>
+                <button onClick={() => navigate("/profile")} className="hover:text-foreground transition-colors">
+                  Salon Preferences
+                </button>
+                <span>·</span>
+                <button onClick={handleLogout} className="text-error/80 hover:text-error transition-colors">
+                  Sign Out
+                </button>
+              </div>
+              <p className="text-[10px] text-foreground-secondary/50 font-mono pt-2">
+                Flick Independent Cinema Club · Curated Celluloid & Collaborative Discovery
+              </p>
+            </footer>
+          </motion.div>
+        </motion.div>
       </main>
 
       {/* ── Movie Detail Sheet / Modal (Reused from DiscoverPage) ── */}
@@ -1382,7 +1487,9 @@ export default function HomePage() {
                         await apiRequest("/api/auth/send-verification/", { method: "POST" });
                         setVerificationSent(true);
                         setTimeout(() => setVerificationSent(false), 4000);
-                      } catch {}
+                      } catch (err) {
+                        console.debug("[HomePage] Resend error:", err);
+                      }
                       finally { setResendingVerification(false); }
                     }}
                     disabled={resendingVerification}
