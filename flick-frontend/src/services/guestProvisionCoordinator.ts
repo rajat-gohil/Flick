@@ -1,4 +1,4 @@
-import { provisionGuest, ApiError } from "../lib/api";
+import { provisionGuest } from "../lib/api";
 import { saveAuthState } from "../lib/auth";
 import { trackEvent } from "../lib/analytics";
 
@@ -188,7 +188,7 @@ export async function coordinateGuestProvisioning(displayName?: string): Promise
         };
       }
 
-      throw new Error(data?.error || "Invalid provisioning response from server.");
+      throw new Error("Invalid provisioning response from server.");
     } catch (err: any) {
       if (err?.status === 410) {
         // Replay capability expired; clear key

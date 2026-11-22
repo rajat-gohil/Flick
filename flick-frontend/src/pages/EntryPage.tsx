@@ -35,6 +35,9 @@ export default function EntryPage() {
     try {
       const data = await coordinateGuestProvisioning();
       if (data && data.token) {
+        if (data.recovery_code) {
+          setRecoveryCode(data.recovery_code);
+        }
         // Silently provisioned, navigate directly to /home without modal
         navigate("/home", { replace: true });
       } else {

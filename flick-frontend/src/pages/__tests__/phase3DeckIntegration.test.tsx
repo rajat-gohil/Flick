@@ -329,7 +329,7 @@ describe("Phase 3: Frontend Deck Integration & State Machine Contract", () => {
   });
 
   it("Slice 3b: handles unknown match attribution safely without displaying false Priority Interest badge", async () => {
-    mockApiRequest.mockImplementation((endpoint: string, options?: any) => {
+    mockApiRequest.mockImplementation((endpoint: string) => {
       if (endpoint === "/api/sessions/100/") {
         return Promise.resolve(mockSessionDetails);
       }

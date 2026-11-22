@@ -62,12 +62,16 @@ export default function JoinViaLink() {
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-      <div className="flex flex-col items-center gap-3">
-        <span className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs text-foreground-secondary">Joining movie night...</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <span className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-foreground-secondary">Joining movie night...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }

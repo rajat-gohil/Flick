@@ -1236,9 +1236,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/EntryPage.tsx": {
-    "mtime": 1795347322.2144132,
-    "seen": 1795347483.557748,
-    "ast_hash": "c8d2092f94e649d40c51ebbef5b7853b",
+    "mtime": 1795359015.749714,
+    "seen": 1795359317.253372,
+    "ast_hash": "a7aa80e381de4e8b0934a937ce13a670",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/ForgotPasswordPage.tsx": {
@@ -1266,9 +1266,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/JoinViaLink.tsx": {
-    "mtime": 1795347343.6466215,
-    "seen": 1795347483.557754,
-    "ast_hash": "c21c3a6f28698b798a771742f07c45ce",
+    "mtime": 1795359026.6450994,
+    "seen": 1795359317.253377,
+    "ast_hash": "083006851d3ad8d5a961799e6671ffdf",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/LoginPage.tsx": {
@@ -1392,9 +1392,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/phase3DeckIntegration.test.tsx": {
-    "mtime": 1795355842.9094114,
-    "seen": 1795358518.209203,
-    "ast_hash": "8a73f467d7aa844d3b1a0794ab80a0be",
+    "mtime": 1795359034.139553,
+    "seen": 1795359317.253403,
+    "ast_hash": "2bdeece72f5a09df5d7fd991e4ade37b",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/phase3Remediation.test.tsx": {
@@ -2172,9 +2172,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/services/guestProvisionCoordinator.ts": {
-    "mtime": 1795347402.6253529,
-    "seen": 1795347483.5577931,
-    "ast_hash": "a18ea74b2907cf1f831beb144558e4e0",
+    "mtime": 1795359007.3776867,
+    "seen": 1795359317.2534149,
+    "ast_hash": "db2a6eef4aebc0a26fff5b2abf7832b8",
     "semantic_hash": ""
   },
   "reel-assets/screen-recordings/01-flick-home.mp4": {
@@ -2220,9 +2220,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/components/AuthRecoveryPrompt.tsx": {
-    "mtime": 1795348446.5603366,
-    "seen": 1795358518.20914,
-    "ast_hash": "28cceab7c3ea7f1cd08e5e4bf19957e5",
+    "mtime": 1795358991.2719865,
+    "seen": 1795359317.253344,
+    "ast_hash": "d627b86d0623978e721a654628c18f4f",
     "semantic_hash": ""
   },
   "flick-frontend/src/components/ProvisionContinuationScreen.tsx": {
@@ -2232,9 +2232,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/services/__tests__/authRecoveryAndSync.test.tsx": {
-    "mtime": 1795349104.037367,
-    "seen": 1795358518.2092118,
-    "ast_hash": "c60319599738ef3d15f9abe3488c20c3",
+    "mtime": 1795359058.6810637,
+    "seen": 1795359317.253412,
+    "ast_hash": "dc94c7a55fcb35a9c994189091245d2d",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

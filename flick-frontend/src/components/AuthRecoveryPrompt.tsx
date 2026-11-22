@@ -41,6 +41,11 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) onClose();
+  };
+
   const handleStartFresh = async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -49,7 +54,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
       localStorage.removeItem("flick_provisioning_key_ts");
       const res = await coordinateGuestProvisioning();
       if (res && res.token) {
-        setIsOpen(false);
+        handleClose();
         if (onSuccess) onSuccess();
         window.location.reload();
       }
@@ -77,11 +82,11 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
           token: res.token,
           user: res.user,
         });
-        setIsOpen(false);
+        handleClose();
         if (onSuccess) onSuccess();
         window.location.reload();
       } else {
-        setErrorMessage(res?.error || "Invalid recovery code. Please check the code and try again.");
+        setErrorMessage("Invalid recovery code. Please check the code and try again.");
       }
     } catch (err: any) {
       // Per spec: Generic 400 error message handling
@@ -101,7 +106,17 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
     >
-      <div className="w-full max-w-md rounded-2xl bg-[#121218] border border-white/10 p-6 text-white shadow-2xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-[#121218] border border-white/10 p-6 text-white shadow-2xl">
+        {onClose && (
+          <button
+            type="button"
+            onClick={handleClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        )}
         <h2 className="text-xl font-bold tracking-tight mb-2">Session Expired</h2>
         <p className="text-sm text-slate-300 mb-6 leading-relaxed">
           Your session could not be authenticated. You can restore your previous journal using a

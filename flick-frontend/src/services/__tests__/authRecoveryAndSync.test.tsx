@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AuthRecoveryPrompt } from "../../components/AuthRecoveryPrompt";
 import { ProvisionContinuationScreen } from "../../components/ProvisionContinuationScreen";
@@ -28,7 +27,7 @@ describe("Frontend 401, 410, and Cross-Tab Storage Sync Tests", () => {
         status: 401,
         text: () => Promise.resolve(JSON.stringify({ detail: "Invalid token." })),
       });
-      global.fetch = mockFetch;
+      globalThis.fetch = mockFetch;
 
       await expect(apiModule.apiRequest("/api/users/profile/")).rejects.toThrow();
 
@@ -41,9 +40,9 @@ describe("Frontend 401, 410, and Cross-Tab Storage Sync Tests", () => {
     it("renders AuthRecoveryPrompt with 'Restore Journal' and 'Start Fresh' buttons", () => {
       render(<AuthRecoveryPrompt isOpen={true} />);
 
-      expect(screen.getByText("Session Expired")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Restore Journal" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Start Fresh" })).toBeInTheDocument();
+      expect(screen.getByText("Session Expired")).not.toBeNull();
+      expect(screen.getByRole("button", { name: "Restore Journal" })).not.toBeNull();
+      expect(screen.getByRole("button", { name: "Start Fresh" })).not.toBeNull();
     });
 
     it("displays inline generic 400 error when restore code is invalid without silently reprovisioning", async () => {
@@ -64,12 +63,12 @@ describe("Frontend 401, 410, and Cross-Tab Storage Sync Tests", () => {
       fireEvent.click(screen.getByRole("button", { name: "Submit Code" }));
 
       await waitFor(() => {
-        expect(screen.getByText("Invalid recovery code.")).toBeInTheDocument();
+        expect(screen.getByText("Invalid recovery code.")).not.toBeNull();
       });
 
       expect(recoverSpy).toHaveBeenCalledWith("FLICK-BAD-CODE-1234");
       // Form remains open so user can retry or start fresh
-      expect(screen.getByLabelText("Recovery Code")).toBeInTheDocument();
+      expect(screen.getByLabelText("Recovery Code")).not.toBeNull();
     });
 
     it("invokes coordinateGuestProvisioning when user clicks Start Fresh", async () => {
@@ -96,9 +95,9 @@ describe("Frontend 401, 410, and Cross-Tab Storage Sync Tests", () => {
       const onStartFresh = vi.fn();
       render(<ProvisionContinuationScreen onStartFreshSuccess={onStartFresh} />);
 
-      expect(screen.getByText("Previous Session Expired")).toBeInTheDocument();
+      expect(screen.getByText("Previous Session Expired")).not.toBeNull();
       const startFreshBtn = screen.getByRole("button", { name: "Start Fresh" });
-      expect(startFreshBtn).toBeInTheDocument();
+      expect(startFreshBtn).not.toBeNull();
     });
 
     it("executes fresh guest provisioning on Start Fresh click from continuation screen", async () => {
