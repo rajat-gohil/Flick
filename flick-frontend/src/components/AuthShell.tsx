@@ -22,11 +22,11 @@ export function AuthShell({
           <button
             onClick={onBack}
             aria-label="Go back"
-            className="text-foreground-secondary hover:text-foreground flex size-10 shrink-0 items-center justify-center hover:bg-surface-secondary rounded-full transition-colors"
+            className="text-foreground-secondary hover:text-foreground flex size-11 shrink-0 items-center justify-center hover:bg-surface-secondary rounded-full transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back_ios</span>
           </button>
-          <div className="flex-1 flex justify-center pr-10">
+          <div className="flex-1 flex justify-center pr-11">
             <img src={logoFull} alt="Flick" className="h-7 w-auto object-contain" />
           </div>
         </div>

@@ -35,19 +35,19 @@ export const ProvisionContinuationScreen: React.FC<ProvisionContinuationScreenPr
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] p-4 text-white">
-      <div className="w-full max-w-md rounded-2xl bg-[#14141d] border border-white/10 p-8 text-center shadow-2xl">
-        <div className="w-12 h-12 rounded-full bg-violet-500/20 text-violet-400 mx-auto flex items-center justify-center mb-4 text-xl font-bold">
-          !
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground font-sans">
+      <div className="w-full max-w-md rounded-2xl bg-surface border border-border p-8 text-center shadow-2xl">
+        <div className="size-14 rounded-full bg-primary/10 border border-primary/25 text-primary mx-auto flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-[28px]">hourglass_disabled</span>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Previous Session Expired</h2>
-        <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+        <h2 className="font-editorial text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-2">Previous Session Expired</h2>
+        <p className="text-xs sm:text-sm text-foreground-secondary mb-6 leading-relaxed">
           The requested guest provisioning window is no longer available. You can start exploring
           immediately with a brand new profile.
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-950/60 border border-red-500/30 text-red-200 text-xs">
+          <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 text-error text-xs">
             {error}
           </div>
         )}
@@ -55,7 +55,7 @@ export const ProvisionContinuationScreen: React.FC<ProvisionContinuationScreenPr
         <button
           onClick={handleStartFresh}
           disabled={loading}
-          className="w-full py-3.5 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold text-sm transition-all duration-150 shadow-lg shadow-violet-600/30 disabled:opacity-50 mb-3"
+          className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-surface font-semibold text-sm transition-colors shadow-xs disabled:opacity-50 mb-3 cursor-pointer"
         >
           {loading ? "Starting Fresh..." : "Start Fresh"}
         </button>
@@ -63,7 +63,7 @@ export const ProvisionContinuationScreen: React.FC<ProvisionContinuationScreenPr
         {onOpenRecovery && (
           <button
             onClick={onOpenRecovery}
-            className="text-xs text-slate-400 hover:text-white underline underline-offset-4 transition-colors"
+            className="text-xs text-primary hover:underline font-medium transition-colors cursor-pointer"
           >
             Have a recovery code? Restore your journal
           </button>

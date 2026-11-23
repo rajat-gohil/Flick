@@ -20,15 +20,23 @@ const DEFAULT_PREFS: NotifPrefs = {
   push_enabled: false,
 };
 
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label?: string }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label || "Toggle notification preference"}
       onClick={() => onChange(!on)}
-      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${on ? "bg-primary" : "bg-surface-secondary border border-border"}`}
+      className="min-h-[44px] min-w-[44px] -my-2 flex items-center justify-end shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full p-1"
     >
-      <div
-        className={`absolute top-0.5 size-4 rounded-full bg-surface shadow-xs transition-transform ${on ? "translate-x-5" : "translate-x-0.5"}`}
-      />
+      <span
+        className={`relative inline-block w-10 h-5 rounded-full transition-colors ${on ? "bg-primary" : "bg-surface-secondary border border-border"}`}
+      >
+        <span
+          className={`absolute top-0.5 size-4 rounded-full bg-surface shadow-xs transition-transform block ${on ? "translate-x-5" : "translate-x-0.5"}`}
+        />
+      </span>
     </button>
   );
 }
@@ -45,7 +53,7 @@ function NotifRow({
         <p className="text-xs font-semibold text-foreground">{title}</p>
         <p className="text-[11px] text-foreground-secondary mt-0.5 leading-snug">{subtitle}</p>
       </div>
-      <Toggle on={value} onChange={onChange} />
+      <Toggle on={value} onChange={onChange} label={`Toggle ${title}`} />
     </div>
   );
 }

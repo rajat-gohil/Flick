@@ -104,21 +104,22 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4"
     >
-      <div className="relative w-full max-w-md rounded-2xl bg-[#121218] border border-white/10 p-6 text-white shadow-2xl">
+      <div className="relative w-full max-w-md rounded-2xl bg-surface border border-border p-6 sm:p-7 text-foreground shadow-2xl">
+        <div className="h-1 w-12 bg-primary rounded-full mb-3" />
         {onClose && (
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm"
+            className="absolute top-4 right-4 text-foreground-secondary hover:text-foreground size-8 flex items-center justify-center rounded-full hover:bg-surface-secondary transition-colors"
             aria-label="Close"
           >
-            ✕
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         )}
-        <h2 className="text-xl font-bold tracking-tight mb-2">Session Expired</h2>
-        <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+        <h2 className="font-editorial text-2xl font-semibold tracking-tight text-foreground mb-1.5">Session Expired</h2>
+        <p className="text-xs sm:text-sm text-foreground-secondary mb-6 leading-relaxed">
           Your session could not be authenticated. You can restore your previous journal using a
           recovery code, or start completely fresh.
         </p>
@@ -126,7 +127,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
         {errorMessage && (
           <div
             role="alert"
-            className="mb-4 p-3 rounded-lg bg-red-950/60 border border-red-500/30 text-red-200 text-xs leading-relaxed"
+            className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 text-error text-xs leading-relaxed"
           >
             {errorMessage}
           </div>
@@ -136,14 +137,14 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
           <div className="flex flex-col gap-3">
             <button
               onClick={() => setShowRestoreForm(true)}
-              className="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-500 font-semibold text-sm transition-colors text-center"
+              className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-surface font-semibold text-sm transition-colors text-center cursor-pointer shadow-xs"
             >
               Restore Journal
             </button>
             <button
               onClick={handleStartFresh}
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-semibold text-sm transition-colors text-center disabled:opacity-50"
+              className="w-full h-12 rounded-full bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-sm transition-colors text-center disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Starting Fresh..." : "Start Fresh"}
             </button>
@@ -153,7 +154,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
             <div>
               <label
                 htmlFor="recovery-code-input"
-                className="block text-xs uppercase tracking-wider text-slate-400 mb-1"
+                className="block text-[11px] font-semibold uppercase tracking-wider text-foreground-secondary mb-1.5"
               >
                 Recovery Code
               </label>
@@ -163,7 +164,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
                 value={recoveryCode}
                 onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
                 placeholder="FLICK-XXXX-XXXX-XXXX"
-                className="w-full rounded-lg bg-black/40 border border-white/20 px-3 py-2 text-sm text-white placeholder-slate-500 font-mono tracking-wider focus:outline-none focus:border-violet-500"
+                className="w-full h-12 rounded-xl bg-surface-secondary border border-border px-3.5 text-sm text-foreground placeholder:text-foreground-secondary/40 font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-primary"
                 autoFocus
               />
             </div>
@@ -174,14 +175,14 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
                   setShowRestoreForm(false);
                   setErrorMessage(null);
                 }}
-                className="flex-1 py-2.5 px-3 rounded-lg bg-white/10 hover:bg-white/15 text-xs font-semibold text-slate-300"
+                className="flex-1 h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-xs font-semibold text-foreground transition-colors cursor-pointer"
               >
                 Back
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 py-2.5 px-3 rounded-lg bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white disabled:opacity-50"
+                className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
               >
                 {loading ? "Restoring..." : "Submit Code"}
               </button>

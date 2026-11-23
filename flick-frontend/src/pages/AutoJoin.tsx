@@ -122,7 +122,7 @@ export default function AutoJoin() {
       <div className="flex items-center justify-between pb-4">
         <button
           onClick={() => navigate("/")}
-          className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors"
+          className="size-11 sm:size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
           aria-label="Cancel"
         >
           <span className="material-symbols-outlined text-[18px]">close</span>

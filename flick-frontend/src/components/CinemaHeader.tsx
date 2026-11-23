@@ -38,7 +38,7 @@ export default function CinemaHeader({
             <button
               onClick={onBack}
               aria-label="Back"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors"
+              className="flex size-11 sm:size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             </button>
@@ -106,7 +106,7 @@ export default function CinemaHeader({
           {/* Theme switcher */}
           <button
             onClick={toggleTheme}
-            className="flex size-9 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground active:scale-95 transition-all shadow-xs"
+            className="flex size-11 sm:size-9 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground active:scale-95 transition-all shadow-xs cursor-pointer"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
             aria-label="Toggle theme"
           >
@@ -118,7 +118,7 @@ export default function CinemaHeader({
           {/* Profile Shortcut */}
           <button
             onClick={() => navigate("/profile")}
-            className={`flex size-9 items-center justify-center rounded-full border transition-all active:scale-95 shadow-xs ${
+            className={`flex size-11 sm:size-9 items-center justify-center rounded-full border transition-all active:scale-95 shadow-xs cursor-pointer ${
               current === "profile"
                 ? "border-primary text-primary bg-primary/10"
                 : "border-border bg-surface text-foreground-secondary hover:text-foreground"

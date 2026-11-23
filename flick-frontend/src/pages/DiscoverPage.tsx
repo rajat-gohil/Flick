@@ -52,9 +52,11 @@ export type Movie = {
   rating?: number | null;
   vote_count?: number | null;
   release_year?: number | null;
+  release_date?: string | null;
   original_language?: string | null;
   trailer_url?: string | null;
   genres?: string[];
+  streaming_providers?: { id: number; name: string; logo_url?: string; type?: string }[];
   is_in_watchlist?: boolean;
   explanation?: CuratorExplanation;
 };

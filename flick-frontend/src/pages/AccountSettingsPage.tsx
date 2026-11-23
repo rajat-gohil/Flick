@@ -310,7 +310,7 @@ export default function AccountSettingsPage() {
 
         {/* Change Password Modal */}
         {showChangePw && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowChangePw(false)}>
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowChangePw(false)}>
             <div className="w-full max-w-sm bg-surface border border-border rounded-3xl p-6 flex flex-col gap-4 shadow-2xl" onClick={e => e.stopPropagation()}>
               <h2 className="font-editorial text-xl font-bold text-foreground">Update Password</h2>
 
@@ -367,7 +367,7 @@ export default function AccountSettingsPage() {
 
         {/* Change Email Modal */}
         {showChangeEmail && (
-          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowChangeEmail(false)}>
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowChangeEmail(false)}>
             <div className="w-full max-w-sm bg-surface border border-border rounded-3xl p-6 flex flex-col gap-4 shadow-2xl" onClick={e => e.stopPropagation()}>
               <h2 className="font-editorial text-xl font-bold text-foreground">Update Email Address</h2>
 

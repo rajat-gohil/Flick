@@ -60,6 +60,7 @@ html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 body {
@@ -69,6 +70,7 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  overflow-x: clip;
 }
 
 /* ── Editorial Typography ─────────────────────────────── */
@@ -181,5 +183,14 @@ h1, h2, h3, .font-editorial {
   .animate-pulse-subtle {
     animation: none !important;
     opacity: 1 !important;
+  }
+}
+
+/* ── Mobile Form Ergonomics (UI-UX-Pro-Max: iOS Safari input auto-zoom prevention) ── */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }

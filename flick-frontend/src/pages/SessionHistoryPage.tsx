@@ -58,7 +58,7 @@ export default function SessionHistoryPage() {
       <header className="flex items-center px-4 py-3 sticky top-0 bg-background/95 backdrop-blur-md z-10 border-b border-border/60">
         <button
           onClick={() => navigate(-1)}
-          className="size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors shrink-0"
+          className="size-11 sm:size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors shrink-0 cursor-pointer"
           aria-label="Back"
         >
           <span className="material-symbols-outlined text-[18px]">arrow_back</span>
