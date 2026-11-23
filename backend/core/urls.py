@@ -61,6 +61,7 @@ from .views_personalization import (
     CuratorsSelectionView,
     YourArchiveView,
     CompleteCatalogueView,
+    DoubleFeatureView,
 )
 
 urlpatterns = [
@@ -122,6 +123,7 @@ urlpatterns = [
     path('sessions/<int:session_id>/proposals/process-outbox/', ProposalOutboxProcessBatchView.as_view(), name='proposal-outbox-process'),
     # Personalization Surfaces, Shelves & Catalogue Routes
     path('curators-selection/', CuratorsSelectionView.as_view(), name='curators-selection'),
+    path('double-feature/', DoubleFeatureView.as_view(), name='double-feature'),
     path('your-archive/', YourArchiveView.as_view(), name='your-archive'),
     path('catalogue/', CompleteCatalogueView.as_view(), name='complete-catalogue'),
 ]

@@ -25,6 +25,7 @@ from rest_framework.views import APIView
 from core.models import Genre, Movie
 from core.serializers import MovieSerializer
 from core.services.archive_shelves import TMDB_GENRE_MAP, ArchiveShelvesService
+from core.services.double_feature import DoubleFeatureService
 
 logger = logging.getLogger(__name__)
 
@@ -310,3 +311,26 @@ class CompleteCatalogueView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class DoubleFeatureView(APIView):
+    """
+    Curator's Double Feature endpoint.
+    GET /api/double-feature/
+
+    - AllowAny access (authenticated members, guests, or anonymous visitors).
+    - Returns high-resonance dual-bill pairing with thematic curator's note.
+    - Honors 5-tier eligibility: personalized for established users, deterministic daily editorial for guests / cold start.
+    """
+
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        user = request.user if request.user and request.user.is_authenticated else None
+        region = request.query_params.get("region", "IN")
+
+        payload = DoubleFeatureService.get_double_feature(user=user, region=region)
+        http_status = status.HTTP_200_OK if payload.get("success", False) else status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Response(payload, status=http_status)
+

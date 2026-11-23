@@ -852,6 +852,13 @@ class ManifestCompilerService:
             guest_user=session.guest,
         )
 
+        # Apply prioritized movies (e.g., from Curator's Double Feature) if eligible
+        manifest = cls._apply_screening_prioritization(
+            manifest=manifest,
+            session=session,
+            candidate_pool=candidate_pool,
+        )
+
         # Persist manifest atomically
         with transaction.atomic():
             agreement.deck_manifest = manifest
@@ -986,3 +993,90 @@ class ManifestCompilerService:
         agreement.deck_manifest = new_manifest
         agreement.save(update_fields=["deck_manifest", "updated_at"])
         return new_manifest
+
+    @classmethod
+    def _apply_screening_prioritization(
+        cls,
+        manifest: List[Dict[str, Any]],
+        session: Session,
+        candidate_pool: CandidatePool,
+    ) -> List[Dict[str, Any]]:
+        """
+        Prioritizes eligible movies specified in session.host_preferences['prioritized_movie_ids']
+        into the opening positions (0 and 1) of the screening deck manifest.
+
+        Safety Guarantees:
+        1. Confirms IDs exist in local Movie records.
+        2. Strictly verifies candidate is eligible for this session (present in candidate_pool.candidates).
+        3. Never bypasses filtering, language/industry constraints, or availability rules.
+        4. Prevents duplicate cards in the manifest.
+        5. Preserves existing 10-card cadence, slot_types, and turns.
+        6. If prioritized film is unavailable or ineligible, falls back gracefully without corrupting manifest.
+        """
+        if not manifest or not session:
+            return manifest
+
+        prefs = getattr(session, "host_preferences", None) or {}
+        prioritized_ids = prefs.get("prioritized_movie_ids")
+        if not prioritized_ids or not isinstance(prioritized_ids, list):
+            return manifest
+
+        # 1. Candidate pool lookup: only candidates that successfully passed all constraints
+        pool_candidate_map = {c.id: c for c in candidate_pool.candidates}
+
+        # 2. Filter to eligible prioritized movies in order
+        eligible_pids = [
+            pid for pid in prioritized_ids[:2]
+            if pid in pool_candidate_map
+        ]
+
+        if not eligible_pids:
+            return manifest
+
+        target_idx = 0
+        for pid in eligible_pids:
+            # Check if pid is already in the manifest
+            existing_pos = next(
+                (idx for idx, card in enumerate(manifest) if card.get("movie_id") == pid),
+                None
+            )
+
+            if existing_pos is not None:
+                # If it's already in the manifest, swap it into target_idx
+                if existing_pos != target_idx and target_idx < len(manifest):
+                    card_a = manifest[target_idx]
+                    card_b = manifest[existing_pos]
+
+                    card_a["movie_id"], card_b["movie_id"] = card_b["movie_id"], card_a["movie_id"]
+                    card_a["tmdb_id"], card_b["tmdb_id"] = card_b["tmdb_id"], card_a["tmdb_id"]
+                    card_a["title"], card_b["title"] = card_b["title"], card_a["title"]
+                    card_a["scores"], card_b["scores"] = card_b["scores"], card_a["scores"]
+                target_idx += 1
+            else:
+                # In candidate pool, but scored below manifest cutoff
+                # Safely substitute the last card of the manifest and swap to target_idx
+                if target_idx < len(manifest):
+                    candidate_obj = pool_candidate_map[pid]
+                    last_idx = len(manifest) - 1
+
+                    manifest[last_idx]["movie_id"] = candidate_obj.id
+                    manifest[last_idx]["tmdb_id"] = candidate_obj.tmdb_id
+                    manifest[last_idx]["title"] = candidate_obj.title
+                    manifest[last_idx]["scores"] = {
+                        "relevance_host": 1.0,
+                        "relevance_guest": 1.0,
+                        "consensus": 1.0,
+                    }
+
+                    if last_idx != target_idx:
+                        card_a = manifest[target_idx]
+                        card_b = manifest[last_idx]
+
+                        card_a["movie_id"], card_b["movie_id"] = card_b["movie_id"], card_a["movie_id"]
+                        card_a["tmdb_id"], card_b["tmdb_id"] = card_b["tmdb_id"], card_a["tmdb_id"]
+                        card_a["title"], card_b["title"] = card_b["title"], card_a["title"]
+                        card_a["scores"], card_b["scores"] = card_b["scores"], card_a["scores"]
+
+                    target_idx += 1
+
+        return manifest

@@ -1224,6 +1224,24 @@ class SessionSetGenreView(APIView):
             session.host_preferences = prefs
             update_fields.append("host_preferences")
 
+        # Prioritized movie IDs (e.g., from Curator's Double Feature)
+        prioritized_movie_ids = request.data.get("prioritized_movie_ids", [])
+        if prioritized_movie_ids and isinstance(prioritized_movie_ids, list):
+            valid_pids = []
+            for pid in prioritized_movie_ids[:2]:  # max 2 films
+                try:
+                    pid_int = int(pid)
+                    if Movie.objects.filter(id=pid_int).exists():
+                        valid_pids.append(pid_int)
+                except (ValueError, TypeError):
+                    pass
+            if valid_pids:
+                prefs = dict(session.host_preferences or {})
+                prefs["prioritized_movie_ids"] = valid_pids
+                session.host_preferences = prefs
+                if "host_preferences" not in update_fields:
+                    update_fields.append("host_preferences")
+
         session.save(update_fields=update_fields)
 
         # Also populate ManyToMany genres if passed
@@ -3778,13 +3796,90 @@ class WatchlistView(APIView):
         )
 
     def post(self, request):
+        movie_ids = request.data.get("movie_ids")
         movie_id = request.data.get("movie_id")
         tmdb_id = request.data.get("tmdb_id")
         session_id = request.data.get("session_id")
+        session = Session.objects.filter(id=session_id).first() if session_id else None
 
+        # ── Batch Watchlist Addition (Atomic) ──
+        if movie_ids is not None:
+            if not isinstance(movie_ids, list) or len(movie_ids) == 0:
+                return Response(
+                    {"success": False, "error": "movie_ids must be a non-empty list", "batch": True},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Deduplicate preserving order
+            seen_ids = set()
+            unique_ids = []
+            for raw_id in movie_ids:
+                try:
+                    int_id = int(raw_id)
+                    if int_id not in seen_ids:
+                        seen_ids.add(int_id)
+                        unique_ids.append(int_id)
+                except (ValueError, TypeError):
+                    return Response(
+                        {"success": False, "error": f"Invalid movie ID: {raw_id}", "batch": True},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            results = []
+            try:
+                with transaction.atomic():
+                    for mid in unique_ids:
+                        movie = Movie.objects.filter(
+                            models.Q(id=mid) | models.Q(tmdb_id=mid)
+                        ).first()
+                        if not movie:
+                            from core.services.tmdb import get_or_create_movie_from_tmdb
+                            movie, _ = get_or_create_movie_from_tmdb(mid)
+
+                        if not movie:
+                            # Strict atomic guarantee: entire batch fails if any movie cannot be resolved
+                            raise ValueError(f"Movie with ID {mid} not found")
+
+                        item, created = WatchlistItem.objects.get_or_create(
+                            user=request.user,
+                            movie=movie,
+                            defaults={"session": session},
+                        )
+                        results.append({
+                            "movie_id": movie.id,
+                            "tmdb_id": movie.tmdb_id,
+                            "movie_title": movie.title,
+                            "created": created,
+                            "item_id": item.id,
+                        })
+
+                any_created = any(r["created"] for r in results)
+                return Response(
+                    {
+                        "success": True,
+                        "batch": True,
+                        "total_processed": len(results),
+                        "newly_added": sum(1 for r in results if r["created"]),
+                        "results": results,
+                    },
+                    status=status.HTTP_201_CREATED if any_created else status.HTTP_200_OK,
+                )
+            except ValueError as ve:
+                return Response(
+                    {"success": False, "error": str(ve), "batch": True},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            except Exception as e:
+                logger.error("Watchlist batch insert failed: %s", e)
+                return Response(
+                    {"success": False, "error": "Failed to add batch to watchlist", "batch": True},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+
+        # ── Single Movie Addition (Preserved Backward-Compatible Behavior) ──
         if not movie_id and not tmdb_id:
             return Response(
-                {"success": False, "error": "movie_id or tmdb_id is required"},
+                {"success": False, "error": "movie_id, tmdb_id, or movie_ids is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
