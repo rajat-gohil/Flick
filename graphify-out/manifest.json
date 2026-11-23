@@ -1206,9 +1206,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/main.tsx": {
-    "mtime": 1794906254.8012884,
-    "seen": 1794906285.823443,
-    "ast_hash": "5396505d19b3f1fbc521dc85c25dc9b5",
+    "mtime": 1795427552.5576746,
+    "seen": 1795427676.8117208,
+    "ast_hash": "db2fcb54de498f77a904447590c46a66",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/AccountSettingsPage.tsx": {
@@ -1476,9 +1476,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/index.html": {
-    "mtime": 1795347215.979285,
-    "seen": 1795347483.557817,
-    "ast_hash": "aa467117b2d87a719b81505c6b18f57d",
+    "mtime": 1795427590.3637078,
+    "seen": 1795427676.8117929,
+    "ast_hash": "351ae57760c01da4419cc045c09144c9",
     "semantic_hash": ""
   },
   "flick-frontend/src/assets/designs/active_swiping_interface_1/code.html": {
