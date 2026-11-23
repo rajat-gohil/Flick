@@ -89,15 +89,16 @@ h1, h2, h3, .font-editorial {
   outline-offset: 2px;
 }
 
-/* ── Material Symbols ─────────────────────────────────── */
+/* ── Material Symbols (Self-hosted via material-symbols) ─ */
 .material-symbols-outlined {
   font-variation-settings:
     'FILL' 0,
     'wght' 400,
     'GRAD' 0,
     'opsz' 24;
-  font-display: swap;
   vertical-align: middle;
+  overflow: hidden;
+  user-select: none;
 }
 
 /* ── Theme Safety Bridge (neutralizes hardcoded legacy colors) ── */
