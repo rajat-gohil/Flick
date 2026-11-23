@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
@@ -9,6 +9,8 @@ import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
 import CinemaAdmissionTicket from "../components/CinemaAdmissionTicket";
+import CinemaSalonPass from "../components/CinemaSalonPass";
+import CuratorsDoubleFeature from "../components/CuratorsDoubleFeature";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
 import { usePrefersReducedMotion } from "../lib/motion";
 
@@ -513,146 +515,89 @@ export default function HomePage() {
               SECTION A — THE INTERACTIVE SALON ENTRANCE
           ══════════════════════════════════════════════════════ */}
           <motion.div variants={isReduced ? undefined : homeSectionItem}>
-            <section aria-labelledby="salon-entrance-heading" className="relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
-            {/* Left Narrative Broadside */}
-            <div className="lg:col-span-7 space-y-6">
-              
-              {/* Salon Eyebrow */}
-              <div className="flex items-center gap-2.5">
-                <span className="inline-block size-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-primary font-mono">
-                  {userDisplayName ? `Salon No. 4 · Welcome, ${userDisplayName}` : "Salon No. 4 · Private Cinema Society"}
-                </span>
-                <span className="text-[10px] text-foreground-secondary/50 font-mono hidden sm:inline">
-                  — Est. 2026
-                </span>
-              </div>
-
-              {/* Main Headline */}
-              <h1
-                id="salon-entrance-heading"
-                className="font-editorial text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-semibold text-foreground tracking-tight leading-[1.12]"
-              >
-                Good films. Unexpected discoveries. <span className="italic font-normal text-primary">Better company.</span>
-              </h1>
-
-              {/* Supporting Lead Copy */}
-              <p className="text-foreground-secondary text-sm sm:text-base leading-relaxed max-w-xl">
-                Find something genuinely worth watching—or find someone to watch it with. Step beyond generic algorithms into an independent cinema library built for curious cinephiles.
-              </p>
-
-              {/* Editorial Annotations (Restrained & Playful) */}
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                {[
-                  "Your seat is waiting",
-                  "No spoilers · Only discoveries",
-                  "Let the stories find you"
-                ].map((note, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border/80 bg-surface/70 text-[11px] font-medium text-foreground-secondary/90 shadow-2xs"
-                  >
-                    <span className="material-symbols-outlined text-[13px] text-primary">grain</span>
-                    {note}
+            <section aria-labelledby="salon-entrance-heading" className="space-y-8 lg:space-y-10">
+              {/* Grand Narrative Broadside Header */}
+              <div className="space-y-4 max-w-3xl">
+                {/* Salon Eyebrow */}
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-block size-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[11px] font-semibold uppercase tracking-widest text-primary font-mono">
+                    {userDisplayName ? `Salon No. 4 · Welcome, ${userDisplayName}` : "Salon No. 4 · Private Cinema Society"}
                   </span>
-                ))}
-              </div>
-
-              {/* Primary Action Hub: Oversized Cinema Admission Ticket */}
-              <div className="pt-2 max-w-xl">
-                <CinemaAdmissionTicket
-                  onLaunch={() => navigate("/session/create")}
-                  onExplore={() => navigate("/discover?view=catalogue")}
-                />
-              </div>
-
-            </div>
-
-            {/* Right Interactive Ticket & Entrance Composition */}
-            <div className="lg:col-span-5 relative">
-              {!isReduced && (
-                <motion.div
-                  aria-hidden="true"
-                  animate={{
-                    opacity: [0.2, 0.5, 0.2],
-                    scale: [0.98, 1.02, 0.98],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="absolute -inset-1 rounded-3xl bg-primary/20 blur-xl pointer-events-none -z-10"
-                />
-              )}
-              <div
-                data-tour="home-join-code"
-                className="relative mx-auto max-w-md rounded-2xl border border-border/90 bg-surface p-6 sm:p-7 shadow-lg overflow-hidden"
-              >
-                
-                {/* Decorative Celluloid Perforation Top */}
-                <div className="absolute top-0 inset-x-0 h-2 flex justify-between px-3 gap-1 overflow-hidden opacity-30">
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <div key={i} className="size-1 rounded-full bg-foreground" />
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between mb-4 pt-1">
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[20px]">meeting_room</span>
-                    <h2 className="font-editorial text-lg font-semibold text-foreground">Direct Salon Entry</h2>
-                  </div>
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-foreground-secondary/60">
-                    ROOM INVITATION
+                  <span className="text-[10px] text-foreground-secondary/50 font-mono hidden sm:inline">
+                    — Est. 2026
                   </span>
                 </div>
 
-                <p className="text-xs text-foreground-secondary mb-4 leading-relaxed">
-                  Have a 6-character room passcode from a co-viewer? Enter below to join their active screening deck immediately.
+                {/* Main Headline */}
+                <h1
+                  id="salon-entrance-heading"
+                  className="font-editorial text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-semibold text-foreground tracking-tight leading-[1.12]"
+                >
+                  Good films. Unexpected discoveries. <span className="italic font-normal text-primary">Better company.</span>
+                </h1>
+
+                {/* Supporting Lead Copy */}
+                <p className="text-foreground-secondary text-sm sm:text-base leading-relaxed max-w-2xl">
+                  Find something genuinely worth watching—or find someone to watch it with. Step beyond generic algorithms into an independent cinema library built for curious cinephiles.
                 </p>
 
-                {joinError && (
-                  <div className="mb-3 p-2.5 bg-error/10 border border-error/20 rounded-xl text-center">
-                    <p className="text-xs text-error font-medium">{joinError}</p>
-                  </div>
-                )}
-
-                <div className="flex w-full items-stretch rounded-xl shadow-xs border border-border bg-surface focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary transition-all">
-                  <input
-                    value={joinCode}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setJoinCode(e.target.value.toUpperCase())}
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleJoinSession()}
-                    placeholder="ENTER 6-DIGIT CODE"
-                    maxLength={6}
-                    className="flex-1 bg-transparent text-foreground placeholder:text-foreground-secondary/40 px-4 text-sm font-mono font-semibold tracking-widest uppercase focus:outline-none h-12"
-                  />
-                  <button
-                    onClick={handleJoinSession}
-                    disabled={joinLoading}
-                    className="flex items-center justify-center px-5 bg-surface-secondary border-l border-border hover:bg-primary hover:text-surface disabled:opacity-50 transition-colors text-foreground font-semibold text-xs tracking-wider"
-                    aria-label="Enter session"
-                  >
-                    {joinLoading ? (
-                      <span className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                    )}
-                  </button>
-                </div>
-
-                {/* Sub-note */}
-                <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between text-[11px] text-foreground-secondary">
-                  <span>No account needed for guests</span>
-                  <span className="font-mono text-primary flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-primary inline-block" /> Synced Live
-                  </span>
+                {/* Editorial Annotations (Restrained & Playful) */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  {[
+                    "Your seat is waiting",
+                    "No spoilers · Only discoveries",
+                    "Let the stories find you"
+                  ].map((note, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border/80 bg-surface/70 text-[11px] font-medium text-foreground-secondary/90 shadow-2xs"
+                    >
+                      <span className="material-symbols-outlined text-[13px] text-primary">grain</span>
+                      {note}
+                    </span>
+                  ))}
                 </div>
               </div>
-            </div>
 
-          </div>
+              {/* Two Physical Cinema Entrance Artifacts (Matched Height & Alignment) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+                {/* Left: The Admission Ticket (Primary Route) */}
+                <div className="lg:col-span-7 flex">
+                  <CinemaAdmissionTicket
+                    onLaunch={() => navigate("/session/create")}
+                    onExplore={() => navigate("/discover?view=catalogue")}
+                    className="w-full h-full"
+                  />
+                </div>
+
+                {/* Right: The Salon Entry Pass (Room Code Route) */}
+                <div className="lg:col-span-5 relative flex">
+                  {!isReduced && (
+                    <motion.div
+                      aria-hidden="true"
+                      animate={{
+                        opacity: [0.2, 0.5, 0.2],
+                        scale: [0.98, 1.02, 0.98],
+                      }}
+                      transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                      className="absolute -inset-1 rounded-3xl bg-primary/20 blur-xl pointer-events-none -z-10"
+                    />
+                  )}
+                  <CinemaSalonPass
+                    joinCode={joinCode}
+                    setJoinCode={setJoinCode}
+                    onJoin={handleJoinSession}
+                    loading={joinLoading}
+                    error={joinError}
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
             </section>
           </motion.div>
 
@@ -860,12 +805,16 @@ export default function HomePage() {
                     </button>
 
                     <button
-                      onClick={() => navigate("/session/create")}
-                      className="h-10 px-3 rounded-xl border border-border hover:border-primary/40 text-foreground-secondary hover:text-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1"
-                      title="Screen with partner"
+                      onClick={() =>
+                        navigate("/session/create", {
+                          state: { preseedMovie: curatorMovie },
+                        })
+                      }
+                      className="h-10 px-3.5 rounded-xl border border-border hover:border-primary/40 text-foreground-secondary hover:text-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                      title="Start a collaborative matching session with this title"
                     >
-                      <span className="material-symbols-outlined text-[16px]">style</span>
-                      Screen This
+                      <span className="material-symbols-outlined text-[16px]">groups</span>
+                      Match with Partner
                     </button>
                   </div>
 
@@ -1057,71 +1006,30 @@ export default function HomePage() {
           </motion.div>
 
           {/* ══════════════════════════════════════════════════════
-              SECTION D — THE CONVERSATION CORNER
+              SECTION D — THE CURATOR'S DOUBLE FEATURE
           ══════════════════════════════════════════════════════ */}
           <motion.div variants={isReduced ? undefined : homeSectionItem}>
-            <section aria-labelledby="conversation-heading" className="space-y-6">
-          <div className="flex items-end justify-between border-b border-border/60 pb-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold">
-                  SALON DIALOGUES
-                </span>
-                <span className="text-[10px] text-foreground-secondary">· Cinephile Prompts</span>
-              </div>
-              <h2 id="conversation-heading" className="font-editorial text-2xl sm:text-3xl font-semibold text-foreground">
-                The Conversation Corner
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              {
-                quote: "A film you wish you could watch for the very first time again.",
-                reflection: "That lightning-bolt revelation where every plot beat was completely unknown.",
-                cta: "Top Rated Essentials →",
-                path: "/discover?category=top_rated",
-              },
-              {
-                quote: "Beautifully strange films that refuse to fit into any neat box.",
-                reflection: "Dream logic, psychological labyrinths, and visionary authorial stamps.",
-                cta: "Mystery & Mind-Bending →",
-                path: "/discover?genre=9648",
-              },
-              {
-                quote: "The single movie you recommend to absolutely everyone.",
-                reflection: "The undisputed consensus choice that never leaves anyone disappointed.",
-                cta: "High-Consensus Picks →",
-                path: "/discover?min_rating=8",
-              },
-            ].map((prompt, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-border/70 bg-surface/80 p-6 flex flex-col justify-between space-y-4 relative overflow-hidden"
-              >
-                <div className="space-y-3">
-                  <span className="text-2xl text-primary/40 font-serif leading-none block select-none">“</span>
-                  <p className="font-editorial text-base font-semibold text-foreground leading-snug">
-                    {prompt.quote}
-                  </p>
-                  <p className="text-xs text-foreground-secondary leading-relaxed">
-                    {prompt.reflection}
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={() => navigate(prompt.path)}
-                    className="text-xs font-semibold text-primary hover:underline uppercase tracking-wider inline-flex items-center gap-1"
-                  >
-                    {prompt.cta}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-            </section>
+            <CuratorsDoubleFeature
+              onMovieClick={(movie) => setSelectedMovie(movie)}
+              onScreenDoubleFeature={(m1, m2) => {
+                const id1 = m1.id || m1.tmdb_id;
+                const id2 = m2.id || m2.tmdb_id;
+                navigate("/session/create", {
+                  state: {
+                    prioritizedMovieIds: [id1, id2],
+                    preseedMovies: [m1, m2],
+                  },
+                });
+              }}
+              watchlistIds={watchlistIds}
+              onWatchlistUpdated={(addedIds) => {
+                setWatchlistIds((prev) => {
+                  const next = new Set(prev);
+                  addedIds.forEach((id) => next.add(id));
+                  return next;
+                });
+              }}
+            />
           </motion.div>
 
           {/* ══════════════════════════════════════════════════════

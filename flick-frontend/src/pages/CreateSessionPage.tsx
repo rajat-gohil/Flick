@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import CinemaHeader from "../components/CinemaHeader";
@@ -117,11 +117,77 @@ const STREAMING_SERVICES = [
 ];
 
 /* ============================
+   PRE-SEEDED MOVIE TYPINGS & MAPPINGS
+============================ */
+
+type PreseedMovie = {
+  id?: number;
+  tmdb_id?: number;
+  title?: string;
+  original_language?: string;
+  genres?: string[];
+  genre_ids?: number[];
+};
+
+const GENRE_NAME_TO_ID: Record<string, number> = {
+  action: 1,
+  adventure: 2,
+  animation: 3,
+  comedy: 4,
+  crime: 5,
+  documentary: 6,
+  drama: 7,
+  family: 8,
+  fantasy: 9,
+  history: 10,
+  horror: 11,
+  music: 12,
+  mystery: 13,
+  romance: 14,
+  "science fiction": 15,
+  "sci-fi": 15,
+  scifi: 15,
+  "tv movie": 16,
+  thriller: 17,
+  war: 18,
+  western: 19,
+};
+
+const INDIAN_LANG_CODES = new Set(["hi", "ta", "te", "bn", "mr", "gu", "kn", "ml", "pa"]);
+
+/* ============================
    COMPONENT
 ============================ */
 
 export default function CreateSessionPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const locationState = location.state as {
+    prioritizedMovieIds?: number[];
+    preseedMovie?: PreseedMovie;
+    preseedMovies?: PreseedMovie[];
+  } | null;
+
+  const rawPreseed = useMemo(() => {
+    if (locationState?.preseedMovies && locationState.preseedMovies.length > 0) {
+      return locationState.preseedMovies;
+    }
+    if (locationState?.preseedMovie) {
+      return [locationState.preseedMovie];
+    }
+    return [];
+  }, [locationState]);
+
+  const prioritizedMovieIds = useMemo(() => {
+    if (locationState?.prioritizedMovieIds && locationState.prioritizedMovieIds.length > 0) {
+      return locationState.prioritizedMovieIds;
+    }
+    if (rawPreseed.length > 0) {
+      return rawPreseed.map((m) => m.id || m.tmdb_id).filter(Boolean) as number[];
+    }
+    return undefined;
+  }, [locationState?.prioritizedMovieIds, rawPreseed]);
 
   const [step, setStep] = useState<"industry" | "language" | "genre" | "created">("industry");
   const [industry, setIndustry] = useState<Industry | null>(null);
@@ -134,6 +200,13 @@ export default function CreateSessionPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // Auto-creation state when preseeded from Curator's Selection or Double Feature
+  const [autoCreating, setAutoCreating] = useState(false);
+  const [preseededTitles] = useState<string[]>(() =>
+    rawPreseed.map((m) => m.title).filter(Boolean) as string[]
+  );
+  const autoCreatedRef = useRef(false);
 
   /* ----------------------------
      FETCH GENRES WHEN INDUSTRY CHANGES
@@ -156,12 +229,103 @@ export default function CreateSessionPage() {
   }, []);
 
   useEffect(() => {
-    if (industry) {
+    if (industry && !autoCreating) {
       fetchGenres(industry);
       // Default to empty selection so user intentionally picks their preferred language(s)
       setSelectedLanguages([]);
     }
-  }, [industry, fetchGenres]);
+  }, [industry, fetchGenres, autoCreating]);
+
+  /* ----------------------------
+     AUTO-INITIALIZE SESSION WHEN PRE-SEEDED
+  ---------------------------- */
+  useEffect(() => {
+    if (rawPreseed.length === 0 || autoCreatedRef.current) return;
+    autoCreatedRef.current = true;
+
+    async function autoInitSession() {
+      setAutoCreating(true);
+      setError("");
+
+      try {
+        // 1. Deducing Languages & Industry
+        const langs = Array.from(
+          new Set(
+            rawPreseed
+              .map((m) => m.original_language?.toLowerCase().trim())
+              .filter(Boolean) as string[]
+          )
+        );
+        const effectiveLangs = langs.length > 0 ? langs : ["en"];
+        const isAllIndian = effectiveLangs.every((l) => INDIAN_LANG_CODES.has(l));
+        const isAllEnglish = effectiveLangs.every((l) => l === "en");
+        const effectiveIndustry: Industry = isAllIndian ? "bollywood" : isAllEnglish ? "hollywood" : "mixed";
+
+        // 2. Deducing Genre IDs
+        const genreIdSet = new Set<number>();
+        rawPreseed.forEach((m) => {
+          if (Array.isArray(m.genres)) {
+            m.genres.forEach((g) => {
+              const gid = GENRE_NAME_TO_ID[g.toLowerCase().trim()];
+              if (gid) genreIdSet.add(gid);
+            });
+          }
+          if (Array.isArray(m.genre_ids)) {
+            m.genre_ids.forEach((gid) => {
+              if (typeof gid === "number" && gid > 0) genreIdSet.add(gid);
+            });
+          }
+        });
+        const effectiveGenreIds = genreIdSet.size > 0 ? Array.from(genreIdSet) : [7]; // Default to Drama (7)
+
+        // 3. Deducing Prioritized Movie IDs
+        const pids = rawPreseed
+          .map((m) => m.id || m.tmdb_id)
+          .filter(Boolean) as number[];
+
+        // 4. API Handshake: Create Session & Set Genre
+        const sessionData = await apiRequest("/api/sessions/create/", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+
+        await apiRequest("/api/sessions/genre/", {
+          method: "POST",
+          body: JSON.stringify({
+            genre_ids: effectiveGenreIds,
+            genre_id: effectiveGenreIds[0],
+            session_id: sessionData.id,
+            industry: effectiveIndustry,
+            languages: effectiveLangs,
+            streaming_provider_ids: [],
+            ...(pids.length > 0 ? { prioritized_movie_ids: pids } : {}),
+          }),
+        });
+
+        setIndustry(effectiveIndustry);
+        setSelectedLanguages(effectiveLangs);
+        setSelectedGenreIds(effectiveGenreIds);
+        setSessionId(sessionData.id);
+        setSessionCode(sessionData.code);
+        setStep("created");
+
+        trackEvent("session_created_from_curator", {
+          industry: effectiveIndustry,
+          languages: effectiveLangs,
+          genres_count: effectiveGenreIds.length,
+          preseeded_movies_count: pids.length,
+          session_id: sessionData.id,
+        });
+      } catch (err) {
+        console.error("[CreateSessionPage] Auto-init failed, falling back to manual:", err);
+        setError("Unable to auto-create session. Please choose your preferences manually.");
+      } finally {
+        setAutoCreating(false);
+      }
+    }
+
+    autoInitSession();
+  }, [rawPreseed]);
 
   /* ----------------------------
      CREATE SESSION ON BACKEND
@@ -188,6 +352,9 @@ export default function CreateSessionPage() {
           industry: industry,
           languages: selectedLanguages,
           streaming_provider_ids: selectedProviders.map((p) => Number(p)),
+          ...(prioritizedMovieIds && prioritizedMovieIds.length > 0
+            ? { prioritized_movie_ids: prioritizedMovieIds }
+            : {}),
         }),
       });
 
@@ -318,10 +485,10 @@ export default function CreateSessionPage() {
       {/* ── GLOBAL CINEMA HEADER ── */}
       <CinemaHeader
         current="sessions"
-        title={STEP_TITLES[step]}
-        onBack={step !== "industry" ? handleBack : () => navigate("/home")}
+        title={autoCreating ? "Screening Setup" : STEP_TITLES[step]}
+        onBack={step === "created" ? () => navigate("/home") : step !== "industry" ? handleBack : () => navigate("/home")}
         rightAction={
-          (step === "genre" || step === "language") ? (
+          (!autoCreating && (step === "genre" || step === "language")) ? (
             <button
               onClick={handleClear}
               className="text-primary hover:text-primary-hover text-xs font-semibold uppercase tracking-wider transition-colors px-2 py-1"
@@ -334,31 +501,63 @@ export default function CreateSessionPage() {
 
       <div className="w-full max-w-xl mx-auto flex-1 flex flex-col px-4 sm:px-6 py-4 pb-44 md:pb-28">
 
-        {/* ── DESKTOP STEP HEADING ── */}
-        <div className="hidden md:flex items-center justify-between pb-3 mb-2 border-b border-border/40">
-          <div>
-            <h2 className="font-editorial text-2xl font-bold tracking-tight text-foreground">
-              {STEP_TITLES[step]}
+        {/* ── AUTO-CREATING ATMOSPHERIC LOADER ── */}
+        {autoCreating && (
+          <main className="flex-1 flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div className="relative size-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 text-primary">
+              <span className="material-symbols-outlined text-[36px] animate-pulse">theaters</span>
+              <div className="absolute inset-0 rounded-full border border-primary/40 animate-ping" style={{ animationDuration: "2.4s" }} />
+            </div>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-1 block">
+              Screening Room Initializing
+            </span>
+            <h2 className="font-editorial text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-2">
+              Curating Screening Deck
             </h2>
-            <p className="text-xs text-foreground-secondary mt-0.5">
-              {step === "industry" && "Step 1 of 3 · Choose your cinema catalogue scope"}
-              {step === "language" && "Step 2 of 3 · Select preferred streaming languages"}
-              {step === "genre" && "Step 3 of 3 · Choose genres for matching"}
-              {step === "created" && "Session is configured and awaiting participants"}
+            <p className="text-xs text-foreground-secondary max-w-sm mx-auto leading-relaxed">
+              Prioritizing {preseededTitles.map((t, idx) => (
+                <span key={idx} className="font-semibold text-foreground">
+                  "{t}"{idx < preseededTitles.length - 1 ? " & " : ""}
+                </span>
+              ))} as your opening feature and generating your collaborative room code...
             </p>
+          </main>
+        )}
+
+        {/* ── DESKTOP STEP HEADING ── */}
+        {!autoCreating && (
+          <div className="hidden md:flex items-center justify-between pb-3 mb-2 border-b border-border/40">
+            <div>
+              <h2 className="font-editorial text-2xl font-bold tracking-tight text-foreground">
+                {STEP_TITLES[step]}
+              </h2>
+              <p className="text-xs text-foreground-secondary mt-0.5">
+                {step === "industry" && "Step 1 of 3 · Choose your cinema catalogue scope"}
+                {step === "language" && "Step 2 of 3 · Select preferred streaming languages"}
+                {step === "genre" && "Step 3 of 3 · Choose genres for matching"}
+                {step === "created" && "Session is configured and awaiting participants"}
+              </p>
+            </div>
+            {(step === "genre" || step === "language") && (
+              <button
+                onClick={handleClear}
+                className="text-primary hover:text-primary-hover text-xs font-semibold uppercase tracking-wider transition-colors px-3 py-1.5 rounded-lg border border-primary/30 hover:bg-primary/10"
+              >
+                Clear All
+              </button>
+            )}
           </div>
-          {(step === "genre" || step === "language") && (
-            <button
-              onClick={handleClear}
-              className="text-primary hover:text-primary-hover text-xs font-semibold uppercase tracking-wider transition-colors px-3 py-1.5 rounded-lg border border-primary/30 hover:bg-primary/10"
-            >
-              Clear All
-            </button>
-          )}
-        </div>
+        )}
+
+        {!autoCreating && prioritizedMovieIds && prioritizedMovieIds.length > 0 && step !== "created" && (
+          <div className="mb-4 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 flex items-center gap-2 text-xs text-primary font-mono tracking-wide">
+            <span className="material-symbols-outlined text-[16px]">theaters</span>
+            <span>Double Feature Active · Selected films prioritized in screening deck</span>
+          </div>
+        )}
 
         {/* ── PROGRESS BAR (steps 2 & 3) ── */}
-        {(step === "language" || step === "genre") && (
+        {!autoCreating && (step === "language" || step === "genre") && (
           <div className="flex flex-col gap-1.5 pt-1 pb-3">
             <div className="flex justify-between items-center text-xs text-foreground-secondary">
               <span>Step {step === "language" ? 2 : 3} of 3</span>
@@ -385,7 +584,7 @@ export default function CreateSessionPage() {
       {/* ══════════════════════════════════
           STEP 1 — INDUSTRY
       ══════════════════════════════════ */}
-      {step === "industry" && (
+      {!autoCreating && step === "industry" && (
         <main className="flex-1 overflow-y-auto pb-4">
           <div className="pt-2 pb-6 text-center">
             <div className="size-16 rounded-2xl bg-surface-secondary border border-border flex items-center justify-center mx-auto mb-4 shadow-xs">
@@ -442,7 +641,7 @@ export default function CreateSessionPage() {
       {/* ══════════════════════════════════
           STEP 2 — LANGUAGE
       ══════════════════════════════════ */}
-      {step === "language" && industry && (
+      {!autoCreating && step === "language" && industry && (
         <div className="flex-1 overflow-y-auto pb-4">
           <div className="pt-2 pb-2">
             <h1 className="font-editorial text-3xl font-normal leading-tight text-foreground mb-1">
@@ -520,7 +719,7 @@ export default function CreateSessionPage() {
       {/* ══════════════════════════════════
           STEP 3 — GENRE
       ══════════════════════════════════ */}
-      {step === "genre" && industry && (
+      {!autoCreating && step === "genre" && industry && (
         <div className="flex-1 overflow-y-auto pb-4">
           <div className="pt-2 pb-2">
             <h1 className="font-editorial text-3xl font-normal leading-tight text-foreground mb-1">
@@ -633,7 +832,7 @@ export default function CreateSessionPage() {
       {/* ══════════════════════════════════
           STEP 4 — SESSION CREATED
       ══════════════════════════════════ */}
-      {step === "created" && sessionId && sessionCode && (
+      {!autoCreating && step === "created" && sessionId && sessionCode && (
         <main className="flex-1 overflow-y-auto pb-4 pt-2">
           <div className="text-center mb-6">
             <div className="size-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto mb-3 text-primary">
@@ -644,6 +843,18 @@ export default function CreateSessionPage() {
               Invite your partner using the code below
             </p>
           </div>
+
+          {/* Pre-seeded Title Callout Banner */}
+          {preseededTitles.length > 0 && (
+            <div className="mb-5 p-3.5 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center gap-2.5 text-xs text-primary font-mono text-center shadow-2xs">
+              <span className="material-symbols-outlined text-[18px] text-primary shrink-0">verified</span>
+              <span>
+                {preseededTitles.length === 1
+                  ? `Curator's Spotlight Active · "${preseededTitles[0]}" is prioritized as Card #1 in your screening deck.`
+                  : `Double Feature Active · "${preseededTitles[0]}" & "${preseededTitles[1]}" are prioritized as Cards #1 & #2 in your screening deck.`}
+              </span>
+            </div>
+          )}
 
           {/* Code Card */}
           <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden mb-5 shadow-xs">
@@ -682,7 +893,7 @@ export default function CreateSessionPage() {
           </div>
 
           {/* Invite link direct row */}
-          <div className="mb-6">
+          <div className="mb-4">
             <p className="text-xs text-foreground-secondary text-center mb-2">Or send direct screening link:</p>
             <div className="flex items-center gap-2">
               <input
@@ -701,6 +912,20 @@ export default function CreateSessionPage() {
             </div>
           </div>
 
+          {/* Optional: Adjust criteria */}
+          <div className="text-center mb-5">
+            <button
+              type="button"
+              onClick={() => {
+                fetchGenres(industry || "hollywood");
+                setStep("industry");
+              }}
+              className="text-xs text-foreground-secondary hover:text-foreground font-medium underline underline-offset-4 transition-colors cursor-pointer"
+            >
+              Adjust Screening Scope & Filters
+            </button>
+          </div>
+
           {/* Continue CTA */}
           <button
             onClick={() => navigate(`/session/${sessionId}`)}
@@ -717,7 +942,7 @@ export default function CreateSessionPage() {
       {/* ══════════════════════════════════
           FIXED BOTTOM BUTTON (Steps 1-3)
       ══════════════════════════════════ */}
-      {step !== "created" && (
+      {!autoCreating && step !== "created" && (
         <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 pointer-events-none">
           <div className="w-full max-w-xl mx-auto px-4 pb-4 pt-3 md:pb-6 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-auto">
             <button
