@@ -152,7 +152,7 @@ export default function CinemaAdmissionTicket({
         WebkitPerspective: 1200,
         touchAction: "pan-y",
       }}
-      className={`relative w-full max-w-xl select-none ${className}`}
+      className={`relative w-full select-none h-full ${className}`}
     >
       <motion.div
         ref={cardRef}
@@ -169,7 +169,7 @@ export default function CinemaAdmissionTicket({
           transformStyle: "preserve-3d",
           WebkitTransformStyle: "preserve-3d",
         }}
-        className="relative w-full rounded-2xl border border-border/90 bg-[#FBF9F4] dark:bg-[#222721] text-foreground shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl active:shadow-md cursor-grab active:cursor-grabbing"
+        className="relative w-full h-full rounded-2xl border border-border/90 bg-[#FBF9F4] dark:bg-[#222721] text-foreground shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl active:shadow-md cursor-grab active:cursor-grabbing flex flex-col justify-between"
       >
         {/* Subtle Tactile Paper Texture (SVG noise overlay) */}
         <div
@@ -202,7 +202,7 @@ export default function CinemaAdmissionTicket({
         {/* ── Two-Part Ticket Composition ── */}
         <div
           style={{ transformStyle: "preserve-3d", WebkitTransformStyle: "preserve-3d" }}
-          className="relative z-10 flex flex-row items-stretch min-h-[210px] sm:min-h-[240px]"
+          className="relative z-10 flex flex-row items-stretch flex-1 h-full min-h-[210px] sm:min-h-[240px]"
         >
           {/* ══════════════════════════════════════════════════════
               PART 1 — MAIN BODY (approx 74% desktop, 78% mobile)
