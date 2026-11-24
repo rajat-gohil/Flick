@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { apiRequest } from "../lib/api";
+import { usePrefersReducedMotion } from "../lib/motion";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -43,6 +45,7 @@ function AvatarStack({ participants }: { participants: RecentSession["participan
 export default function SessionsListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const shouldReduceMotion = usePrefersReducedMotion();
   const tabParam = searchParams.get("tab");
   const [filter, setFilter] = useState<"all" | "active" | "history">(
     tabParam === "history" ? "history" : tabParam === "active" ? "active" : "all"
@@ -159,7 +162,7 @@ export default function SessionsListPage() {
         onBack={() => navigate("/home")}
       />
 
-      <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 pb-24 md:pb-12">
+      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 pb-24 md:pb-12">
         <main className="flex-1 overflow-y-auto">
 
           {/* ── Filter Tabs ── */}
@@ -172,15 +175,26 @@ export default function SessionsListPage() {
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
-                className={`flex-1 h-8 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border flex items-center justify-center gap-1.5 ${
+                className={`relative flex-1 min-h-11 sm:min-h-9 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors border overflow-hidden flex items-center justify-center gap-1.5 cursor-pointer ${
                   filter === t.id
-                    ? "bg-primary border-primary text-surface shadow-xs"
+                    ? "border-primary text-surface shadow-xs"
                     : "bg-surface border-border text-foreground-secondary hover:text-foreground"
                 }`}
               >
-                <span>{t.label}</span>
+                {filter === t.id && (
+                  <motion.span
+                    layoutId={shouldReduceMotion ? undefined : "sessionsFilterPill"}
+                    className="absolute inset-0 bg-primary rounded-xl -z-0"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 420, damping: 34, mass: 0.8 }
+                    }
+                  />
+                )}
+                <span className="relative z-10">{t.label}</span>
                 {t.count !== undefined && !loading && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  <span className={`relative z-10 text-[10px] px-1.5 py-0.2 rounded-full ${
                     filter === t.id ? "bg-surface/20 text-surface" : "bg-surface-secondary text-foreground-secondary"
                   }`}>
                     {t.count}
@@ -239,7 +253,7 @@ export default function SessionsListPage() {
           {!loading && (filter === "all" || filter === "active") && active.length > 0 && (
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-3">
-                <span className="size-2 rounded-full bg-primary animate-pulse" />
+                <span className={`size-2 rounded-full bg-primary ${shouldReduceMotion ? "" : "animate-pulse"}`} />
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-primary">Live Screenings</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -374,14 +388,14 @@ function SessionCard({
   })();
 
   return (
-    <div className="w-full rounded-xl bg-surface border border-border shadow-xs overflow-hidden flex flex-col justify-between">
+    <div className="w-full rounded-xl bg-surface border border-border hover:border-primary/40 shadow-xs overflow-hidden flex flex-col justify-between transition-colors">
       <button
         onClick={onClick}
-        className="w-full flex items-center gap-3.5 p-3.5 text-left hover:border-primary/50 transition-colors"
+        className="w-full flex items-center gap-3.5 p-3.5 text-left cursor-pointer"
       >
         {/* Icon */}
         <div className={`size-11 rounded-lg flex items-center justify-center shrink-0 ${
-          isActive ? "bg-primary/10 border border-primary/30 text-primary" : "bg-surface-secondary text-foreground-secondary"
+          isActive ? "bg-primary/10 text-primary" : "bg-surface-secondary text-foreground-secondary"
         }`}>
           <span className="material-symbols-outlined text-[22px]"
             style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>

@@ -89,7 +89,7 @@ export default function WatchlistPage() {
         onBack={() => navigate(-1)}
       />
 
-      <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 pb-24 md:pb-12">
+      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-4 pb-24 md:pb-12">
 
         {/* Filter tabs */}
         <div className="flex gap-2 max-w-md mx-auto w-full pt-1 pb-4">
@@ -97,7 +97,7 @@ export default function WatchlistPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex-1 h-8 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all border relative overflow-hidden ${
+              className={`flex-1 min-h-11 sm:min-h-9 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all border relative overflow-hidden cursor-pointer ${
                 filter === f
                   ? "border-primary text-surface shadow-xs"
                   : "bg-surface border-border text-foreground-secondary hover:text-foreground"
@@ -105,8 +105,8 @@ export default function WatchlistPage() {
             >
               {filter === f && (
                 <motion.span
-                  layoutId="watchlistFilterPill"
-                  className="absolute inset-0 bg-primary rounded-lg -z-0"
+                  layoutId={shouldReduceMotion ? undefined : "watchlistFilterPill"}
+                  className="absolute inset-0 bg-primary rounded-xl -z-0"
                   transition={
                     shouldReduceMotion
                       ? { duration: 0 }
@@ -166,7 +166,7 @@ export default function WatchlistPage() {
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                     className={`flex gap-3.5 rounded-xl border p-3.5 sm:p-4 transition-colors ${
                       item.watched
-                        ? "bg-surface/50 border-border/50 opacity-70"
+                        ? "bg-surface/80 border-border/70"
                         : "bg-surface border-border hover:border-primary/40 shadow-xs"
                     }`}
                   >
@@ -176,7 +176,7 @@ export default function WatchlistPage() {
                         <img
                           src={item.poster_url}
                           alt={item.movie_title}
-                          className={`w-full h-full object-cover transition-all ${item.watched ? "grayscale opacity-60" : ""}`}
+                          className={`w-full h-full object-cover transition-all ${item.watched ? "grayscale opacity-75" : ""}`}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-foreground-secondary">
@@ -189,11 +189,11 @@ export default function WatchlistPage() {
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                       <div>
                         <h3 className={`font-editorial text-sm sm:text-base font-semibold leading-tight line-clamp-2 mb-1.5 ${
-                          item.watched ? "line-through text-foreground-secondary" : "text-foreground"
+                          item.watched ? "text-foreground-secondary" : "text-foreground"
                         }`}>
                           {item.movie_title}
                         </h3>
-                        <div className="flex items-center gap-2 text-xs text-foreground-secondary">
+                        <div className="flex items-center gap-2 flex-wrap text-xs text-foreground-secondary">
                           {item.rating && (
                             <span className="flex items-center gap-0.5 text-primary font-semibold">
                               <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
@@ -201,6 +201,12 @@ export default function WatchlistPage() {
                             </span>
                           )}
                           {item.release_year && <span>{item.release_year}</span>}
+                          {item.watched && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-secondary text-foreground font-mono text-[10px] font-semibold uppercase tracking-wider">
+                              <span className="material-symbols-outlined text-[12px] text-primary">check_circle</span>
+                              Viewed
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -211,7 +217,7 @@ export default function WatchlistPage() {
                             href={item.trailer_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 h-7 px-3 rounded-md bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-[11px] font-medium transition-all active:scale-95"
+                            className="flex items-center gap-1 min-h-11 sm:min-h-9 px-3.5 rounded-xl bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-[11px] font-medium transition-all active:scale-95"
                           >
                             <span className="material-symbols-outlined text-[14px]">play_arrow</span>
                             Trailer
@@ -221,9 +227,9 @@ export default function WatchlistPage() {
                           whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
                           onClick={() => toggleWatched(item.movie_id, item.watched)}
                           disabled={togglingId === item.movie_id}
-                          className={`flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-semibold transition-colors border ${
+                          className={`flex items-center gap-1.5 min-h-11 sm:min-h-9 px-3.5 rounded-xl text-[11px] font-semibold transition-colors border cursor-pointer ${
                             item.watched
-                              ? "bg-surface-secondary border-border text-foreground-secondary hover:text-foreground"
+                              ? "bg-surface-secondary border-border text-foreground hover:bg-surface"
                               : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
                           }`}
                         >

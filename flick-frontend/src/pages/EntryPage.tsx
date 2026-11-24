@@ -21,6 +21,8 @@ export default function EntryPage() {
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [leftPosterErr, setLeftPosterErr] = useState(false);
+  const [rightPosterErr, setRightPosterErr] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("auth_token")) {
@@ -190,70 +192,85 @@ export default function EntryPage() {
               </div>
             </div>
 
-            {/* Right Column: Product Presentation Preview */}
+            {/* Right Column: Illustrative Two-Poster Consensus Composition */}
             <div className="lg:col-span-6 w-full max-w-md mx-auto lg:max-w-none">
               <div
-                aria-label="Presentation preview of Flick's collaborative movie deck"
-                className="relative rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-md"
+                aria-label="Illustrative preview showing how two viewers match on a film"
+                className="relative rounded-2xl border border-border bg-surface p-5 sm:p-7 shadow-md"
               >
-                {/* Preview Header Bar */}
-                <div className="flex items-center justify-between pb-3 mb-4 border-b border-border/60">
+                {/* Explicit Illustrative Label */}
+                <div className="flex items-center justify-between pb-3 mb-5 border-b border-border/60">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary font-semibold">
-                    Preview · Collaborative Screening Deck
+                    Illustrative Preview
                   </span>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-primary font-semibold">
-                    Room Sync
+                    Mutual Match
                   </span>
                 </div>
 
-                {/* Sample Screening Card */}
-                <div className="rounded-xl bg-surface-secondary/70 border border-border/70 p-4 sm:p-5">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary">
-                        Curated Feature · 2000
-                      </p>
-                      <h2 className="font-editorial text-2xl sm:text-3xl font-semibold text-foreground mt-0.5">
-                        In the Mood for Love
-                      </h2>
-                    </div>
-                    <span className="font-mono text-xs font-semibold text-primary shrink-0">
-                      ★ 8.1
-                    </span>
+                {/* Two Opposite Film Posters Connected by Central Consensus Seal */}
+                <div className="relative flex items-center justify-between gap-2 sm:gap-4 py-2">
+                  {/* Subtle horizontal connection line spanning behind posters & seal */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-12 right-12 top-1/2 -translate-y-1/2 border-t border-dashed border-primary/45 pointer-events-none z-0"
+                  />
+
+                  {/* Left Film Poster */}
+                  <div className="relative z-10 w-[38%] sm:w-[36%] aspect-[2/3] rounded-xl overflow-hidden border border-border bg-surface-secondary shadow-sm">
+                    {!leftPosterErr ? (
+                      <img
+                        src="https://image.tmdb.org/t/p/w500/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg"
+                        alt="Interstellar film poster"
+                        className="w-full h-full object-cover"
+                        onError={() => setLeftPosterErr(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-foreground-secondary">
+                        <span className="material-symbols-outlined text-3xl mb-1">movie</span>
+                        <span className="font-editorial text-xs font-semibold text-foreground">Interstellar</span>
+                      </div>
+                    )}
                   </div>
 
-                  <p className="text-xs text-foreground-secondary leading-relaxed mb-4">
-                    Two neighbors in 1962 Hong Kong form an intimate bond after suspecting extramarital activities of their spouses.
+                  {/* Central Consensus Seal */}
+                  <div className="relative z-10 shrink-0 flex flex-col items-center">
+                    <div className="size-12 sm:size-14 rounded-full bg-surface border-2 border-primary/70 shadow-sm flex items-center justify-center text-primary">
+                      <span
+                        className="material-symbols-outlined text-[24px] sm:text-[26px]"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        verified
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right Film Poster */}
+                  <div className="relative z-10 w-[38%] sm:w-[36%] aspect-[2/3] rounded-xl overflow-hidden border border-border bg-surface-secondary shadow-sm">
+                    {!rightPosterErr ? (
+                      <img
+                        src="https://image.tmdb.org/t/p/w500/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg"
+                        alt="Pulp Fiction film poster"
+                        className="w-full h-full object-cover"
+                        onError={() => setRightPosterErr(true)}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-foreground-secondary">
+                        <span className="material-symbols-outlined text-3xl mb-1">movie</span>
+                        <span className="font-editorial text-xs font-semibold text-foreground">Pulp Fiction</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Concise Message & Supporting Explanation */}
+                <div className="mt-5 pt-4 border-t border-border/60 text-center space-y-1">
+                  <p className="font-editorial text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
+                    Two tastes. One movie night.
                   </p>
-
-                  <div className="flex flex-wrap gap-2 text-[11px] font-medium text-foreground-secondary mb-5">
-                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">Drama</span>
-                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">Romance</span>
-                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">98 min</span>
-                  </div>
-
-                  {/* Action Indicators (Presentation only) */}
-                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/60 text-center text-[11px] font-semibold uppercase tracking-wider">
-                    <div className="py-2 rounded-lg bg-surface text-foreground-secondary">
-                      Pass
-                    </div>
-                    <div className="py-2 rounded-lg bg-primary/15 text-primary">
-                      Super-Like
-                    </div>
-                    <div className="py-2 rounded-lg bg-primary text-primary-foreground">
-                      Like
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mutual Match Indicator */}
-                <div className="mt-4 flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-primary/10 text-xs">
-                  <span className="font-medium text-foreground">
-                    Both viewers swipe right → <span className="text-primary font-semibold">Instant Match</span>
-                  </span>
-                  <span className="material-symbols-outlined text-[16px] text-primary shrink-0">
-                    verified
-                  </span>
+                  <p className="text-xs text-foreground-secondary leading-relaxed">
+                    A match happens when both people choose the same film.
+                  </p>
                 </div>
               </div>
             </div>

@@ -1230,15 +1230,15 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/DiscoverPage.tsx": {
-    "mtime": 1795380220.3408456,
-    "seen": 1795380273.2496471,
-    "ast_hash": "76981a25f1048baba9315b9d770cad15",
+    "mtime": 1795552473.824505,
+    "seen": 1795553041.499713,
+    "ast_hash": "3ee9e987972f4cb043cc85bc706a34db",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/EntryPage.tsx": {
-    "mtime": 1795549022.0537362,
-    "seen": 1795549742.979775,
-    "ast_hash": "877175d75d875c502ee362721ce3a613",
+    "mtime": 1795552333.1192594,
+    "seen": 1795553041.4997141,
+    "ast_hash": "76c35ef79cf1de53fecf00b2f9942e95",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/ForgotPasswordPage.tsx": {
@@ -1260,9 +1260,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/HomePage.tsx": {
-    "mtime": 1795549064.3339143,
-    "seen": 1795549742.979779,
-    "ast_hash": "29a0190e43e251fd9eb0fc2905a1f2fc",
+    "mtime": 1795552893.6658332,
+    "seen": 1795553041.499718,
+    "ast_hash": "668777c53f8b7a8acbc2c33d5313df4f",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/JoinViaLink.tsx": {
@@ -1326,9 +1326,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/SessionsListPage.tsx": {
-    "mtime": 1793792842.3369389,
-    "seen": 1794898939.9148102,
-    "ast_hash": "f3c215b127feff276b69fcc9610291cb",
+    "mtime": 1795552476.8060641,
+    "seen": 1795553041.499728,
+    "ast_hash": "8023dc3928f274ea52c4b9dd0f6e2e79",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/TermsPage.tsx": {
@@ -1350,9 +1350,9 @@
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/WatchlistPage.tsx": {
-    "mtime": 1795100445.4308937,
-    "seen": 1795100944.1414888,
-    "ast_hash": "57523dd4d194ee7142dcf794cc7a5ddd",
+    "mtime": 1795550269.9672756,
+    "seen": 1795553041.499732,
+    "ast_hash": "4bf59b3a25272ed234f8588cf1b539f0",
     "semantic_hash": ""
   },
   "flick-frontend/src/pages/__tests__/componentErrorDisplay.test.tsx": {
@@ -11637,6 +11637,12 @@
     "mtime": 1795548600.4685798,
     "seen": 1795549742.9810078,
     "ast_hash": "b9f008cd5734ef6ef7d8b35f8d372937",
+    "semantic_hash": ""
+  },
+  "flick-frontend/src/lib/media.ts": {
+    "mtime": 1795552464.9229681,
+    "seen": 1795553041.499703,
+    "ast_hash": "38075bd5f7248c69dca96a825becc614",
     "semantic_hash": ""
   },
   "backend/package-lock.json": {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { apiRequest } from "../lib/api";
+import { toHeroBackdropUrl } from "../lib/media";
 import { trackEvent } from "../lib/analytics";
 import StreamingOptions from "../components/StreamingOptions";
 import { MovieCardSkeleton, ShelfSkeleton } from "../components/Skeleton";
@@ -575,7 +576,7 @@ function MovieCard({
 
   return (
     <motion.div
-      whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.015 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className="relative rounded-xl overflow-hidden bg-surface border border-border hover:border-primary/50 group flex flex-col cursor-pointer transition-colors shadow-xs hover:shadow-md h-full"
@@ -586,7 +587,9 @@ function MovieCard({
           <img
             src={movie.poster_url}
             alt={movie.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+            className={`w-full h-full object-cover transition-transform duration-500 ease-out ${
+              shouldReduceMotion ? "" : "group-hover:scale-[1.02]"
+            }`}
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -666,20 +669,22 @@ function HeroCard({
 }) {
   const [imgError, setImgError] = useState(false);
   const shouldReduceMotion = usePrefersReducedMotion();
-  const imageUrl = movie.backdrop_url || movie.poster_url;
+  const imageUrl = toHeroBackdropUrl(movie.backdrop_url) || movie.poster_url;
 
   return (
     <motion.div
-      whileHover={shouldReduceMotion ? undefined : { scale: 1.008 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border shadow-md hover:shadow-xl transition-shadow h-52 sm:h-72 md:h-80 lg:h-96"
+      className="group relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border hover:border-primary/40 shadow-md hover:shadow-xl transition-all h-52 sm:h-72 md:h-80 lg:h-96"
       onClick={() => onTap(movie)}
     >
       {!imgError && imageUrl ? (
         <img
           src={imageUrl}
           alt={movie.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+            shouldReduceMotion ? "" : "group-hover:scale-[1.02]"
+          }`}
           onError={() => setImgError(true)}
         />
       ) : (
@@ -1276,7 +1281,7 @@ export default function DiscoverPage() {
                 setPendingFilters(filters);
                 setShowFilters(true);
               }}
-              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+              className={`relative flex items-center gap-1.5 px-3 min-h-11 sm:min-h-9 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                 activeFilterCount > 0
                   ? "bg-primary/10 border-primary text-primary"
                   : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-foreground-secondary"
@@ -1295,7 +1300,7 @@ export default function DiscoverPage() {
       />
 
       {/* ── Surface Navigation Tabs (Your Archive vs Complete Catalogue) ── */}
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 flex items-center justify-center shrink-0">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 flex items-center justify-center shrink-0">
         <div className="inline-flex rounded-xl p-1 bg-surface border border-border shadow-xs relative">
           <motion.button
             whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
@@ -1338,7 +1343,7 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-7xl mx-auto flex-1 flex flex-col pb-20 md:pb-10">
+      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col pb-20 md:pb-10">
         <AnimatePresence mode="wait" initial={false}>
           {/* =======================================================
               SURFACE 1: YOUR ARCHIVE (Personalized Shelves)

@@ -637,7 +637,9 @@ export default function HomePage() {
                     <img
                       src={curatorMovie.poster_url}
                       alt={curatorMovie.title}
-                      className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+                      className={`w-full h-full object-cover object-center transition-transform duration-500 ease-out ${
+                        isReduced ? "" : "group-hover:scale-[1.02]"
+                      }`}
                       onError={() => setSpotlightImgError(true)}
                     />
                   ) : (
@@ -696,7 +698,7 @@ export default function HomePage() {
 
                     {/* Grounded Curatorial Explanation or Honest Cold-Start Label */}
                     {curatorConfidence === "COLD_START" || curatorMovie.explanation?.confidence === "COLD_START" ? (
-                      <div className="p-3.5 rounded-xl bg-surface-secondary/80 border border-border/70 text-xs text-foreground-secondary leading-relaxed flex items-start gap-2.5">
+                      <div className="border-l-2 border-primary/50 pl-3.5 py-0.5 text-xs text-foreground-secondary leading-relaxed flex items-start gap-2.5">
                         <span className="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">verified</span>
                         <div>
                           <p className="font-semibold text-foreground text-xs">Editorial Selection: Highly rated in the Flick collection</p>
@@ -706,7 +708,7 @@ export default function HomePage() {
                         </div>
                       </div>
                     ) : curatorMovie.explanation?.reason ? (
-                      <div className="p-3.5 rounded-xl bg-surface-secondary/80 border border-primary/20 text-xs text-foreground leading-relaxed space-y-1.5">
+                      <div className="border-l-2 border-primary/50 pl-3.5 py-0.5 text-xs text-foreground leading-relaxed space-y-1.5">
                         <div className="flex items-start gap-2">
                           <span className="material-symbols-outlined text-[16px] text-primary shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>
                             auto_awesome
@@ -723,19 +725,19 @@ export default function HomePage() {
                         )}
                       </div>
                     ) : (
-                      <div className="p-3 rounded-xl bg-surface-secondary/70 border border-border/50 text-[11px] text-foreground-secondary leading-relaxed italic">
+                      <div className="border-l-2 border-border pl-3.5 py-0.5 text-[11px] text-foreground-secondary leading-relaxed italic">
                         "A distinguished piece of cinema preserved in our collection that rewards patient contemplation."
                       </div>
                     )}
 
                     {/* Matched Signals Tags */}
                     {curatorMovie.explanation?.matched_signals && curatorMovie.explanation.matched_signals.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 pt-0.5">
                         <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-secondary/70">Matched Signals:</span>
                         {curatorMovie.explanation.matched_signals.map((signal, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/25 text-primary text-[10px] font-mono font-medium"
+                            className="text-primary text-[10px] font-mono font-medium"
                           >
                             #{signal}
                           </span>
