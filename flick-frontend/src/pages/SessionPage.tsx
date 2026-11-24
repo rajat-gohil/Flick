@@ -2813,21 +2813,36 @@ function SessionPageInner() {
           </div>
 
           {/* Share options */}
-          <div className="w-full flex gap-3">
+          <div className="w-full flex flex-col gap-2.5">
             <button
-              onClick={shareLink}
-              className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm"
+              onClick={() => {
+                if (!sessionLink) return;
+                const text = encodeURIComponent(
+                  `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${sessionLink}`
+                );
+                window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
+              }}
+              className="w-full h-11 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-[0.99]"
             >
-              <span className="material-symbols-outlined text-[16px]">share</span>
-              Share Invite
+              <span className="font-bold text-sm">💬</span>
+              <span>Send via WhatsApp</span>
             </button>
-            <button
-              onClick={copyLink}
-              className="flex-1 h-11 rounded-xl bg-surface border border-border hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">{linkCopied ? "check" : "link"}</span>
-              {linkCopied ? "Copied" : "Copy Link"}
-            </button>
+            <div className="w-full flex gap-3">
+              <button
+                onClick={shareLink}
+                className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">share</span>
+                Share Invite
+              </button>
+              <button
+                onClick={copyLink}
+                className="flex-1 h-11 rounded-xl bg-surface border border-border hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">{linkCopied ? "check" : "link"}</span>
+                {linkCopied ? "Copied" : "Copy Link"}
+              </button>
+            </div>
           </div>
 
           {/* Pulsing indicator */}
@@ -2872,6 +2887,8 @@ function SessionPageInner() {
         sessionEnded={Boolean(session?.ended)}
         onFetchMetadata={() => fetchMetadata(matchedMovie.id, matchedMovie.title)}
         onTrailerClick={() => trackEvent("match_trailer_clicked", { movie_id: matchedMovie.id })}
+        sessionCode={session?.code}
+        onSharePassClick={() => trackEvent("match_share_pass_clicked", { movie_id: matchedMovie.id, code: session?.code })}
       />
     );
   }

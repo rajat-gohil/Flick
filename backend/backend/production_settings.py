@@ -94,14 +94,14 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Flick <discoverflick@
 # FRONTEND
 # ─────────────────────────────────────────────────────────────
 # Used to build absolute links in emails (password reset, verification)
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://flickapp.in")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://flick-kappa.vercel.app")
 
 # ─────────────────────────────────────────────────────────────
 # CORS — restrict to your domain in production
 # ─────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS",
-    "https://flickapp.in,https://www.flickapp.in"
+    "https://flick-kappa.vercel.app"
 ).split(",")
 CORS_ALLOW_ALL_ORIGINS = False  # override dev setting if any
 

@@ -92,14 +92,34 @@ export default function StreamingOptions({
   movieId,
   movieTitle,
   region,
+  onProvidersLoaded,
 }: {
   movieId: number;
   movieTitle?: string;
   region?: string;
+  onProvidersLoaded?: (providerNames: string[]) => void;
 }) {
   const [data, setData] = useState<StreamingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const notifyProviders = useCallback(
+    (grouped: StreamingData) => {
+      if (!onProvidersLoaded) return;
+      const ordered = [
+        ...grouped.flatrate,
+        ...grouped.free,
+        ...grouped.ads,
+        ...grouped.rent,
+        ...grouped.buy,
+      ];
+      const names = Array.from(
+        new Set(ordered.map((p) => p.name || p.provider_name).filter(Boolean) as string[])
+      );
+      onProvidersLoaded(names);
+    },
+    [onProvidersLoaded]
+  );
 
   const fetchProviders = useCallback(() => {
     let cancelled = false;
@@ -111,6 +131,7 @@ export default function StreamingOptions({
       setData(cached.data);
       setLoading(false);
       setError(null);
+      notifyProviders(cached.data);
       return () => {};
     }
 
@@ -152,6 +173,7 @@ export default function StreamingOptions({
 
         streamingCache.set(cacheKey, { data: grouped, timestamp: Date.now() });
         setData(grouped);
+        notifyProviders(grouped);
         setLoading(false);
       })
       .catch((err: any) => {
@@ -164,7 +186,7 @@ export default function StreamingOptions({
     return () => {
       cancelled = true;
     };
-  }, [movieId, region]);
+  }, [movieId, region, notifyProviders]);
 
   useEffect(() => {
     const cleanup = fetchProviders();

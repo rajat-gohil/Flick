@@ -872,10 +872,10 @@ export default function CreateSessionPage() {
               {sessionCode}
             </button>
 
-            <div className="flex gap-2.5 w-full">
+            <div className="grid grid-cols-2 gap-2.5 w-full mb-2.5">
               <button
                 onClick={handleCopyCode}
-                className="flex-1 h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors"
+                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">
                   {copied ? "check" : "content_copy"}
@@ -884,12 +884,26 @@ export default function CreateSessionPage() {
               </button>
               <button
                 onClick={handleShare}
-                className="flex-1 h-11 bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">share</span>
-                Share Link
+                Share Options
               </button>
             </div>
+
+            <button
+              onClick={() => {
+                if (!inviteLink) return;
+                const text = encodeURIComponent(
+                  `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${inviteLink}`
+                );
+                window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
+              }}
+              className="w-full h-11 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+            >
+              <span className="font-bold text-sm">💬</span>
+              <span>Send via WhatsApp</span>
+            </button>
           </div>
 
           {/* Invite link direct row */}

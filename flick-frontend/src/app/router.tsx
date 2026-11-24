@@ -97,6 +97,7 @@ function AnimatedRoutes() {
 
           {/* ── Deep-link join (public → saves code → redirects to auto-join) ── */}
           <Route path="/join/:sessionCode" element={<JoinViaLink />} />
+          <Route path="/j/:sessionCode" element={<JoinViaLink />} />
 
           {/* ── Protected: auto-join after login ── */}
           <Route path="/auto-join" element={<RequireAuth><AutoJoin /></RequireAuth>} />

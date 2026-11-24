@@ -1,5 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
+from .views_invite import SessionInviteMetadataAPIView
 from .views import (
     MovieListView,
     MovieDetailView,
@@ -85,6 +86,7 @@ urlpatterns = [
     path('swipes/', SwipeCreateView.as_view(), name='swipe-create'),
     path('sessions/create/', SessionCreateView.as_view(), name='session-create'),
     path('sessions/join/', SessionJoinView.as_view(), name='session-join'),
+    path('sessions/<str:code>/preview/', SessionInviteMetadataAPIView.as_view(), name='session-invite-preview-api'),
     path('sessions/recent/', SessionRecentListView.as_view(), name='session-recent'),
     path('sessions/history/', SessionHistoryView.as_view(), name='session-history'),
     path("sessions/end/", SessionEndView.as_view(), name="session-end"),

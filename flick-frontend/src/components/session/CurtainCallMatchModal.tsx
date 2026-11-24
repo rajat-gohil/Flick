@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { motion } from "framer-motion";
+import { Share2 } from "lucide-react";
 import StreamingOptions from "../StreamingOptions";
+import SalonPassShareModal from "./SalonPassShareModal";
 
 export type MatchPresentationStyle = "antique_brass" | "amber" | "emerald" | "neutral";
 
@@ -57,6 +59,9 @@ export interface CurtainCallMatchModalProps {
   sessionEnded: boolean;
   onFetchMetadata: () => void;
   onTrailerClick?: () => void;
+  sessionCode?: string;
+  partnerNames?: string;
+  onSharePassClick?: () => void;
 }
 
 export function CurtainCallMatchModal({
@@ -75,7 +80,12 @@ export function CurtainCallMatchModal({
   sessionEnded,
   onFetchMetadata,
   onTrailerClick,
+  sessionCode,
+  partnerNames,
+  onSharePassClick,
 }: CurtainCallMatchModalProps) {
+  const [showSharePassModal, setShowSharePassModal] = useState(false);
+  const [streamingProviders, setStreamingProviders] = useState<string[]>([]);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const isMinimal = renderMode === "minimal";
@@ -523,16 +533,34 @@ export function CurtainCallMatchModal({
             </span>
             <span>{isWatchlisted ? "Saved" : "Save"}</span>
           </button>
+
+          {/* Action 3: Share Theatrical Salon Pass */}
+          <button
+            type="button"
+            onClick={() => {
+              onSharePassClick?.();
+              setShowSharePassModal(true);
+            }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 sm:py-2 rounded-xl border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 cursor-pointer"
+            title="Generate & share Theatrical Salon Pass for Instagram Stories or WhatsApp"
+          >
+            <Share2 size={15} />
+            <span>Pass</span>
+          </button>
         </div>
 
-        {/* Action 3: Streaming Options Preview */}
+        {/* Action 4: Streaming Options Preview */}
         <div className="w-full mb-2 max-h-36 overflow-y-auto rounded-xl">
-          <StreamingOptions movieId={matchedMovie.id} movieTitle={matchedMovie.title} />
+          <StreamingOptions
+            movieId={matchedMovie.id}
+            movieTitle={matchedMovie.title}
+            onProvidersLoaded={setStreamingProviders}
+          />
         </div>
 
         {/* Primary Action Buttons */}
         <div className="flex flex-col gap-2 w-full mt-1.5">
-          {/* Action 4: Continue Screening Deck */}
+          {/* Action 5: Continue Screening Deck */}
           <button
             type="button"
             onClick={onDismiss}
@@ -541,7 +569,7 @@ export function CurtainCallMatchModal({
             Continue Screening Deck
           </button>
 
-          {/* Action 5: Conclude & View All Matches */}
+          {/* Action 6: Conclude & View All Matches */}
           <button
             type="button"
             onClick={onEndSession}
@@ -555,6 +583,28 @@ export function CurtainCallMatchModal({
             )}
           </button>
         </div>
+
+        {/* Theatrical Salon Pass Export Modal */}
+        <SalonPassShareModal
+          isOpen={showSharePassModal}
+          onClose={() => setShowSharePassModal(false)}
+          data={{
+            movieTitle: matchedMovie.title,
+            releaseYear: matchedMovie.release_year,
+            rating: matchedMovie.rating,
+            posterUrl: matchedMovie.poster_url,
+            sessionCode,
+            partnerNames,
+            userRole,
+            compatibilityScore:
+              matchedMovie.match_type === "mutual_superlike"
+                ? "100% Mutual Superlike"
+                : matchedMovie.match_type === "superlike"
+                ? "95% Superlike Harmony"
+                : "92% Consensus Harmony",
+            streamingProviders,
+          }}
+        />
       </div>
     </div>
   );
