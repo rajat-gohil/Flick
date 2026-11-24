@@ -217,7 +217,7 @@ describe("Phase 1 Motion Refinement: BottomNav & HomePage Motion", () => {
       expect(glowElement?.getAttribute("aria-hidden")).toBe("true");
     });
 
-    it("renders direct salon entry ticket card with ambient breathing glow", async () => {
+    it("renders direct salon entry ticket card without continuous ambient pulsing glow", async () => {
       render(
         <MemoryRouter initialEntries={["/home"]}>
           <HomePage />
@@ -227,11 +227,10 @@ describe("Phase 1 Motion Refinement: BottomNav & HomePage Motion", () => {
       const joinCard = await screen.findByText(/direct salon entry/i);
       expect(joinCard).not.toBeNull();
 
-      // Ambient glow element is present behind the join card
+      // Continuous decorative pulsing blur behind the join card is intentionally omitted
       const cardContainer = joinCard.closest('[data-tour="home-join-code"]')?.parentElement;
       const glowElement = cardContainer?.querySelector(".bg-primary\\/20.blur-xl");
-      expect(glowElement).not.toBeNull();
-      expect(glowElement?.getAttribute("aria-hidden")).toBe("true");
+      expect(glowElement).toBeNull();
     });
 
     it("suppresses ambient breathing glows when prefers-reduced-motion is active", async () => {

@@ -465,7 +465,7 @@ export default function HomePage() {
         >
           <div className="w-full rounded-2xl border border-primary/35 bg-surface/90 hover:bg-surface border-l-4 border-l-primary backdrop-blur-md p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-200 shadow-sm hover:shadow-md">
             <div className="flex items-start gap-3.5">
-              <div className="size-10 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0 mt-0.5">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
                 <span className="material-symbols-outlined text-[22px]">
                   shield_lock
                 </span>
@@ -541,23 +541,6 @@ export default function HomePage() {
                 <p className="text-foreground-secondary text-sm sm:text-base leading-relaxed max-w-2xl">
                   Find something genuinely worth watching—or find someone to watch it with. Step beyond generic algorithms into an independent cinema library built for curious cinephiles.
                 </p>
-
-                {/* Editorial Annotations (Restrained & Playful) */}
-                <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                  {[
-                    "Your seat is waiting",
-                    "No spoilers · Only discoveries",
-                    "Let the stories find you"
-                  ].map((note, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border/80 bg-surface/70 text-[11px] font-medium text-foreground-secondary/90 shadow-2xs"
-                    >
-                      <span className="material-symbols-outlined text-[13px] text-primary">grain</span>
-                      {note}
-                    </span>
-                  ))}
-                </div>
               </div>
 
               {/* Two Physical Cinema Entrance Artifacts (Matched Height & Alignment) */}
@@ -573,21 +556,6 @@ export default function HomePage() {
 
                 {/* Right: The Salon Entry Pass (Room Code Route) */}
                 <div className="lg:col-span-5 relative flex">
-                  {!isReduced && (
-                    <motion.div
-                      aria-hidden="true"
-                      animate={{
-                        opacity: [0.2, 0.5, 0.2],
-                        scale: [0.98, 1.02, 0.98],
-                      }}
-                      transition={{
-                        duration: 5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                      className="absolute -inset-1 rounded-3xl bg-primary/20 blur-xl pointer-events-none -z-10"
-                    />
-                  )}
                   <CinemaSalonPass
                     joinCode={joinCode}
                     setJoinCode={setJoinCode}

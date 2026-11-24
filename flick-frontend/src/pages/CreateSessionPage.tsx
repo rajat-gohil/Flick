@@ -875,7 +875,7 @@ export default function CreateSessionPage() {
             <div className="grid grid-cols-2 gap-2.5 w-full mb-2.5">
               <button
                 onClick={handleCopyCode}
-                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-[0.99] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">
                   {copied ? "check" : "content_copy"}
@@ -884,7 +884,7 @@ export default function CreateSessionPage() {
               </button>
               <button
                 onClick={handleShare}
-                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-full flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-[0.99] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">share</span>
                 Share Options
@@ -899,7 +899,7 @@ export default function CreateSessionPage() {
                 );
                 window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
               }}
-              className="w-full h-11 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs rounded-full flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-[0.99]"
+              className="w-full h-11 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs active:scale-[0.99]"
             >
               <span className="font-bold text-sm">💬</span>
               <span>Send via WhatsApp</span>

@@ -172,6 +172,7 @@ export default function CinemaSalonPass({
       }}
       className={`relative mx-auto w-full select-none h-full ${className}`}
     >
+      {/* Note: Do NOT put overflow-hidden on this preserve-3d element, as CSS flattens preserve-3d when overflow is clipped */}
       <motion.div
         ref={cardRef}
         onPointerDown={handlePointerDown}
@@ -187,49 +188,50 @@ export default function CinemaSalonPass({
           transformStyle: "preserve-3d",
           WebkitTransformStyle: "preserve-3d",
         }}
-        className="relative w-full h-full rounded-2xl border border-border/90 bg-[#FBF9F4] dark:bg-[#222721] p-5 sm:p-7 shadow-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl active:shadow-md cursor-grab active:cursor-grabbing text-foreground flex flex-col justify-between"
+        className="relative w-full h-full rounded-2xl border border-border/90 bg-[#FBF9F4] dark:bg-[#222721] p-5 sm:p-7 shadow-lg transition-shadow duration-300 hover:shadow-xl active:shadow-md cursor-grab active:cursor-grabbing text-foreground flex flex-col justify-between"
       >
-        {/* Tactile Paper Texture (SVG noise overlay) */}
+        {/* Clipped background surface for texture, sheen, border rules, and sprockets */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 pointer-events-none opacity-[0.035] dark:opacity-[0.05] mix-blend-multiply dark:mix-blend-screen bg-repeat z-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* Specular Light Reflection (reactive to touch and cursor) */}
-        {!isReduced && (
+          className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none z-0"
+        >
+          {/* Tactile Paper Texture (SVG noise overlay) */}
           <div
-            aria-hidden="true"
-            className={`absolute inset-0 pointer-events-none transition-opacity duration-300 z-20 ${
-              isActive ? "opacity-100" : "opacity-0"
-            }`}
+            className="absolute inset-0 opacity-[0.035] dark:opacity-[0.05] mix-blend-multiply dark:mix-blend-screen bg-repeat"
             style={{
-              background: `radial-gradient(circle 240px at ${sheenPos.x}% ${sheenPos.y}%, rgba(255, 255, 255, 0.42) 0%, rgba(216, 194, 157, 0.22) 38%, rgba(255, 255, 255, 0) 70%)`,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
             }}
           />
-        )}
 
-        {/* Ticket Outer Border Rules (Letterpress Double Framing) */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-1.5 rounded-[12px] border border-border/50 pointer-events-none z-10"
-        />
-
-        {/* Decorative 35mm Celluloid Sprocket Header Strip */}
-        <div className="absolute top-0 inset-x-0 h-2.5 flex justify-between px-3 gap-1 overflow-hidden opacity-35 z-10">
-          {Array.from({ length: 24 }).map((_, i) => (
+          {/* Specular Light Reflection (reactive to touch and cursor) */}
+          {!isReduced && (
             <div
-              key={i}
-              className="w-1.5 h-1.5 rounded-[1px] bg-foreground/80 dark:bg-foreground/60 shrink-0"
+              className={`absolute inset-0 transition-opacity duration-300 z-20 ${
+                isActive ? "opacity-100" : "opacity-0"
+              }`}
+              style={{
+                background: `radial-gradient(circle 240px at ${sheenPos.x}% ${sheenPos.y}%, rgba(255, 255, 255, 0.42) 0%, rgba(216, 194, 157, 0.22) 38%, rgba(255, 255, 255, 0) 70%)`,
+              }}
             />
-          ))}
+          )}
+
+          {/* Ticket Outer Border Rules (Letterpress Double Framing) */}
+          <div className="absolute inset-1.5 rounded-[12px] border border-border/50 z-10" />
+
+          {/* Decorative 35mm Celluloid Sprocket Header Strip */}
+          <div className="absolute top-0 inset-x-0 h-2.5 flex justify-between px-3 gap-1 overflow-hidden opacity-35 z-10">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-1.5 h-1.5 rounded-[1px] bg-foreground/80 dark:bg-foreground/60 shrink-0"
+              />
+            ))}
+          </div>
         </div>
 
         {/* ── Pass Header ── */}
         <div
-          style={{ transform: "translateZ(8px)" }}
+          style={{ transform: isReduced ? undefined : "translateZ(8px)" }}
           className="relative z-10 flex items-center justify-between mb-3.5 pt-1.5 border-b border-border/60 pb-3"
         >
           <div className="flex items-center gap-2">
@@ -240,14 +242,14 @@ export default function CinemaSalonPass({
               Direct Salon Entry
             </h2>
           </div>
-          <span className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#8F754F] dark:text-[#C5A880] px-2 py-0.5 rounded border border-[#8F754F]/30 dark:border-[#C5A880]/30 bg-[#8F754F]/5 dark:bg-[#C5A880]/10">
+          <span className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-[#8F754F] dark:text-[#C5A880]">
             ROOM INVITATION
           </span>
         </div>
 
         {/* Narrative Description */}
         <p
-          style={{ transform: "translateZ(6px)" }}
+          style={{ transform: isReduced ? undefined : "translateZ(6px)" }}
           className="relative z-10 text-xs text-foreground-secondary mb-4 leading-relaxed"
         >
           Have a 6-character room passcode from a co-viewer? Enter below to join their active screening deck immediately.
@@ -256,7 +258,7 @@ export default function CinemaSalonPass({
         {/* Error Notice */}
         {error && (
           <div
-            style={{ transform: "translateZ(10px)" }}
+            style={{ transform: isReduced ? undefined : "translateZ(10px)" }}
             className="relative z-10 mb-3.5 p-2.5 bg-error/10 border border-error/20 rounded-xl text-center"
             role="alert"
           >
@@ -266,7 +268,7 @@ export default function CinemaSalonPass({
 
         {/* ── Input & Submit Field (Layered 3D Depth) ── */}
         <div
-          style={{ transform: "translateZ(14px)" }}
+          style={{ transform: isReduced ? undefined : "translateZ(14px)" }}
           className="relative z-10 flex w-full items-stretch rounded-xl shadow-xs border border-border bg-surface focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary transition-all overflow-hidden"
         >
           <input
@@ -302,7 +304,7 @@ export default function CinemaSalonPass({
 
         {/* ── Sub-note & Verified Live Presence ── */}
         <div
-          style={{ transform: "translateZ(6px)" }}
+          style={{ transform: isReduced ? undefined : "translateZ(6px)" }}
           className="relative z-10 mt-4 pt-3.5 border-t border-border/50 flex items-center justify-between text-[11px] text-foreground-secondary"
         >
           <span className="flex items-center gap-1.5 font-medium">

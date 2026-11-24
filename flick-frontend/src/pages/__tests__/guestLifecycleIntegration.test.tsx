@@ -111,7 +111,7 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
         </ThemeProvider>
       );
 
-      const exploreBtn = screen.getByRole("button", { name: /start exploring/i });
+      const exploreBtn = screen.getAllByRole("button", { name: /start a movie night/i })[0];
       fireEvent.click(exploreBtn);
 
       await waitFor(() => {
@@ -203,7 +203,7 @@ describe("Persistent Guest Accounts — Frontend Lifecycle Integration", () => {
         </ThemeProvider>
       );
 
-      fireEvent.click(screen.getByRole("button", { name: /start exploring/i }));
+      fireEvent.click(screen.getAllByRole("button", { name: /start a movie night/i })[0]);
 
       await waitFor(() => {
         expect(screen.getByRole("alert").textContent).toContain("Database temporarily unavailable");

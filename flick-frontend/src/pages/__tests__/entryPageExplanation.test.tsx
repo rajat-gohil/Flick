@@ -41,12 +41,12 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
     expect(screen.getByText(/Swipe through curated cinema with your partner/i)).not.toBeNull();
 
     // Primary guest exploration button
-    expect(screen.getByRole("button", { name: /start exploring/i })).not.toBeNull();
+    expect(screen.getAllByRole("button", { name: /start a movie night/i }).length).toBeGreaterThanOrEqual(1);
 
-    // Secondary actions row
+    // Secondary actions (Sign In, Sign Up, Restore) remain accessible
     expect(screen.getAllByRole("button", { name: "Sign In" }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByRole("button", { name: "Sign Up" }).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByRole("button", { name: /restore/i })).not.toBeNull();
+    expect(screen.getByRole("button", { name: /restore key/i })).not.toBeNull();
   });
 
   it("2. Explains the three pillars of access: Guest Mode, Permanent Account, and Key Recovery", () => {
@@ -120,7 +120,7 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
 
     // Click FAQ to toggle answer
     fireEvent.click(faqButton);
-    expect(screen.getByText(/No! You can tap 'Start Exploring' to immediately start swiping/i)).not.toBeNull();
+    expect(screen.getByText(/No! You can tap 'Start a Movie Night' to immediately start swiping/i)).not.toBeNull();
   });
 
   it("5. Navigates cleanly when clicking Sign In, Sign Up, or Restore", () => {

@@ -73,25 +73,32 @@ export default function EntryPage() {
       <div className="relative bg-background text-foreground font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-clip transition-colors duration-200">
         
         {/* ── Top Bar: Brand mark & Actions ── */}
-        <header className="relative z-10 flex items-center justify-between w-full max-w-5xl mx-auto px-6 py-5">
+        <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center gap-3">
             <img src={logoFull} alt="Flick" className="h-8 w-auto object-contain" />
-            <span className="hidden sm:inline-block text-[10px] font-sans tracking-widest uppercase px-2 py-0.5 rounded-full border border-border text-foreground-secondary">
+            <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest uppercase text-foreground-secondary">
               Art-House Edition
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <button
-              onClick={() => scrollToSection("access-guide")}
-              className="text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-2.5 py-1.5 rounded-lg cursor-pointer"
+              onClick={() => scrollToSection("screening-flow")}
+              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-2.5 rounded-lg cursor-pointer"
             >
               How It Works
             </button>
 
             <button
+              onClick={() => navigate("/register")}
+              className="hidden sm:inline-flex min-h-9 items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-2.5 rounded-lg cursor-pointer"
+            >
+              Sign Up
+            </button>
+
+            <button
               onClick={() => navigate("/login")}
-              className="text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-3 py-1.5 rounded-full border border-border/80 hover:bg-surface-secondary cursor-pointer"
+              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-3.5 rounded-full border border-border/80 hover:bg-surface-secondary active:scale-[0.99] cursor-pointer"
             >
               Sign In
             </button>
@@ -99,7 +106,7 @@ export default function EntryPage() {
             <button
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-              className="size-9 rounded-full border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors cursor-pointer"
+              className="size-11 sm:size-9 rounded-full border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary active:scale-[0.99] transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">
                 {theme === "dark" ? "light_mode" : "dark_mode"}
@@ -109,99 +116,217 @@ export default function EntryPage() {
         </header>
 
         {/* ── Hero Section ── */}
-        <main className="relative z-10 w-full max-w-3xl mx-auto px-6 pt-10 pb-16 sm:py-20 flex flex-col items-center text-center">
-          <div className="mb-6 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-secondary border border-border text-foreground-secondary text-xs tracking-wider uppercase shadow-2xs">
-            <span className="material-symbols-outlined text-[15px] text-primary">movie</span>
-            <span className="font-medium">Collaborative Film Curation</span>
-          </div>
+        <main className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 min-h-[calc(100dvh-4.75rem)] flex items-center py-8 sm:py-12 lg:py-16">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
 
-          <h1 className="font-editorial text-4xl sm:text-6xl md:text-7xl font-normal leading-[1.08] tracking-tight text-foreground mb-6">
-            Movie night, <br />
-            <span className="italic font-normal">thoughtfully decided.</span>
-          </h1>
+            {/* Left Column: Core Narrative & 2 Primary CTAs */}
+            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left">
+              <p className="mb-4 font-mono text-[11px] font-semibold tracking-widest uppercase text-primary">
+                Collaborative Film Curation
+              </p>
 
-          <p className="text-foreground-secondary text-base sm:text-lg max-w-lg mx-auto leading-relaxed mb-8 font-sans">
-            Swipe through curated cinema with your partner. Discover independent features, festival selections, and world cinema together.
-          </p>
+              <h1 className="font-editorial text-4xl sm:text-5xl xl:text-6xl font-normal leading-[1.08] tracking-tight text-foreground mb-5">
+                Movie night, <br />
+                <span className="italic font-normal">thoughtfully decided.</span>
+              </h1>
 
-          {/* Error Banner if Provisioning Failed */}
-          {error && (
-            <div
-              role="alert"
-              className="mb-6 w-full max-w-md p-3.5 bg-error/10 border border-error/20 rounded-xl flex items-start gap-2.5 text-left"
-            >
-              <span className="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">
-                error
-              </span>
-              <p className="text-xs text-error font-medium leading-relaxed">{error}</p>
-            </div>
-          )}
+              <p className="text-foreground-secondary text-base sm:text-lg max-w-lg leading-relaxed mb-7 font-sans">
+                Swipe through curated cinema with your partner. Discover independent features, festival selections, and world cinema together.
+              </p>
 
-          {/* Action Cluster */}
-          <div className="w-full max-w-md flex flex-col gap-3.5">
-            {/* Primary CTA: Instant Guest */}
-            <button
-              onClick={handleStartExploring}
-              disabled={loading}
-              className="w-full h-14 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-60 hover:scale-[1.01] active:scale-[0.99]"
-            >
-              {loading ? (
-                <span className="size-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Start Exploring</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </>
+              {/* Error Banner if Provisioning Failed */}
+              {error && (
+                <div
+                  role="alert"
+                  className="mb-6 w-full max-w-md p-3.5 bg-error/10 border border-error/20 rounded-xl flex items-start gap-2.5 text-left"
+                >
+                  <span className="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">
+                    error
+                  </span>
+                  <p className="text-xs text-error font-medium leading-relaxed">{error}</p>
+                </div>
               )}
-            </button>
 
-            {/* Instant micro-clarity hint */}
-            <p className="text-[11px] text-foreground-secondary flex items-center justify-center gap-1.5">
-              <span className="material-symbols-outlined text-[14px] text-primary">bolt</span>
-              <span>Instant guest session • No email or registration required</span>
-            </p>
+              {/* Primary & Secondary CTA Pair */}
+              <div className="w-full max-w-md flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleStartExploring}
+                  disabled={loading}
+                  className="flex-1 min-h-12 sm:h-13 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors duration-150 active:scale-[0.99] flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-60"
+                >
+                  {loading ? (
+                    <span className="size-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>Start a Movie Night</span>
+                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </>
+                  )}
+                </button>
 
-            {/* Secondary Option Buttons */}
-            <div className="grid grid-cols-3 gap-2.5 w-full mt-2">
-              <button
-                onClick={() => navigate("/login")}
-                disabled={loading}
-                className="h-11 px-3 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-xs tracking-wide transition-colors duration-150 flex items-center justify-center cursor-pointer"
-              >
-                Sign In
-              </button>
+                <button
+                  onClick={() => navigate("/login")}
+                  disabled={loading}
+                  className="min-h-12 sm:h-13 px-6 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-sm tracking-wide transition-colors duration-150 active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </div>
 
-              <button
-                onClick={() => navigate("/register")}
-                disabled={loading}
-                className="h-11 px-3 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-xs tracking-wide transition-colors duration-150 flex items-center justify-center cursor-pointer"
-              >
-                Sign Up
-              </button>
-
-              <button
-                onClick={() => navigate("/recover")}
-                disabled={loading}
-                className="h-11 px-3 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-xs tracking-wide transition-colors duration-150 flex items-center justify-center gap-1 cursor-pointer"
-                title="Restore with your 16-character recovery key"
-              >
-                <span className="material-symbols-outlined text-[14px] text-primary">key</span>
-                <span>Restore</span>
-              </button>
+              {/* Micro-clarity hint + secondary Restore link */}
+              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-[11px] text-foreground-secondary">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-primary">bolt</span>
+                  <span>Instant guest session • No email or registration required</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navigate("/recover")}
+                  className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary underline underline-offset-4 transition-colors cursor-pointer py-1"
+                  title="Restore with your 16-character recovery key"
+                >
+                  <span>Restore key</span>
+                </button>
+              </div>
             </div>
+
+            {/* Right Column: Product Presentation Preview */}
+            <div className="lg:col-span-6 w-full max-w-md mx-auto lg:max-w-none">
+              <div
+                aria-label="Presentation preview of Flick's collaborative movie deck"
+                className="relative rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-md"
+              >
+                {/* Preview Header Bar */}
+                <div className="flex items-center justify-between pb-3 mb-4 border-b border-border/60">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary font-semibold">
+                    Preview · Collaborative Screening Deck
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-primary font-semibold">
+                    Room Sync
+                  </span>
+                </div>
+
+                {/* Sample Screening Card */}
+                <div className="rounded-xl bg-surface-secondary/70 border border-border/70 p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary">
+                        Curated Feature · 2000
+                      </p>
+                      <h2 className="font-editorial text-2xl sm:text-3xl font-semibold text-foreground mt-0.5">
+                        In the Mood for Love
+                      </h2>
+                    </div>
+                    <span className="font-mono text-xs font-semibold text-primary shrink-0">
+                      ★ 8.1
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-foreground-secondary leading-relaxed mb-4">
+                    Two neighbors in 1962 Hong Kong form an intimate bond after suspecting extramarital activities of their spouses.
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 text-[11px] font-medium text-foreground-secondary mb-5">
+                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">Drama</span>
+                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">Romance</span>
+                    <span className="px-2.5 py-0.5 rounded-md bg-surface border border-border/70">98 min</span>
+                  </div>
+
+                  {/* Action Indicators (Presentation only) */}
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/60 text-center text-[11px] font-semibold uppercase tracking-wider">
+                    <div className="py-2 rounded-lg bg-surface text-foreground-secondary">
+                      Pass
+                    </div>
+                    <div className="py-2 rounded-lg bg-primary/15 text-primary">
+                      Super-Like
+                    </div>
+                    <div className="py-2 rounded-lg bg-primary text-primary-foreground">
+                      Like
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mutual Match Indicator */}
+                <div className="mt-4 flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-primary/10 text-xs">
+                  <span className="font-medium text-foreground">
+                    Both viewers swipe right → <span className="text-primary font-semibold">Instant Match</span>
+                  </span>
+                  <span className="material-symbols-outlined text-[16px] text-primary shrink-0">
+                    verified
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </main>
+
+        {/* ── Section: 3-Step Film Night Walkthrough (Product-First) ── */}
+        <section
+          id="screening-flow"
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 border-t border-border/60"
+        >
+          <div className="text-center max-w-lg mx-auto mb-10">
+            <p className="font-mono text-[11px] font-semibold text-primary uppercase tracking-widest">
+              The Screening Flow
+            </p>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mt-3 mb-2">
+              Three Steps to Movie Night
+            </h2>
+            <p className="text-xs sm:text-sm text-foreground-secondary font-sans">
+              Designed to eliminate endless scrolling and make movie selection joyful.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
+              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
+                1
+              </div>
+              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
+                Open a Room
+              </h4>
+              <p className="text-xs text-foreground-secondary leading-relaxed">
+                Create a session in one tap and send the 6-letter room code or link to your partner. No app install needed.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
+              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
+                2
+              </div>
+              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
+                Swipe in Sync
+              </h4>
+              <p className="text-xs text-foreground-secondary leading-relaxed">
+                Swipe right to Recommend, left to Pass, or Star to Super-Like. Cards pre-buffer instantly with zero delay.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
+              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
+                3
+              </div>
+              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
+                Instant Consensus
+              </h4>
+              <p className="text-xs text-foreground-secondary leading-relaxed">
+                When you both swipe right, Flick locks in your mutual match with streaming options and a shareable Salon Pass.
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* ── Section: How Account Access Works ── */}
         <section
           id="access-guide"
-          className="relative z-10 w-full max-w-5xl mx-auto px-6 py-16 border-t border-border/60"
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 border-t border-border/60"
         >
           <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-[11px] font-semibold text-primary uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+            <p className="font-mono text-[11px] font-semibold text-primary uppercase tracking-widest">
               Access Guide
-            </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mt-4 mb-3">
+            </p>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mt-3 mb-3">
               How Sign-Up, Sign-In & Guest Access Work
             </h2>
             <p className="text-sm text-foreground-secondary leading-relaxed font-sans">
@@ -211,15 +336,15 @@ export default function EntryPage() {
 
           {/* Three Access Pillars */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
+
             {/* Pillar 1: Instant Guest */}
             <div className="bg-surface border border-border/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                     <span className="material-symbols-outlined text-[22px]">explore</span>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-surface-secondary border border-border text-foreground-secondary">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground-secondary">
                     Quickest Start
                   </span>
                 </div>
@@ -228,7 +353,7 @@ export default function EntryPage() {
                   1. Instant Guest Mode
                 </h3>
                 <p className="text-xs text-foreground-secondary leading-relaxed mb-5">
-                  Tap <strong>Start Exploring</strong> to begin immediately. No name, email, or password is needed. Flick provisions a private guest journal saved in your browser.
+                  Tap <strong>Start a Movie Night</strong> to begin immediately. No name, email, or password is needed. Flick provisions a private guest journal saved in your browser.
                 </p>
 
                 <ul className="text-xs text-foreground-secondary space-y-2 mb-6">
@@ -254,9 +379,9 @@ export default function EntryPage() {
               <button
                 onClick={handleStartExploring}
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full min-h-11 py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>Explore as Guest</span>
+                <span>Start a Movie Night</span>
                 <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
               </button>
             </div>
@@ -269,10 +394,10 @@ export default function EntryPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                     <span className="material-symbols-outlined text-[22px]">badge</span>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary">
                     Permanent Sync
                   </span>
                 </div>
@@ -307,13 +432,13 @@ export default function EntryPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => navigate("/register")}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  className="flex-1 min-h-11 py-2.5 px-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <span>Sign Up</span>
                 </button>
                 <button
                   onClick={() => navigate("/login")}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  className="flex-1 min-h-11 py-2.5 px-3 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <span>Sign In</span>
                 </button>
@@ -324,10 +449,10 @@ export default function EntryPage() {
             <div className="bg-surface border border-border/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="size-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                     <span className="material-symbols-outlined text-[22px]">key</span>
                   </div>
-                  <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-surface-secondary border border-border text-foreground-secondary">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground-secondary">
                     Device Transfer
                   </span>
                 </div>
@@ -346,7 +471,7 @@ export default function EntryPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Issued automatically when you click Start Exploring</span>
+                    <span>Issued automatically when you start a movie night</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
@@ -361,7 +486,7 @@ export default function EntryPage() {
 
               <button
                 onClick={() => navigate("/recover")}
-                className="w-full py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full min-h-11 py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>Enter Recovery Code</span>
                 <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
@@ -372,7 +497,7 @@ export default function EntryPage() {
         </section>
 
         {/* ── Section: Feature Comparison Table ── */}
-        <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-12">
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12">
           <div className="bg-surface border border-border/80 rounded-2xl overflow-hidden shadow-xs">
             <div className="p-6 border-b border-border/60">
               <h3 className="font-editorial text-2xl font-bold text-foreground">
@@ -429,113 +554,62 @@ export default function EntryPage() {
           </div>
         </section>
 
-        {/* ── Section: 3-Step Film Night Walkthrough ── */}
-        <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-12 border-t border-border/60">
-          <div className="text-center max-w-lg mx-auto mb-10">
-            <span className="text-[11px] font-semibold text-primary uppercase tracking-widest px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-              The Screening Flow
-            </span>
-            <h2 className="font-editorial text-3xl font-normal text-foreground mt-4 mb-2">
-              Three Steps to Movie Night
-            </h2>
-            <p className="text-xs text-foreground-secondary font-sans">
-              Designed to eliminate endless scrolling and make movie selection joyful.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center p-5 rounded-2xl bg-surface border border-border/60">
-              <div className="size-10 rounded-full bg-surface-secondary border border-border flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                1
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Open a Room
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                Create a session in one tap and send the 6-letter room code or link to your partner. No app install needed.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center p-5 rounded-2xl bg-surface border border-border/60">
-              <div className="size-10 rounded-full bg-surface-secondary border border-border flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                2
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Swipe in Sync
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                Swipe right to Recommend, left to Pass, or Star to Super-Like. Cards pre-buffer instantly with zero delay.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center p-5 rounded-2xl bg-surface border border-border/60">
-              <div className="size-10 rounded-full bg-surface-secondary border border-border flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                3
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Instant Consensus
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                When you both swipe right, Flick locks in your mutual match with instant confetti and streaming guide info.
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* ── Section: Common Questions Accordion ── */}
-        <section className="relative z-10 w-full max-w-3xl mx-auto px-6 py-12 border-t border-border/60">
-          <div className="text-center mb-8">
-            <h3 className="font-editorial text-2xl font-bold text-foreground">
-              Frequently Asked Questions
-            </h3>
-          </div>
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 border-t border-border/60">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="font-editorial text-2xl font-bold text-foreground">
+                Frequently Asked Questions
+              </h3>
+            </div>
 
-          <div className="space-y-3">
-            {[
-              {
-                q: "Do I need to create an account to use Flick?",
-                a: "No! You can tap 'Start Exploring' to immediately start swiping and creating rooms with your partner as an anonymous guest. No email or password is ever required for guest mode.",
-              },
-              {
-                q: "What is the 16-character recovery code?",
-                a: "When you start as a guest, Flick gives you a unique 16-character key (e.g. ABCD-1234-EFGH-5678). If you switch phones, open a new laptop, or clear browser data, simply go to 'Restore Code' and enter your key to bring back all your matches and watchlist.",
-              },
-              {
-                q: "Can I convert my guest account into a permanent account later?",
-                a: "Yes! If you start as a guest and later decide you want a permanent account with email sign-in, you can visit your Profile page at any time and click 'Convert to Permanent Account'. All your existing history will be seamlessly transferred.",
-              },
-              {
-                q: "How does my partner join my screening session?",
-                a: "When you create a session, Flick generates a 6-letter room code (e.g. CINEMA) and a direct join link. Send the link to your partner; they can tap it to join directly from any browser.",
-              },
-            ].map((faq, index) => (
-              <div
-                key={index}
-                className="rounded-xl border border-border/80 bg-surface overflow-hidden transition-colors"
-              >
-                <button
-                  onClick={() => setActiveFaq(activeFaq === index ? null : index)}
-                  className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-secondary/40 transition-colors"
+            <div className="space-y-3">
+              {[
+                {
+                  q: "Do I need to create an account to use Flick?",
+                  a: "No! You can tap 'Start a Movie Night' to immediately start swiping and creating rooms with your partner as an anonymous guest. No email or password is ever required for guest mode.",
+                },
+                {
+                  q: "What is the 16-character recovery code?",
+                  a: "When you start as a guest, Flick gives you a unique 16-character key (e.g. ABCD-1234-EFGH-5678). If you switch phones, open a new laptop, or clear browser data, simply go to 'Restore key' and enter your key to bring back all your matches and watchlist.",
+                },
+                {
+                  q: "Can I convert my guest account into a permanent account later?",
+                  a: "Yes! If you start as a guest and later decide you want a permanent account with email sign-in, you can visit your Profile page at any time and click 'Convert to Permanent Account'. All your existing history will be seamlessly transferred.",
+                },
+                {
+                  q: "How does my partner join my screening session?",
+                  a: "When you create a session, Flick generates a 6-letter room code (e.g. CINEMA) and a direct join link. Send the link to your partner; they can tap it to join directly from any browser.",
+                },
+              ].map((faq, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-border/80 bg-surface overflow-hidden transition-colors"
                 >
-                  <span className="text-sm font-semibold text-foreground">
-                    {faq.q}
-                  </span>
-                  <span className="material-symbols-outlined text-[18px] text-foreground-secondary transition-transform duration-200" style={{ transform: activeFaq === index ? "rotate(180deg)" : "rotate(0deg)" }}>
-                    keyboard_arrow_down
-                  </span>
-                </button>
-                {activeFaq === index && (
-                  <div className="px-5 pb-4 pt-1 text-xs text-foreground-secondary leading-relaxed border-t border-border/40 bg-surface-secondary/20">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            ))}
+                  <button
+                    onClick={() => setActiveFaq(activeFaq === index ? null : index)}
+                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-secondary/40 transition-colors"
+                  >
+                    <span className="text-sm font-semibold text-foreground">
+                      {faq.q}
+                    </span>
+                    <span className="material-symbols-outlined text-[18px] text-foreground-secondary transition-transform duration-200" style={{ transform: activeFaq === index ? "rotate(180deg)" : "rotate(0deg)" }}>
+                      keyboard_arrow_down
+                    </span>
+                  </button>
+                  {activeFaq === index && (
+                    <div className="px-5 pb-4 pt-1 text-xs text-foreground-secondary leading-relaxed border-t border-border/40 bg-surface-secondary/20">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* ── Section: Ready to Decide CTA Banner ── */}
-        <section className="relative z-10 w-full max-w-4xl mx-auto px-6 py-12">
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12">
           <div className="rounded-3xl bg-surface border border-border/80 p-8 sm:p-12 text-center shadow-xs flex flex-col items-center">
             <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mb-3">
               Ready for film night?
@@ -547,14 +621,14 @@ export default function EntryPage() {
               <button
                 onClick={handleStartExploring}
                 disabled={loading}
-                className="flex-1 h-12 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-60"
+                className="flex-1 h-12 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-60"
               >
-                <span>Explore as Guest</span>
+                <span>Start a Movie Night</span>
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="flex-1 h-12 px-6 rounded-full bg-surface-secondary hover:bg-border text-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors flex items-center justify-center cursor-pointer"
+                className="flex-1 h-12 px-6 rounded-full bg-surface-secondary hover:bg-border text-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center cursor-pointer"
               >
                 Create Account
               </button>
@@ -563,30 +637,30 @@ export default function EntryPage() {
         </section>
 
         {/* ── Footer ── */}
-        <footer className="relative z-10 w-full max-w-5xl mx-auto px-6 py-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-foreground-secondary">
+        <footer className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-foreground-secondary">
           <p>© Flick Cinema Journal. Independent Film Discovery.</p>
           <div className="flex gap-6">
             <button
               onClick={() => navigate("/discover")}
-              className="hover:text-foreground transition-colors cursor-pointer"
+              className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
-              Browse Catalogue
+              Browse Movies
             </button>
             <button
               onClick={() => navigate("/terms")}
-              className="hover:text-foreground transition-colors cursor-pointer"
+              className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
               Terms
             </button>
             <button
               onClick={() => navigate("/privacy")}
-              className="hover:text-foreground transition-colors cursor-pointer"
+              className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
               Privacy
             </button>
             <a
               href="mailto:discoverflick@gmail.com"
-              className="hover:text-foreground transition-colors cursor-pointer"
+              className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
               Contact
             </a>
