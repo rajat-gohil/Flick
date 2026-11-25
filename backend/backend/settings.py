@@ -445,9 +445,12 @@ LOGGING = {
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://flick-kappa.vercel.app")
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
 EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "").lower()
 
-if RESEND_API_KEY or EMAIL_PROVIDER == "resend":
+if BREVO_API_KEY or EMAIL_PROVIDER == "brevo":
+    EMAIL_BACKEND = "core.mail_backends.BrevoHTTPBackend"
+elif RESEND_API_KEY or EMAIL_PROVIDER == "resend":
     EMAIL_BACKEND = "core.mail_backends.ResendHTTPBackend"
 else:
     EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")

@@ -105,3 +105,60 @@ class ResendHTTPBackend(BaseEmailBackend):
                     raise
 
         return sent_count
+
+
+class BrevoHTTPBackend(BaseEmailBackend):
+    """
+    Lightweight HTTP email backend for Brevo (formerly Sendinblue - https://brevo.com).
+    Sends transactional emails over HTTPS (Port 443) to ANY recipient in the world
+    without requiring a full domain verification (only sender address confirmation).
+    """
+
+    def __init__(self, api_key=None, fail_silently=False, **kwargs):
+        super().__init__(fail_silently=fail_silently, **kwargs)
+        self.api_key = api_key or os.getenv("BREVO_API_KEY", "").strip()
+
+    def send_messages(self, email_messages):
+        if not self.api_key:
+            logger.error("BrevoHTTPBackend: BREVO_API_KEY environment variable is not set.")
+            if not self.fail_silently:
+                raise ValueError("BREVO_API_KEY environment variable is required.")
+            return 0
+
+        sender_email = os.getenv("DEFAULT_FROM_EMAIL_ADDRESS", os.getenv("EMAIL_HOST_USER", "discoverflick@gmail.com"))
+        sender_name = os.getenv("DEFAULT_FROM_NAME", "Flick")
+
+        sent_count = 0
+        for message in email_messages:
+            payload = {
+                "sender": {"name": sender_name, "email": sender_email},
+                "to": [{"email": to_addr} for to_addr in message.to],
+                "subject": message.subject,
+                "textContent": message.body,
+            }
+
+            try:
+                response = requests.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={
+                        "api-key": self.api_key,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    json=payload,
+                    timeout=8,
+                )
+                if response.status_code in (200, 201):
+                    logger.info("Email successfully sent via Brevo to %s", message.to)
+                    sent_count += 1
+                else:
+                    logger.error("Brevo API error [%s]: %s", response.status_code, response.text)
+                    if not self.fail_silently:
+                        response.raise_for_status()
+            except Exception as exc:
+                logger.error("Failed to dispatch email via Brevo API: %s", exc)
+                if not self.fail_silently:
+                    raise
+
+        return sent_count
+
