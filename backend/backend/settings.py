@@ -444,18 +444,11 @@ LOGGING = {
 # -----------------------------------------------------------------------------
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://flick-kappa.vercel.app")
 
-EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "smtp").lower()
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
+EMAIL_PROVIDER = os.getenv("EMAIL_PROVIDER", "").lower()
 
-if EMAIL_PROVIDER == "resend":
-    if "anymail" not in INSTALLED_APPS:
-        INSTALLED_APPS.append("anymail")
-    ANYMAIL = {"RESEND_API_KEY": os.getenv("RESEND_API_KEY", "")}
-    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
-elif EMAIL_PROVIDER == "sendgrid":
-    if "anymail" not in INSTALLED_APPS:
-        INSTALLED_APPS.append("anymail")
-    ANYMAIL = {"SENDGRID_API_KEY": os.getenv("SENDGRID_API_KEY", "")}
-    EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
+if RESEND_API_KEY or EMAIL_PROVIDER == "resend":
+    EMAIL_BACKEND = "core.mail_backends.ResendHTTPBackend"
 else:
     EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
     EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
@@ -464,5 +457,6 @@ else:
     EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() in ("true", "1", "t")
     EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+    EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", 5))
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "Flick <discoverflick@gmail.com>")
