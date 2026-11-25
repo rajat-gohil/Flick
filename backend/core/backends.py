@@ -19,15 +19,16 @@ class EmailOrUsernameModelBackend(ModelBackend):
         if username is None or password is None:
             return None
 
-        user = None
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            try:
-                user = User.objects.get(email=username)
-            except User.DoesNotExist:
-                logger.debug("Authentication failed: identity not found")
-                return None
+        if isinstance(username, str):
+            username = username.strip()
+
+        user = (
+            User.objects.filter(username__iexact=username).first()
+            or User.objects.filter(email__iexact=username).first()
+        )
+        if user is None:
+            logger.debug("Authentication failed: identity not found")
+            return None
 
         if user.check_password(password) and self.user_can_authenticate(user):
             logger.info("Authentication succeeded for user_id=%s", user.id)

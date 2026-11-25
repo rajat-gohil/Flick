@@ -3180,6 +3180,8 @@ class PasswordResetRequestView(APIView):
 
     def post(self, request):
         email = request.data.get("email")
+        if isinstance(email, str):
+            email = email.strip()
         
         if not email:
             return Response({
@@ -3187,9 +3189,8 @@ class PasswordResetRequestView(APIView):
                 "error": "Email is required"
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+        user = User.objects.filter(email__iexact=email).first()
+        if user is None:
             # Don't reveal if email exists - return generic success message
             return Response({
                 "success": True,
