@@ -198,13 +198,13 @@ export default function EntryPage() {
                 aria-label="Illustrative preview showing how two viewers match on a film"
                 className="relative rounded-2xl border border-border bg-surface p-5 sm:p-7 shadow-md"
               >
-                {/* Explicit Illustrative Label */}
+                {/* Card Header */}
                 <div className="flex items-center justify-between pb-3 mb-5 border-b border-border/60">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary font-semibold">
-                    Illustrative Preview
+                    How It Works
                   </span>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-primary font-semibold">
-                    Mutual Match
+                    2 Viewers · 1 Pick
                   </span>
                 </div>
 
