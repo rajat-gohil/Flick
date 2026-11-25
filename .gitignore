@@ -35,3 +35,11 @@ db.sqlite3-wal
 # OS & Logs
 .DS_Store
 *.log
+
+# Screen recordings & media assets
+reel-assets/screen-recordings/
+
+# Agent skills
+.agent/skills/
+.agents/skills/
+skills-lock.json
