@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "../lib/api";
-import { usePrefersReducedMotion } from "../lib/motion";
+import { ActionButton } from "../components/motion/ActionButton";
+import { IconTransition } from "../components/motion/IconTransition";
+import { useKeyedActionStatus, usePrefersReducedMotion } from "../lib/motion";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -25,8 +27,11 @@ export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unwatched" | "watched">("all");
-  const [togglingId, setTogglingId] = useState<number | null>(null);
-  const [removingId, setRemovingId] = useState<number | null>(null);
+  const toggleAction = useKeyedActionStatus<number>({ errorDurationMs: 0 });
+  const removeAction = useKeyedActionStatus<number>({ errorDurationMs: 0 });
+  const pendingToggleRef = useRef<Set<number>>(new Set());
+  const pendingRemoveRef = useRef<Set<number>>(new Set());
+  const actionError = toggleAction.errorState?.message || removeAction.errorState?.message || null;
 
   const fetchWatchlist = useCallback(async () => {
     try {
@@ -44,29 +49,36 @@ export default function WatchlistPage() {
   }, [fetchWatchlist]);
 
   const toggleWatched = async (movieId: number, current: boolean) => {
-    setTogglingId(movieId);
-    setItems(prev => prev.map(i => (i.movie_id === movieId ? { ...i, watched: !current } : i)));
+    if (pendingToggleRef.current.has(movieId)) return;
+    pendingToggleRef.current.add(movieId);
+    removeAction.clearError();
+    toggleAction.setPending(movieId);
     try {
       await apiRequest(`/api/watchlist/${movieId}/`, {
         method: "PATCH",
         body: JSON.stringify({ watched: !current }),
       });
+      setItems(prev => prev.map(i => (i.movie_id === movieId ? { ...i, watched: !current } : i)));
+      toggleAction.setConfirmed(movieId);
     } catch {
-      setItems(prev => prev.map(i => (i.movie_id === movieId ? { ...i, watched: current } : i)));
+      toggleAction.setError(movieId, "Couldn't update viewing status. Please try again.");
     } finally {
-      setTogglingId(null);
+      pendingToggleRef.current.delete(movieId);
     }
   };
 
   const removeItem = async (movieId: number) => {
-    setRemovingId(movieId);
-    setItems(prev => prev.filter(i => i.movie_id !== movieId));
+    if (pendingRemoveRef.current.has(movieId)) return;
+    pendingRemoveRef.current.add(movieId);
+    toggleAction.clearError();
+    removeAction.setPending(movieId);
     try {
       await apiRequest(`/api/watchlist/${movieId}/`, { method: "DELETE" });
+      setItems(prev => prev.filter(i => i.movie_id !== movieId));
     } catch {
-      fetchWatchlist();
+      removeAction.setError(movieId, "Couldn't remove film from watchlist. Please try again.");
     } finally {
-      setRemovingId(null);
+      pendingRemoveRef.current.delete(movieId);
     }
   };
 
@@ -79,7 +91,7 @@ export default function WatchlistPage() {
   const unwatchedCount = items.filter(i => !i.watched).length;
 
   return (
-    <div className="bg-background font-sans text-foreground min-h-screen flex flex-col antialiased">
+    <div className="bg-background font-sans text-foreground min-h-screen min-h-[100dvh] flex flex-col antialiased">
 
       {/* Header */}
       <CinemaHeader
@@ -96,6 +108,7 @@ export default function WatchlistPage() {
           {(["all", "unwatched", "watched"] as const).map(f => (
             <button
               key={f}
+              type="button"
               onClick={() => setFilter(f)}
               className={`flex-1 min-h-11 sm:min-h-9 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all border relative overflow-hidden cursor-pointer ${
                 filter === f
@@ -121,6 +134,25 @@ export default function WatchlistPage() {
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto pt-1">
+          {actionError && (
+            <div
+              role="alert"
+              className="mb-3 rounded-xl border border-error/40 bg-error/10 px-3.5 py-2.5 text-xs font-medium text-error flex items-center justify-between gap-2"
+            >
+              <span>{actionError}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  toggleAction.clearError();
+                  removeAction.clearError();
+                }}
+                className="text-error/80 hover:text-error text-xs font-semibold shrink-0 cursor-pointer"
+                aria-label="Dismiss watchlist error"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           {loading && (
             <div className="flex items-center justify-center py-20">
               <div className="size-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -140,6 +172,7 @@ export default function WatchlistPage() {
               </div>
               {filter === "all" && (
                 <button
+                  type="button"
                   onClick={() => navigate("/session/create")}
                   className="mt-2 h-10 px-5 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider transition-colors shadow-xs"
                 >
@@ -202,7 +235,7 @@ export default function WatchlistPage() {
                           )}
                           {item.release_year && <span>{item.release_year}</span>}
                           {item.watched && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-secondary text-foreground font-mono text-[10px] font-semibold uppercase tracking-wider">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-secondary text-foreground font-mono text-xs font-semibold uppercase tracking-wider">
                               <span className="material-symbols-outlined text-[12px] text-primary">check_circle</span>
                               Viewed
                             </span>
@@ -217,48 +250,71 @@ export default function WatchlistPage() {
                             href={item.trailer_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 min-h-11 sm:min-h-9 px-3.5 rounded-xl bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-[11px] font-medium transition-all active:scale-95"
+                            className="flex items-center gap-1 min-h-11 sm:min-h-9 px-3.5 rounded-xl bg-surface-secondary border border-border text-foreground-secondary hover:text-foreground text-sm font-medium transition-all active:scale-95"
                           >
-                            <span className="material-symbols-outlined text-[14px]">play_arrow</span>
+                            <span className="material-symbols-outlined text-[16px]">play_arrow</span>
                             Trailer
                           </a>
                         )}
-                        <motion.button
-                          whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
+                        <ActionButton
+                          status={toggleAction.getStatus(item.movie_id)}
                           onClick={() => toggleWatched(item.movie_id, item.watched)}
-                          disabled={togglingId === item.movie_id}
-                          className={`flex items-center gap-1.5 min-h-11 sm:min-h-9 px-3.5 rounded-xl text-[11px] font-semibold transition-colors border cursor-pointer ${
+                          confirmedClassName="ring-1 ring-primary/40"
+                          errorClassName="border-error/60 bg-error/10 text-error"
+                          className={`flex items-center gap-1.5 min-h-11 sm:min-h-9 px-3.5 rounded-xl text-sm font-semibold transition-colors border cursor-pointer ${
                             item.watched
                               ? "bg-surface-secondary border-border text-foreground hover:bg-surface"
                               : "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
                           }`}
                         >
-                          <motion.span
-                            animate={
-                              togglingId === item.movie_id && !shouldReduceMotion
-                                ? { scale: [1, 1.3, 1], rotate: [0, 15, 0] }
-                                : { scale: 1, rotate: 0 }
-                            }
-                            transition={{ duration: 0.28, type: "spring", stiffness: 400, damping: 16 }}
-                            className="material-symbols-outlined text-[14px]"
+                          <IconTransition
+                            iconKey={`${toggleAction.getStatus(item.movie_id)}-${item.watched}`}
+                            sizeClassName="size-4"
                           >
-                            {item.watched ? "replay" : "check_circle"}
-                          </motion.span>
-                          <span>{item.watched ? "Rewatch" : "Mark Viewed"}</span>
-                        </motion.button>
+                            {toggleAction.getStatus(item.movie_id) === "pending" ? (
+                              <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px]">
+                                {toggleAction.getStatus(item.movie_id) === "error"
+                                  ? "error_outline"
+                                  : item.watched
+                                  ? "replay"
+                                  : "check_circle"}
+                              </span>
+                            )}
+                          </IconTransition>
+                          <span>
+                            {toggleAction.getStatus(item.movie_id) === "pending"
+                              ? "Saving…"
+                              : toggleAction.getStatus(item.movie_id) === "error"
+                              ? "Retry"
+                              : item.watched
+                              ? "Rewatch"
+                              : "Mark Viewed"}
+                          </span>
+                        </ActionButton>
                       </div>
                     </div>
 
                     {/* Remove Button with 44px Touch Target Area */}
-                    <motion.button
-                      whileTap={shouldReduceMotion ? undefined : { scale: 0.88 }}
+                    <ActionButton
+                      status={removeAction.getStatus(item.movie_id)}
                       onClick={() => removeItem(item.movie_id)}
-                      disabled={removingId === item.movie_id}
-                      className="shrink-0 size-11 flex items-center justify-center text-foreground-secondary hover:text-error hover:bg-surface-secondary transition-colors rounded-full self-start -mr-2 -mt-2 active:scale-90 cursor-pointer"
-                      aria-label="Remove from watchlist"
+                      showConfirmedPulse={false}
+                      errorClassName="text-error bg-error/10"
+                      className="shrink-0 size-11 flex items-center justify-center text-foreground-secondary hover:text-error hover:bg-surface-secondary transition-colors rounded-full self-start -mr-2 -mt-2 cursor-pointer"
+                      ariaLabel="Remove from watchlist"
                     >
-                      <span className="material-symbols-outlined text-[18px]">close</span>
-                    </motion.button>
+                      <IconTransition iconKey={removeAction.getStatus(item.movie_id)} sizeClassName="size-4">
+                        {removeAction.getStatus(item.movie_id) === "pending" ? (
+                          <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="material-symbols-outlined text-[18px]">
+                            {removeAction.getStatus(item.movie_id) === "error" ? "error_outline" : "close"}
+                          </span>
+                        )}
+                      </IconTransition>
+                    </ActionButton>
                   </motion.div>
                 ))}
               </AnimatePresence>

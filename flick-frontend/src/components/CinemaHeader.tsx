@@ -36,6 +36,7 @@ export default function CinemaHeader({
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 md:flex-1 justify-start">
           {onBack && (
             <button
+              type="button"
               onClick={onBack}
               aria-label="Back"
               className="flex size-11 sm:size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors cursor-pointer"
@@ -44,18 +45,20 @@ export default function CinemaHeader({
             </button>
           )}
 
-          <div
+          <button
+            type="button"
             onClick={() => navigate("/home")}
-            className={`flex items-center gap-2.5 cursor-pointer select-none group shrink-0 ${onBack ? "hidden md:flex" : "flex"}`}
+            aria-label="Flick Home"
+            className={`flex items-center gap-2.5 cursor-pointer select-none group shrink-0 text-left ${onBack ? "hidden md:flex" : "flex"}`}
           >
-            <img src={logoIcon} alt="Flick" className="h-7 w-auto transition-transform group-hover:scale-105" />
+            <img src={logoIcon} alt="" aria-hidden="true" className="h-7 w-auto transition-transform group-hover:scale-105" />
             <span className="font-editorial text-xl font-bold tracking-tight text-foreground">
               Flick
             </span>
-            <span className="hidden xl:inline text-[10px] uppercase tracking-widest text-foreground-secondary/70 border-l border-border pl-2.5 ml-0.5">
+            <span className="hidden xl:inline text-xs uppercase tracking-widest text-foreground-secondary border-l border-border pl-2.5 ml-0.5">
               Cinema Journal
             </span>
-          </div>
+          </button>
 
           {/* Mobile Title (when onBack is present or custom title provided) */}
           {title && (
@@ -64,7 +67,7 @@ export default function CinemaHeader({
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-[10px] text-foreground-secondary leading-none truncate mt-0.5 max-w-full">
+                <p className="text-xs text-foreground-secondary leading-none truncate mt-0.5 max-w-full">
                   {subtitle}
                 </p>
               )}
@@ -83,6 +86,7 @@ export default function CinemaHeader({
             return (
               <button
                 key={link.id}
+                type="button"
                 onClick={() => !isActive && navigate(link.path)}
                 className={`relative px-3.5 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
                   isActive
@@ -105,6 +109,7 @@ export default function CinemaHeader({
 
           {/* Theme switcher */}
           <button
+            type="button"
             onClick={toggleTheme}
             className="flex size-11 sm:size-9 items-center justify-center rounded-full border border-border bg-surface text-foreground-secondary hover:text-foreground active:scale-95 transition-all shadow-xs cursor-pointer"
             title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
@@ -117,6 +122,7 @@ export default function CinemaHeader({
 
           {/* Profile Shortcut */}
           <button
+            type="button"
             onClick={() => navigate("/profile")}
             className={`flex size-11 sm:size-9 items-center justify-center rounded-full border transition-all active:scale-95 shadow-xs cursor-pointer ${
               current === "profile"

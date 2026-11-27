@@ -1,0 +1,152 @@
+import { useEffect, useId, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { usePrefersReducedMotion } from "../lib/motion";
+
+interface AnimatedFlickLogoProps {
+  /** "badge" includes the squircle frame + Flick wordmark; "mark" is the compact icon-only mark */
+  variant?: "badge" | "mark";
+  /** Replays the swipe-to-F animation periodically (useful for loading/waiting states) */
+  loop?: boolean;
+  /** Interval in ms between replays when loop=true */
+  loopIntervalMs?: number;
+  className?: string;
+  decorative?: boolean;
+}
+
+/**
+ * Animated Flick brand mark: the hand swipes from left to right trailing
+ * motion arcs, then locks into the complete "F" emblem and wordmark.
+ */
+export default function AnimatedFlickLogo({
+  variant = "badge",
+  loop = false,
+  loopIntervalMs = 2900,
+  className = "size-16",
+  decorative = false,
+}: AnimatedFlickLogoProps) {
+  const { isDark } = useTheme();
+  const shouldReduceMotion = usePrefersReducedMotion();
+  const uid = useId().replace(/:/g, "");
+  const [cycle, setCycle] = useState(0);
+
+  useEffect(() => {
+    if (!loop || shouldReduceMotion) return;
+    const id = window.setInterval(() => {
+      setCycle((c) => c + 1);
+    }, loopIntervalMs);
+    return () => window.clearInterval(id);
+  }, [loop, loopIntervalMs, shouldReduceMotion]);
+
+  const bgId = `flickBg_${uid}`;
+  const fgId = `flickFg_${uid}`;
+  const arcId = `flickArc_${uid}`;
+  const clipId = `flickClip_${uid}`;
+
+  const bgStops = isDark ? ["#212621", "#161916"] : ["#F7F4EC", "#EFEAD8"];
+  const fgStops = isDark ? ["#89AD8D", "#608465", "#48694C"] : ["#35523A", "#29432D", "#1E3422"];
+  const arcStops = isDark ? ["#5E8263", "#89AD8D"] : ["#4B6B50", "#29432D"];
+  const borderStroke = isDark ? "#89AD8D" : "#29432D";
+  const borderOpacity = isDark ? 0.16 : 0.14;
+  const wordmarkColor = isDark ? "#89AD8D" : "#29432D";
+
+  const animClass = shouldReduceMotion ? "" : "flick-logo-animate";
+  const markTransform = variant === "mark" ? "translate(-22.6, 33.1) scale(1.12)" : undefined;
+
+  return (
+    <svg
+      key={shouldReduceMotion ? "static" : cycle}
+      viewBox="0 0 400 400"
+      preserveAspectRatio="xMidYMid meet"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`shrink-0 ${animClass} ${className}`}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : "Flick"}
+      aria-hidden={decorative ? true : undefined}
+    >
+      <defs>
+        <linearGradient id={bgId} x1="200" y1="0" x2="200" y2="400" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={bgStops[0]} />
+          <stop offset="100%" stopColor={bgStops[1]} />
+        </linearGradient>
+        <linearGradient id={fgId} x1="160" y1="36" x2="240" y2="270" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={fgStops[0]} />
+          <stop offset="55%" stopColor={fgStops[1]} />
+          <stop offset="100%" stopColor={fgStops[2]} />
+        </linearGradient>
+        <linearGradient id={arcId} x1="70" y1="130" x2="210" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={arcStops[0]} stopOpacity="0.72" />
+          <stop offset="100%" stopColor={arcStops[1]} />
+        </linearGradient>
+        <clipPath id={clipId}>
+          <rect width="400" height="400" rx="88" />
+        </clipPath>
+      </defs>
+
+      <rect width="400" height="400" rx="88" fill={`url(#${bgId})`} />
+      <rect
+        x="1.5"
+        y="1.5"
+        width="397"
+        height="397"
+        rx="86.5"
+        stroke={borderStroke}
+        strokeOpacity={borderOpacity}
+        strokeWidth="3"
+      />
+
+      <g clipPath={`url(#${clipId})`}>
+        <g transform={markTransform}>
+          {/* Concentric Flick Motion Arcs */}
+          <g className="flick-anim-arc" fill={`url(#${arcId})`}>
+            <path d="M128 60 C156 44 185 37 211 36 C216 36 220 40 220 45 C220 50 216 53 211 53 C187 54 161 61 136 75 C131 77.5 125.5 75.5 123.5 71 C121.5 66.5 123.5 62.5 128 60 Z" />
+            <path d="M74 106 C86 92 98 81 112 72 C116 69.5 121.5 71 124 75 C126.5 79 125 84.5 121 87 C108 95 97 105 86 117 C82.5 120.5 77 120.5 73.5 117 C70 113.5 70.5 109.5 74 106 Z" />
+            <path d="M111 104 C124 91 138 82 153 75 C157.5 73 162.5 75 164.5 79.5 C166.5 84 164.5 89 160 91 C147 97 134 105 122 116 C118.5 119.5 113 119 110 115.5 C107 112 107.5 107.5 111 104 Z" />
+            <path d="M127 123 C134 115 142 109 151 104 C155 101.8 160 103.5 162 107.5 C164 111.5 162.5 116.5 158.5 118.5 C151 122.5 144 127.5 138 134 C135 137.5 129.5 137.5 126.5 134 C123.5 130.5 124 126.5 127 123 Z" />
+          </g>
+
+          {/* Trailing Motion Dots */}
+          <g className="flick-anim-dot" fill={`url(#${arcId})`}>
+            <circle cx="64" cy="126" r="6.5" />
+            <circle cx="107" cy="67" r="5.5" />
+            <circle cx="115" cy="136" r="5.5" />
+            <circle cx="188" cy="87" r="6" />
+          </g>
+
+          {/* F Vertical Stem & Top Bar */}
+          <g className="flick-anim-stem" fill={`url(#${fgId})`}>
+            <path d="M228 40 H334 C337.3 40 340 42.7 340 46 V64 C340 67.3 337.3 70 334 70 H258 V126 C251 122 243 121 236 125 C233 121 230.5 118.5 228 117 V40 Z" />
+            <path d="M254 180 V256 C254 259.3 251.3 262 248 262 H227 C224.5 242 225.5 227 231 212 C236 198 243 188 254 180 Z" />
+          </g>
+
+          {/* Sweeping F Crossbar */}
+          <g className="flick-anim-crossbar" fill={`url(#${fgId})`}>
+            <path d="M235 133 C239 128 248 128 253 135 L239 144 L235 133 Z" />
+            <path d="M262 141 H326 C329.3 141 332 143.7 332 147 V165 C332 168.3 329.3 171 326 171 H261 C242 178 232 190 223 211 C216 227 215 241 218 260 C210 261.5 203 260 198 256 C195 233 197 215 205 196 C214 173 229 152 262 141 Z" />
+          </g>
+
+          {/* Swiping Hand */}
+          <g className="flick-anim-hand" fill={`url(#${fgId})`}>
+            <path d="M161 74 C166.5 72.5 172 75.5 174 81.5 L196 154 C197 157 200 156.5 199.5 153 L194 129 C193 123 196 118 201.5 116.5 C207 115 211.5 118 213.5 124 L217 137 C218 140 221 139.5 220.5 136 L218 125 C217 120 220 116.5 225 116 C230 115.5 233.5 118.5 235 124 L238 139 C226 149 218 159 210 173 C202 187 196 202 193 220 C191.5 229 191 239 192 249 C178 241 171 231 161 214 C155 204 150 198 142 192 C135 187 134 179 138 174 C142 169 150 169 158 175 L176 189 C179 191 182 189 180.5 184 L154 88 C152.5 82 155.5 75.5 161 74 Z" />
+          </g>
+        </g>
+
+        {variant === "badge" && (
+          <text
+            className="flick-anim-wordmark"
+            x="200"
+            y="346"
+            textAnchor="middle"
+            fill={wordmarkColor}
+            fontFamily="Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
+            fontSize="60"
+            fontWeight="700"
+            letterSpacing="-1.5"
+          >
+            Flick
+          </text>
+        )}
+      </g>
+    </svg>
+  );
+}

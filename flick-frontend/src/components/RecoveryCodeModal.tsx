@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { ActionButton } from "./motion/ActionButton";
+import { IconTransition } from "./motion/IconTransition";
+import { useActionStatus } from "../lib/motion";
 
 interface RecoveryCodeModalProps {
   recoveryCode: string;
@@ -19,9 +22,8 @@ export default function RecoveryCodeModal({
   confirmLabel = "I've Saved My Code — Continue",
   isReplacement = false,
 }: RecoveryCodeModalProps) {
-  const [copied, setCopied] = useState(false);
   const [hasConfirmedSaved, setHasConfirmedSaved] = useState(false);
-  const [copyError, setCopyError] = useState(false);
+  const copyAction = useActionStatus({ confirmedDurationMs: 2500, errorDurationMs: 3000 });
 
   if (!isOpen || !recoveryCode) return null;
 
@@ -30,19 +32,16 @@ export default function RecoveryCodeModal({
   const formattedBlocks = cleanCode.match(/.{1,4}/g) || [cleanCode];
 
   const handleCopy = async () => {
+    copyAction.setPending();
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(recoveryCode);
-        setCopied(true);
-        setCopyError(false);
-        setTimeout(() => setCopied(false), 2500);
+        copyAction.setConfirmed();
       } else {
         throw new Error("Clipboard API unavailable");
       }
     } catch {
-      setCopyError(true);
-      // Fallback: prompt user to manually select text
-      setTimeout(() => setCopyError(false), 3000);
+      copyAction.setError("Please manually highlight and copy the code above.");
     }
   };
 
@@ -95,20 +94,39 @@ export default function RecoveryCodeModal({
             ))}
           </div>
 
-          <button
+          <ActionButton
             type="button"
+            status={copyAction.status}
             onClick={handleCopy}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-surface hover:bg-surface-secondary text-xs font-semibold text-foreground transition-colors cursor-pointer"
+            confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+            errorClassName="border-error/60 bg-error/10 text-error"
+            className="min-h-11 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-surface hover:bg-surface-secondary text-xs font-semibold text-foreground transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px] text-primary">
-              {copied ? "check" : "content_copy"}
+            <IconTransition iconKey={copyAction.status} sizeClassName="size-4">
+              <span
+                className={`material-symbols-outlined text-[16px] ${
+                  copyAction.status === "error" ? "text-error" : "text-primary"
+                }`}
+              >
+                {copyAction.status === "confirmed"
+                  ? "check"
+                  : copyAction.status === "error"
+                  ? "error_outline"
+                  : "content_copy"}
+              </span>
+            </IconTransition>
+            <span>
+              {copyAction.status === "confirmed"
+                ? "Copied to Clipboard"
+                : copyAction.status === "error"
+                ? "Copy Failed — Retry"
+                : "Copy Recovery Code"}
             </span>
-            <span>{copied ? "Copied to Clipboard" : "Copy Recovery Code"}</span>
-          </button>
+          </ActionButton>
 
-          {copyError && (
-            <p className="text-[11px] text-foreground-secondary text-center">
-              Please manually highlight and copy the code above.
+          {copyAction.errorMessage && (
+            <p role="alert" className="text-[11px] font-medium text-error text-center">
+              {copyAction.errorMessage}
             </p>
           )}
         </div>

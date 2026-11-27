@@ -100,7 +100,7 @@ export default function RegisterPage() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
                 placeholder="e.g. Rajat"
                 maxLength={50}
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
               />
             </div>
           </label>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
               />
             </div>
           </label>
@@ -130,7 +130,7 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 placeholder="Create a password"
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-10 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-10 text-sm font-normal transition-all"
               />
               <button
                 type="button"
@@ -159,7 +159,7 @@ export default function RegisterPage() {
                 ))}
               </div>
               {strength.label && (
-                <span className="text-[11px] font-medium text-right text-foreground-secondary">
+                <span className="text-xs font-medium text-right text-foreground-secondary">
                   Strength: {strength.label}
                 </span>
               )}
@@ -176,7 +176,7 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat your password"
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-10 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-10 text-sm font-normal transition-all"
               />
               <button
                 type="button"

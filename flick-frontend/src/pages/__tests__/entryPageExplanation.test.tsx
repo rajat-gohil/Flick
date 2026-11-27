@@ -18,13 +18,13 @@ vi.mock("../../lib/api", async (importOriginal) => {
   };
 });
 
-describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => {
+describe("Landing / Entry Page: Visual Redesign & Product Demonstration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
   });
 
-  it("1. Renders hero with editorial title and clear access options (Start Exploring, Sign In, Sign Up, Restore)", () => {
+  it("1. Renders hero with clear value proposition and primary/secondary access options", () => {
     render(
       <ThemeProvider>
         <MemoryRouter initialEntries={["/"]}>
@@ -35,21 +35,18 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
       </ThemeProvider>
     );
 
-    // Hero title & subtitle
-    expect(screen.getByText(/Movie night,/i)).not.toBeNull();
-    expect(screen.getByText(/thoughtfully decided/i)).not.toBeNull();
-    expect(screen.getByText(/Swipe through curated cinema with your partner/i)).not.toBeNull();
+    expect(
+      screen.getByRole("heading", { name: /Find the movie you both want to watch/i })
+    ).not.toBeNull();
+    expect(screen.getByText(/Open a Screening Room, send the invite code/i)).not.toBeNull();
 
-    // Primary guest exploration button
     expect(screen.getAllByRole("button", { name: /start a movie night/i }).length).toBeGreaterThanOrEqual(1);
-
-    // Secondary actions (Sign In, Sign Up, Restore) remain accessible
     expect(screen.getAllByRole("button", { name: "Sign In" }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByRole("button", { name: "Sign Up" }).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("button", { name: /restore key/i })).not.toBeNull();
   });
 
-  it("2. Explains the three pillars of access: Guest Mode, Permanent Account, and Key Recovery", () => {
+  it("2. Demonstrates interactive sample swipe deck in hero (Pass advances card, Recommend reveals Mutual Match example)", () => {
     render(
       <ThemeProvider>
         <MemoryRouter initialEntries={["/"]}>
@@ -60,26 +57,36 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
       </ThemeProvider>
     );
 
-    // Section title
-    expect(screen.getByText(/How Sign-Up, Sign-In & Guest Access Work/i)).not.toBeNull();
+    // Initial verified film card
+    expect(screen.getAllByText("Interstellar").length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByRole("button", { name: /super-like/i })).toBeNull();
+    const undoBtn = screen.getByRole("button", { name: /preview undo last swipe/i });
+    expect((undoBtn as HTMLButtonElement).disabled).toBe(true);
 
-    // Pillar 1: Instant Guest Mode
-    expect(screen.getByText("1. Instant Guest Mode")).not.toBeNull();
-    expect(screen.getByText(/Zero forms — jump into rooms in seconds/i)).not.toBeNull();
-    expect(screen.getByText(/Generates a private 16-character backup key/i)).not.toBeNull();
+    // Pass moves to next sample film (The Dark Knight)
+    fireEvent.click(screen.getByRole("button", { name: /preview pass film/i }));
+    expect(screen.getByText("The Dark Knight")).not.toBeNull();
+    expect((undoBtn as HTMLButtonElement).disabled).toBe(false);
 
-    // Pillar 2: Permanent Account
-    expect(screen.getByText("2. Permanent Cinema Account")).not.toBeNull();
-    expect(screen.getByText(/Seamless cloud sync across phones, tablets & desktop/i)).not.toBeNull();
-    expect(screen.getByText(/Permanent match history & collaborative lists/i)).not.toBeNull();
+    // Undo restores Interstellar
+    fireEvent.click(undoBtn);
+    expect(screen.getAllByText("Interstellar").length).toBeGreaterThanOrEqual(1);
 
-    // Pillar 3: Recovery Key
-    expect(screen.getByText("3. Key-Based Recovery")).not.toBeNull();
-    expect(screen.getByText(/No personal data or email needed to transfer/i)).not.toBeNull();
-    expect(screen.getByText(/Rotates a fresh key upon restoration for security/i)).not.toBeNull();
+    // Pass again to The Dark Knight, then Recommend reveals mutual match example
+    fireEvent.click(screen.getByRole("button", { name: /preview pass film/i }));
+    expect(screen.getByText("The Dark Knight")).not.toBeNull();
+
+    // Recommend reveals mutual match example
+    fireEvent.click(screen.getByRole("button", { name: /preview recommend film/i }));
+    expect(screen.getByText("Mutual Match Example")).not.toBeNull();
+    expect(screen.getByText(/Both viewers recommended this film/i)).not.toBeNull();
+
+    // Undo from match example restores The Dark Knight
+    fireEvent.click(screen.getByRole("button", { name: /preview undo last swipe/i }));
+    expect(screen.getByText("The Dark Knight")).not.toBeNull();
   });
 
-  it("3. Displays comparison table comparing Guest Mode vs Permanent Account", () => {
+  it("3. Shows interactive 4-step Screening Room workflow covering setup, invite, independent swiping, and mutual match", () => {
     render(
       <ThemeProvider>
         <MemoryRouter initialEntries={["/"]}>
@@ -90,14 +97,23 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
       </ThemeProvider>
     );
 
-    expect(screen.getByText("Comparing Account Modes")).not.toBeNull();
-    expect(screen.getByText("Sign-up Required")).not.toBeNull();
-    expect(screen.getByText("None (0 seconds)")).not.toBeNull();
-    expect(screen.getByText("Email + Password (~30s)")).not.toBeNull();
-    expect(screen.getByText("Via 16-character Recovery Key")).not.toBeNull();
+    expect(screen.getByText("How a Screening Room works")).not.toBeNull();
+
+    const step2Btn = screen.getByRole("button", { name: /Share the 6-letter room code/i });
+    fireEvent.click(step2Btn);
+    expect(screen.getByText("CINE24")).not.toBeNull();
+
+    const step3Btn = screen.getByRole("button", { name: /Swipe independently/i });
+    fireEvent.click(step3Btn);
+    expect(screen.getByText("Viewer A screen")).not.toBeNull();
+    expect(screen.getByText("Viewer B screen")).not.toBeNull();
+
+    const step4Btn = screen.getByRole("button", { name: /See only what you both chose/i });
+    fireEvent.click(step4Btn);
+    expect(screen.getByText(/Save to shared Watchlist or check regional watch options/i)).not.toBeNull();
   });
 
-  it("4. Displays 3-step screening walkthrough and interactive FAQ accordion", () => {
+  it("4. Explains instant guest access, recovery key, and permanent email accounts plus FAQ accordion", () => {
     render(
       <ThemeProvider>
         <MemoryRouter initialEntries={["/"]}>
@@ -108,22 +124,16 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
       </ThemeProvider>
     );
 
-    // 3-step walkthrough
-    expect(screen.getByText("Three Steps to Movie Night")).not.toBeNull();
-    expect(screen.getByText("Open a Room")).not.toBeNull();
-    expect(screen.getByText("Swipe in Sync")).not.toBeNull();
-    expect(screen.getByText("Instant Consensus")).not.toBeNull();
+    expect(screen.getByText("Start right away, or save across devices")).not.toBeNull();
+    expect(screen.getByText("Instant guest access")).not.toBeNull();
+    expect(screen.getByText("Permanent email account")).not.toBeNull();
 
-    // FAQ Accordion
-    const faqButton = screen.getByText("Do I need to create an account to use Flick?");
-    expect(faqButton).not.toBeNull();
-
-    // Click FAQ to toggle answer
+    const faqButton = screen.getByRole("button", { name: /Does Flick stream or play movies/i });
     fireEvent.click(faqButton);
-    expect(screen.getByText(/No! You can tap 'Start a Movie Night' to immediately start swiping/i)).not.toBeNull();
+    expect(screen.getByText(/No\. Flick helps two people agree on what to watch/i)).not.toBeNull();
   });
 
-  it("5. Navigates cleanly when clicking Sign In, Sign Up, or Restore", () => {
+  it("5. Navigates cleanly when clicking Sign Up or Restore key", () => {
     render(
       <ThemeProvider>
         <MemoryRouter initialEntries={["/"]}>
@@ -137,7 +147,6 @@ describe("Landing / Entry Page: Account Access Explanation & Onboarding", () => 
       </ThemeProvider>
     );
 
-    // Sign Up button
     const signUpBtn = screen.getAllByRole("button", { name: "Sign Up" })[0];
     fireEvent.click(signUpBtn);
     expect(screen.getByText("Register Page Target")).not.toBeNull();

@@ -69,7 +69,6 @@ TMDB_TO_STREAMING_PROVIDER_MAP = {
     122: ["Disney+ Hotstar", "Hotstar", "JioHotstar"],
     2336: ["Disney+ Hotstar", "Hotstar", "JioHotstar"],
     350: ["Apple TV", "Apple TV+", "Apple TV Plus", "Apple TV Amazon Channel", "Apple TV Store"],
-    220: ["JioCinema"],
     237: ["SonyLIV", "Sony Liv"],
     232: ["Zee5", "ZEE5"],
 }
@@ -77,10 +76,9 @@ TMDB_TO_STREAMING_PROVIDER_MAP = {
 DEFAULT_STREAMING_PROVIDERS_META = {
     8: {"name": "Netflix", "logo_url": "https://image.tmdb.org/t/p/original/rK1KljqmbvO9HQa1PBFLILWah72.png", "country_code": "IN"},
     119: {"name": "Amazon Prime Video", "logo_url": "https://image.tmdb.org/t/p/original/gMZdpavHmxFNnLpMHwVxfqeux2g.png", "country_code": "IN"},
-    122: {"name": "JioHotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
-    2336: {"name": "JioHotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
+    122: {"name": "Disney+ Hotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
+    2336: {"name": "Disney+ Hotstar", "logo_url": "https://image.tmdb.org/t/p/original/ledoS6EgdjTNq8F1e6wubUQer18.png", "country_code": "IN"},
     350: {"name": "Apple TV+", "logo_url": "https://image.tmdb.org/t/p/original/9icYBfYFcwgCbky5VdGUIKJ4C5i.png", "country_code": "IN"},
-    220: {"name": "JioCinema", "logo_url": "", "country_code": "IN"},
     237: {"name": "Sony Liv", "logo_url": "https://image.tmdb.org/t/p/original/coM4QWbmIOa0xJ5cGR9BRmoV25B.png", "country_code": "IN"},
     232: {"name": "Zee5", "logo_url": "https://image.tmdb.org/t/p/original/uQvhdtB8skccsGHmvKi3y5bqBsX.png", "country_code": "IN"},
 }

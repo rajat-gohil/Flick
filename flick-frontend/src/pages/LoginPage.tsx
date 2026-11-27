@@ -79,7 +79,7 @@ export default function LoginPage() {
                 placeholder="Enter email or username"
                 autoCapitalize="none"
                 autoCorrect="off"
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
               />
             </div>
           </label>
@@ -95,7 +95,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                 placeholder="Enter your password"
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-10 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-10 text-sm font-normal transition-all"
               />
               <button
                 type="button"
@@ -113,8 +113,9 @@ export default function LoginPage() {
           {/* Forgot password */}
           <div className="flex justify-end -mt-1">
             <button
+              type="button"
               onClick={() => navigate("/forgot-password")}
-              className="text-xs text-primary hover:underline font-medium"
+              className="min-h-11 sm:min-h-9 px-2 text-xs text-primary hover:underline font-medium cursor-pointer"
             >
               Forgot password?
             </button>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { apiRequest, ApiError } from "../lib/api";
@@ -12,6 +12,9 @@ import CinemaAdmissionTicket from "../components/CinemaAdmissionTicket";
 import CinemaSalonPass from "../components/CinemaSalonPass";
 import CuratorsDoubleFeature from "../components/CuratorsDoubleFeature";
 import { MovieDetailSheet, type Movie } from "./DiscoverPage";
+import { ActionButton } from "../components/motion/ActionButton";
+import { IconTransition } from "../components/motion/IconTransition";
+import { useKeyedActionStatus, useActionStatus } from "../lib/motion";
 import { usePrefersReducedMotion } from "../lib/motion";
 
 const homeStaggerContainer: Variants = {
@@ -171,10 +174,22 @@ export default function HomePage() {
   const [curatorShelf, setCuratorShelf] = useState<Movie[]>([]);
   const [curatorLoading, setCuratorLoading] = useState(true);
   const [curatorConfidence, setCuratorConfidence] = useState<string | null>(null);
+  const [curatorError, setCuratorError] = useState(false);
   const [spotlightImgError, setSpotlightImgError] = useState(false);
+  const curatorFetchInFlightRef = useRef(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set());
   const [stampedMovieId, setStampedMovieId] = useState<number | null>(null);
+  const stampedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const watchlistAction = useKeyedActionStatus<number>({ errorDurationMs: 0 });
+  const pendingWatchlistRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    return () => {
+      if (stampedTimerRef.current !== null) {
+        clearTimeout(stampedTimerRef.current);
+      }
+    };
+  }, []);
 
   // Account Activation State
   const [profileUser, setProfileUser] = useState<{
@@ -191,7 +206,7 @@ export default function HomePage() {
   const homeTourDismissedRef = useRef(false);
   const homeTourStepRef = useRef<{ index: number; id: string }>({ index: 0, id: "welcome" });
   const [showActivationModal, setShowActivationModal] = useState(false);
-  const [copiedActivationCode, setCopiedActivationCode] = useState(false);
+  const activationCopy = useActionStatus();
   const [resendingVerification, setResendingVerification] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
 
@@ -300,82 +315,96 @@ export default function HomePage() {
   }, []);
 
   /* ── Load Curator's Selection from Curators Selection API ── */
-  useEffect(() => {
-    async function loadCuratorSelection() {
-      setCuratorLoading(true);
-      try {
-        const data = await apiRequest("/api/curators-selection/");
-        const list: Movie[] = Array.isArray(data?.movies)
-          ? data.movies
-          : Array.isArray(data?.results)
-          ? data.results
-          : Array.isArray(data)
-          ? data
-          : [];
-        const confidence = data?.confidence || list[0]?.explanation?.confidence || null;
-        setCuratorConfidence(confidence);
+  const loadCuratorSelection = useCallback(async () => {
+    if (curatorFetchInFlightRef.current) return;
+    curatorFetchInFlightRef.current = true;
+    setCuratorLoading(true);
+    setCuratorError(false);
+    try {
+      const data = await apiRequest("/api/curators-selection/");
+      const list: Movie[] = Array.isArray(data?.movies)
+        ? data.movies
+        : Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data)
+        ? data
+        : [];
+      const confidence = data?.confidence || list[0]?.explanation?.confidence || null;
+      setCuratorConfidence(confidence);
 
-        if (list.length > 0) {
-          const spotlight = list[0];
-          setCuratorMovie(spotlight);
-          setSpotlightImgError(false);
-          setCuratorShelf(
-            list.filter((m: Movie) => (m.id || m.tmdb_id) !== (spotlight.id || spotlight.tmdb_id)).slice(0, 5)
-          );
+      if (list.length > 0) {
+        const spotlight = list[0];
+        setCuratorMovie(spotlight);
+        setSpotlightImgError(false);
+        setCuratorShelf(
+          list.filter((m: Movie) => (m.id || m.tmdb_id) !== (spotlight.id || spotlight.tmdb_id)).slice(0, 5)
+        );
+      } else {
+        // If empty list, fallback to discover top_rated with cold start status
+        const fallback: DiscoverApiResponse = await apiRequest("/api/discover/?category=top_rated&page=1");
+        const fallbackList = Array.isArray(fallback?.movies) ? fallback.movies : [];
+        setCuratorConfidence("COLD_START");
+        if (fallbackList.length > 0) {
+          setCuratorMovie(fallbackList[0]);
+          setCuratorShelf(fallbackList.slice(1, 6));
         } else {
-          // If empty list, fallback to discover top_rated with cold start status
-          const fallback: DiscoverApiResponse = await apiRequest("/api/discover/?category=top_rated&page=1");
-          const fallbackList = Array.isArray(fallback?.movies) ? fallback.movies : [];
-          setCuratorConfidence("COLD_START");
-          if (fallbackList.length > 0) {
-            setCuratorMovie(fallbackList[0]);
-            setCuratorShelf(fallbackList.slice(1, 6));
-          }
+          setCuratorMovie(null);
+          setCuratorShelf([]);
         }
-      } catch (err) {
-        console.error("[HomePage] Error loading curators selection, falling back to top_rated:", err);
-        try {
-          const fallback: DiscoverApiResponse = await apiRequest("/api/discover/?category=top_rated&page=1");
-          const list = Array.isArray(fallback?.movies) ? fallback.movies : [];
-          setCuratorConfidence("COLD_START");
-          if (list.length > 0) {
-            setCuratorMovie(list[0]);
-            setCuratorShelf(list.slice(1, 6));
-          }
-        } catch (errFallback) {
-          console.error("[HomePage] Error loading curator fallback:", errFallback);
-        }
-      } finally {
-        setCuratorLoading(false);
       }
+    } catch (err) {
+      console.error("[HomePage] Error loading curators selection, falling back to top_rated:", err);
+      try {
+        const fallback: DiscoverApiResponse = await apiRequest("/api/discover/?category=top_rated&page=1");
+        const list = Array.isArray(fallback?.movies) ? fallback.movies : [];
+        setCuratorConfidence("COLD_START");
+        if (list.length > 0) {
+          setCuratorMovie(list[0]);
+          setCuratorShelf(list.slice(1, 6));
+        } else {
+          setCuratorMovie(null);
+          setCuratorShelf([]);
+        }
+      } catch (errFallback) {
+        console.error("[HomePage] Error loading curator fallback:", errFallback);
+        setCuratorMovie(null);
+        setCuratorShelf([]);
+        setCuratorError(true);
+      }
+    } finally {
+      curatorFetchInFlightRef.current = false;
+      setCuratorLoading(false);
     }
-
-    loadCuratorSelection();
   }, []);
 
-  /* ── Watchlist Toggle with Ticket Stamp Feedback ── */
+  useEffect(() => {
+    loadCuratorSelection();
+  }, [loadCuratorSelection]);
+
+  /* ── Watchlist Toggle with Post-Confirmation Stamp Feedback ── */
   const handleToggleWatchlist = async (movie: Movie) => {
     const targetId = movie.id || movie.tmdb_id;
+    if (pendingWatchlistRef.current.has(targetId)) return;
     const inList = watchlistIds.has(targetId);
+    pendingWatchlistRef.current.add(targetId);
+    watchlistAction.setPending(targetId);
 
     if (inList) {
-      setWatchlistIds((prev) => {
-        const next = new Set(prev);
-        next.delete(targetId);
-        return next;
-      });
       try {
         await apiRequest(`/api/watchlist/${targetId}/`, { method: "DELETE" });
+        setWatchlistIds((prev) => {
+          const next = new Set(prev);
+          next.delete(targetId);
+          return next;
+        });
+        watchlistAction.setConfirmed(targetId);
         trackEvent("watchlist_removed", { movie_id: targetId, source: "home" });
       } catch {
-        loadWatchlist();
+        watchlistAction.setError(targetId, "Couldn't update watchlist. Please try again.");
+      } finally {
+        pendingWatchlistRef.current.delete(targetId);
       }
     } else {
-      setWatchlistIds((prev) => new Set(prev).add(targetId));
-      // Trigger ticket-stamp visual feedback
-      setStampedMovieId(targetId);
-      setTimeout(() => setStampedMovieId(null), 1600);
-
       try {
         await apiRequest("/api/watchlist/", {
           method: "POST",
@@ -387,9 +416,22 @@ export default function HomePage() {
             rating: movie.rating,
           }),
         });
+        setWatchlistIds((prev) => new Set(prev).add(targetId));
+        watchlistAction.setConfirmed(targetId);
+        // Trigger ticket-stamp visual feedback only after server confirmation
+        if (stampedTimerRef.current !== null) {
+          clearTimeout(stampedTimerRef.current);
+        }
+        setStampedMovieId(targetId);
+        stampedTimerRef.current = setTimeout(() => {
+          setStampedMovieId(null);
+          stampedTimerRef.current = null;
+        }, 1600);
         trackEvent("watchlist_added", { movie_id: targetId, source: "home" });
       } catch {
-        loadWatchlist();
+        watchlistAction.setError(targetId, "Couldn't save film to watchlist. Please try again.");
+      } finally {
+        pendingWatchlistRef.current.delete(targetId);
       }
     }
   };
@@ -452,7 +494,7 @@ export default function HomePage() {
   ============================ */
 
   return (
-    <div className="bg-background font-sans text-foreground min-h-screen flex flex-col antialiased selection:bg-primary/20 selection:text-foreground">
+    <div className="bg-background font-sans text-foreground min-h-screen min-h-[100dvh] flex flex-col antialiased selection:bg-primary/20 selection:text-foreground">
       {/* ── Top Editorial Navigation ── */}
       <CinemaHeader current="home" />
 
@@ -493,7 +535,7 @@ export default function HomePage() {
                   e.stopPropagation();
                   setShowActivationModal(true);
                 }}
-                className="h-9 px-4 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider transition-colors shadow-2xs flex items-center gap-1.5"
+                className="min-h-11 sm:min-h-9 w-full sm:w-auto px-4 rounded-xl bg-primary hover:bg-primary-hover text-surface text-xs font-semibold uppercase tracking-wider transition-colors shadow-2xs flex items-center justify-center gap-1.5 touch-manipulation"
               >
                 <span>Complete Activation</span>
                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -504,12 +546,12 @@ export default function HomePage() {
       )}
 
       {/* ── Main Content Container ── */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 pb-28 md:pb-16">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-16">
         <motion.div
           variants={isReduced ? undefined : homeStaggerContainer}
           initial={isReduced ? false : "initial"}
           animate="animate"
-          className="space-y-16 md:space-y-24"
+          className="space-y-11 sm:space-y-14 md:space-y-20"
         >
           {/* ══════════════════════════════════════════════════════
               SECTION A — THE INTERACTIVE SALON ENTRANCE
@@ -576,10 +618,10 @@ export default function HomePage() {
             <section aria-labelledby="curator-heading" className="space-y-6">
           <div
             data-tour="home-curator"
-            className="flex items-end justify-between border-b border-border/60 pb-3"
+            className="flex items-end justify-between gap-3 border-b border-border/60 pb-3"
           >
-            <div>
-              <div className="flex items-center gap-2 mb-1">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold">
                   {curatorConfidence === "COLD_START" || curatorMovie?.explanation?.confidence === "COLD_START"
                     ? "EDITORIAL SELECTION"
@@ -591,13 +633,14 @@ export default function HomePage() {
                     : "· Editorial Spotlight"}
                 </span>
               </div>
-              <h2 id="curator-heading" className="font-editorial text-2xl sm:text-3xl font-semibold text-foreground">
+              <h2 id="curator-heading" className="font-editorial text-2xl sm:text-3xl font-semibold text-foreground leading-tight">
                 The Curator's Selection
               </h2>
             </div>
             <button
+              type="button"
               onClick={() => navigate("/discover?view=catalogue")}
-              className="text-xs font-semibold uppercase tracking-wider text-primary hover:underline flex items-center gap-1 group"
+              className="shrink-0 whitespace-nowrap min-h-11 sm:min-h-9 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-primary hover:underline group touch-manipulation"
             >
               Full Archive
               <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">
@@ -753,6 +796,7 @@ export default function HomePage() {
                   {/* Actions */}
                   <div className="pt-2 flex flex-wrap items-center gap-3">
                     <button
+                      type="button"
                       onClick={() => setSelectedMovie(curatorMovie)}
                       className="h-10 px-4 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 active:scale-95 shadow-2xs"
                     >
@@ -760,33 +804,63 @@ export default function HomePage() {
                       Examine Details
                     </button>
 
-                    <button
+                    <ActionButton
+                      status={watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id)}
                       onClick={() => handleToggleWatchlist(curatorMovie)}
-                      className={`h-10 px-4 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95 ${
+                      confirmedClassName="ring-1 ring-primary/40"
+                      errorClassName="border-error/60 bg-error/10 text-error"
+                      className={`min-h-11 sm:min-h-10 px-4 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer ${
                         watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id)
                           ? "border-primary bg-primary/10 text-primary"
                           : "border-border hover:border-primary/40 bg-surface text-foreground"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[16px]">
-                        {watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id) ? "bookmark_added" : "bookmark"}
+                      <IconTransition
+                        iconKey={`${watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id)}-${watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id)}`}
+                        sizeClassName="size-4"
+                      >
+                        {watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id) === "pending" ? (
+                          <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="material-symbols-outlined text-[16px]">
+                            {watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id) === "error"
+                              ? "error_outline"
+                              : watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id)
+                              ? "bookmark_added"
+                              : "bookmark"}
+                          </span>
+                        )}
+                      </IconTransition>
+                      <span>
+                        {watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id) === "pending"
+                          ? "Saving…"
+                          : watchlistAction.getStatus(curatorMovie.id || curatorMovie.tmdb_id) === "error"
+                          ? "Retry"
+                          : watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id)
+                          ? "In Watchlist"
+                          : "Save to Watchlist"}
                       </span>
-                      {watchlistIds.has(curatorMovie.id || curatorMovie.tmdb_id) ? "In Watchlist" : "Save to Watchlist"}
-                    </button>
+                    </ActionButton>
 
                     <button
+                      type="button"
                       onClick={() =>
                         navigate("/session/create", {
                           state: { preseedMovie: curatorMovie },
                         })
                       }
-                      className="h-10 px-3.5 rounded-xl border border-border hover:border-primary/40 text-foreground-secondary hover:text-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                      className="min-h-11 sm:min-h-10 px-3.5 rounded-xl border border-border hover:border-primary/40 text-foreground-secondary hover:text-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                       title="Start a collaborative matching session with this title"
                     >
                       <span className="material-symbols-outlined text-[16px]">groups</span>
                       Match with Partner
                     </button>
                   </div>
+                  {watchlistAction.errorState?.key === (curatorMovie.id || curatorMovie.tmdb_id) && (
+                    <p role="alert" className="text-xs font-medium text-error">
+                      {watchlistAction.errorState.message}
+                    </p>
+                  )}
 
                 </div>
               </motion.div>
@@ -817,13 +891,14 @@ export default function HomePage() {
                       const id = m.id || m.tmdb_id;
                       const isSelected = curatorMovie && (curatorMovie.id || curatorMovie.tmdb_id) === id;
                       return (
-                        <div
+                        <button
                           key={id}
+                          type="button"
                           onClick={() => {
                             setSpotlightImgError(false);
                             setCuratorMovie(m);
                           }}
-                          className={`flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer group ${
+                          className={`w-full text-left flex items-center gap-3 p-2 rounded-xl border transition-all cursor-pointer group ${
                             isSelected
                               ? "border-primary/70 bg-primary/10 shadow-2xs"
                               : "border-border/60 hover:border-primary/50 bg-surface-secondary/40 hover:bg-surface-secondary"
@@ -857,7 +932,7 @@ export default function HomePage() {
                           <span className="material-symbols-outlined text-[16px] text-foreground-secondary group-hover:text-primary transition-colors">
                             swap_horiz
                           </span>
-                        </div>
+                        </button>
                       );
                     }))}
                   </div>
@@ -865,6 +940,7 @@ export default function HomePage() {
 
                 <div className="pt-2 border-t border-border/40 text-center">
                   <button
+                    type="button"
                     onClick={() => navigate("/discover?view=catalogue")}
                     className="text-[11px] font-semibold uppercase tracking-wider text-primary hover:underline"
                   >
@@ -874,7 +950,46 @@ export default function HomePage() {
               </div>
 
             </div>
-          ) : null}
+          ) : (
+            <div
+              data-testid="curator-fallback-card"
+              data-state={curatorError ? "error" : "empty"}
+              className="rounded-2xl border border-border bg-surface p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5 shadow-2xs"
+            >
+              <div className="flex items-start gap-4">
+                <div className="size-11 rounded-xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0">
+                  <span className="material-symbols-outlined text-[22px]">movie_filter</span>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-editorial text-lg sm:text-xl font-semibold text-foreground">
+                    Today's selection is temporarily unavailable
+                  </h3>
+                  <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed max-w-lg">
+                    We couldn't load a featured spotlight right now. You can retry loading it or browse the full film archive.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => loadCuratorSelection()}
+                  disabled={curatorLoading}
+                  className="min-h-11 sm:min-h-10 px-4 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                >
+                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                  <span>{curatorLoading ? "Retrying…" : "Retry"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/discover?view=catalogue")}
+                  className="min-h-11 sm:min-h-10 px-4 rounded-xl border border-border bg-surface-secondary/70 hover:bg-surface-secondary text-foreground text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Full Archive</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </div>
+            </div>
+          )}
             </section>
           </motion.div>
 
@@ -939,10 +1054,11 @@ export default function HomePage() {
                 badge: "Atmospheric",
               },
             ].map((shelf) => (
-              <div
+              <button
                 key={shelf.id}
+                type="button"
                 onClick={() => navigate(shelf.path)}
-                className="group relative rounded-2xl border border-border/80 hover:border-primary/60 bg-surface hover:bg-surface-secondary/40 p-5 sm:p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-2xs hover:shadow-md"
+                className="w-full text-left group relative rounded-2xl border border-border/80 hover:border-primary/60 bg-surface hover:bg-surface-secondary/40 p-5 sm:p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between shadow-2xs hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -969,7 +1085,7 @@ export default function HomePage() {
                     arrow_forward
                   </span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
             </section>
@@ -1007,7 +1123,10 @@ export default function HomePage() {
           ══════════════════════════════════════════════════════ */}
           <motion.div variants={isReduced ? undefined : homeSectionItem}>
             <section aria-labelledby="screening-invitation-heading">
-          <div className="rounded-3xl border border-primary/30 bg-[#141614] text-[#E8E6E1] p-6 sm:p-10 shadow-xl relative overflow-hidden">
+          <div
+            data-testid="collaborative-screening-card"
+            className="rounded-3xl border border-primary/25 bg-surface text-foreground p-6 sm:p-10 shadow-xl relative overflow-hidden"
+          >
             
             {/* Theatrical Vignette Ambient Gradient & Breathing Glow */}
             {!isReduced ? (
@@ -1021,10 +1140,10 @@ export default function HomePage() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute inset-0 bg-radial from-primary/25 via-primary/5 to-transparent pointer-events-none"
+                className="absolute inset-0 bg-radial from-primary/20 via-primary/5 to-transparent pointer-events-none"
               />
             ) : null}
-            <div className="absolute inset-0 bg-radial from-primary/10 via-transparent to-black/60 pointer-events-none" />
+            <div className="absolute inset-0 bg-radial from-primary/10 via-transparent to-surface-secondary/60 pointer-events-none" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
@@ -1034,25 +1153,27 @@ export default function HomePage() {
                 </span>
                 <h2
                   id="screening-invitation-heading"
-                  className="font-editorial text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-snug text-white"
+                  className="font-editorial text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-snug text-foreground"
                 >
                   The best films are better shared.
                 </h2>
-                <p className="text-stone-300 text-xs sm:text-sm leading-relaxed max-w-lg">
+                <p className="text-foreground-secondary text-xs sm:text-sm leading-relaxed max-w-lg">
                   Gather your co-viewer. Step into the Screening Room to privately rate curated titles and let Flick discover your mutual cinema matches.
                 </p>
 
                 <div className="pt-3 flex flex-wrap items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => navigate("/session/create")}
-                    className="h-12 px-6 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 shadow-md flex items-center gap-2"
+                    className="h-12 px-6 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs uppercase tracking-wider transition-all active:scale-95 shadow-md flex items-center gap-2 cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[18px]">style</span>
                     Start New Screening Deck
                   </button>
                   <button
+                    type="button"
                     onClick={() => navigate("/sessions")}
-                    className="h-12 px-5 rounded-xl border border-stone-700 bg-stone-900/60 hover:bg-stone-800 text-stone-200 font-semibold text-xs uppercase tracking-wider transition-colors flex items-center gap-2"
+                    className="h-12 px-5 rounded-xl border border-border bg-surface-secondary/70 hover:bg-surface-secondary text-foreground font-semibold text-xs uppercase tracking-wider transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[18px]">history</span>
                     View Session Archives
@@ -1061,11 +1182,11 @@ export default function HomePage() {
               </div>
 
               {/* Recent Activity List Inside The Screening Room */}
-              <div className="lg:col-span-5 bg-black/40 rounded-2xl border border-stone-800/80 p-5 space-y-3.5">
+              <div className="lg:col-span-5 bg-surface-secondary/60 rounded-2xl border border-border/80 p-5 space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-editorial text-sm font-semibold text-white">Recent Screenings</h3>
+                  <h3 className="font-editorial text-sm font-semibold text-foreground">Recent Screenings</h3>
                   {recentSessions.length > 0 && (
-                    <span className="text-[10px] font-mono text-stone-400">
+                    <span className="text-[10px] font-mono text-foreground-secondary">
                       {recentSessions.length} recorded
                     </span>
                   )}
@@ -1077,7 +1198,7 @@ export default function HomePage() {
                       <div
                         key={s.id}
                         onClick={() => navigate(s.ended ? `/sessions` : `/session/${s.id}`)}
-                        className="p-3 rounded-xl bg-stone-900/70 border border-stone-800 hover:border-primary/50 transition-colors cursor-pointer flex items-center justify-between"
+                        className="p-3 rounded-xl bg-surface border border-border hover:border-primary/50 transition-colors cursor-pointer flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-3">
                           {s.participants && s.participants.length > 0 && (
@@ -1088,22 +1209,22 @@ export default function HomePage() {
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className="font-editorial text-xs font-semibold text-stone-200 truncate">{s.name}</p>
-                            <div className="flex items-center gap-2 mt-1 text-[10px] text-stone-400">
+                            <p className="font-editorial text-xs font-semibold text-foreground truncate">{s.name}</p>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-foreground-secondary">
                               <span>{s.date}</span>
                               <span>·</span>
                               <span className="text-primary font-medium">{s.matches} Consensus Matches</span>
                             </div>
                           </div>
                         </div>
-                        <span className="material-symbols-outlined text-stone-500 text-sm">
+                        <span className="material-symbols-outlined text-foreground-secondary text-sm">
                           {s.ended ? "check_circle" : "arrow_forward"}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="py-6 text-center text-xs text-stone-400">
+                  <div className="py-6 text-center text-xs text-foreground-secondary">
                     No active screenings yet. Launch your first deck above.
                   </div>
                 )}
@@ -1123,23 +1244,23 @@ export default function HomePage() {
                 "That's enough browsing. Time for a film."
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-foreground-secondary pt-2">
-                <button onClick={() => navigate("/discover?view=catalogue")} className="hover:text-foreground transition-colors">
+                <button type="button" onClick={() => navigate("/discover?view=catalogue")} className="hover:text-foreground transition-colors">
                   Catalogue
                 </button>
                 <span>·</span>
-                <button onClick={() => navigate("/watchlist")} className="hover:text-foreground transition-colors">
+                <button type="button" onClick={() => navigate("/watchlist")} className="hover:text-foreground transition-colors">
                   Watchlist
                 </button>
                 <span>·</span>
-                <button onClick={() => navigate("/sessions")} className="hover:text-foreground transition-colors">
+                <button type="button" onClick={() => navigate("/sessions")} className="hover:text-foreground transition-colors">
                   Screening Archives
                 </button>
                 <span>·</span>
-                <button onClick={() => navigate("/profile")} className="hover:text-foreground transition-colors">
+                <button type="button" onClick={() => navigate("/profile")} className="hover:text-foreground transition-colors">
                   Salon Preferences
                 </button>
                 <span>·</span>
-                <button onClick={handleLogout} className="text-error/80 hover:text-error transition-colors">
+                <button type="button" onClick={handleLogout} className="text-error/80 hover:text-error transition-colors">
                   Sign Out
                 </button>
               </div>
@@ -1158,6 +1279,12 @@ export default function HomePage() {
           inWatchlist={watchlistIds.has(selectedMovie.id || selectedMovie.tmdb_id)}
           onWatchlist={handleToggleWatchlist}
           onClose={() => setSelectedMovie(null)}
+          watchlistStatus={watchlistAction.getStatus(selectedMovie.id || selectedMovie.tmdb_id)}
+          watchlistError={
+            watchlistAction.errorState?.key === (selectedMovie.id || selectedMovie.tmdb_id)
+              ? watchlistAction.errorState.message
+              : null
+          }
         />
       )}
 
@@ -1175,27 +1302,29 @@ export default function HomePage() {
           >
             {/* Close button */}
             <button
+              type="button"
               onClick={() => setShowActivationModal(false)}
-              className="absolute top-5 right-5 size-8 rounded-full border border-border/80 flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors"
+              aria-label="Close activation modal"
+              className="absolute top-4 right-4 size-11 sm:size-9 rounded-full border border-border/80 flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
 
             {/* Header */}
-            <div className="flex items-start gap-4 pr-8">
+            <div className="flex items-start gap-4 pr-10">
               <div className="size-12 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center text-primary shrink-0">
                 <span className="material-symbols-outlined text-[28px]">
                   {isGuestAccount ? "workspace_premium" : "verified"}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-semibold">
+                <span className="text-xs font-mono uppercase tracking-widest text-primary font-semibold">
                   {isGuestAccount ? "Guest Session Activation" : "Email Verification Steps"}
                 </span>
                 <h2 className="font-editorial text-2xl font-bold text-foreground mt-0.5">
                   {isGuestAccount ? "Activate Your Flick Account" : "Activate Full Privileges"}
                 </h2>
-                <p className="text-xs text-foreground-secondary mt-1 leading-relaxed">
+                <p className="text-sm text-foreground-secondary mt-1 leading-relaxed">
                   {isGuestAccount
                     ? "Follow these 3 simple steps to make your account permanent without losing any movies or matches."
                     : "Verify your email to secure your account and recover it anytime."}
@@ -1219,24 +1348,50 @@ export default function HomePage() {
                     <span className="font-mono text-xs sm:text-sm font-semibold tracking-wider text-foreground select-all break-all">
                       {profileUser?.recovery_code || "Loading code…"}
                     </span>
-                    <button
+                    <ActionButton
                       type="button"
-                      onClick={() => {
+                      status={activationCopy.status}
+                      onClick={async () => {
                         const code = profileUser?.recovery_code;
-                        if (code && navigator?.clipboard?.writeText) {
-                          navigator.clipboard.writeText(code);
-                          setCopiedActivationCode(true);
-                          setTimeout(() => setCopiedActivationCode(false), 2000);
+                        if (!code) return;
+                        activationCopy.setPending();
+                        try {
+                          if (!navigator?.clipboard?.writeText) {
+                            throw new Error("Clipboard unavailable");
+                          }
+                          await navigator.clipboard.writeText(code);
+                          activationCopy.setConfirmed();
+                        } catch {
+                          activationCopy.setError("Couldn't copy code automatically — select to copy.");
                         }
                       }}
-                      className="h-7 px-2.5 rounded-lg bg-surface-secondary hover:bg-primary hover:text-surface border border-border text-[11px] font-semibold flex items-center gap-1 transition-colors shrink-0"
+                      confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+                      errorClassName="border-error/60 bg-error/10 text-error"
+                      className="min-h-11 sm:min-h-9 px-2.5 rounded-lg bg-surface-secondary hover:bg-primary hover:text-surface border border-border text-[11px] font-semibold flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[14px]">
-                        {copiedActivationCode ? "check" : "content_copy"}
+                      <IconTransition iconKey={activationCopy.status} sizeClassName="size-3.5">
+                        <span className="material-symbols-outlined text-[14px]">
+                          {activationCopy.status === "confirmed"
+                            ? "check"
+                            : activationCopy.status === "error"
+                            ? "error_outline"
+                            : "content_copy"}
+                        </span>
+                      </IconTransition>
+                      <span>
+                        {activationCopy.status === "confirmed"
+                          ? "Copied"
+                          : activationCopy.status === "error"
+                          ? "Failed"
+                          : "Copy"}
                       </span>
-                      <span>{copiedActivationCode ? "Copied" : "Copy"}</span>
-                    </button>
+                    </ActionButton>
                   </div>
+                  {activationCopy.errorMessage && (
+                    <p role="alert" className="ml-8.5 text-[11px] font-medium text-error">
+                      {activationCopy.errorMessage}
+                    </p>
+                  )}
                 </div>
 
                 {/* Step 2 */}

@@ -1,12 +1,28 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useAccessibleDialog, useSheetSwipeDismiss } from "../lib/useAccessibleDialog";
 import { apiRequest } from "../lib/api";
 import { toHeroBackdropUrl } from "../lib/media";
+import { formatRuntime } from "../lib/formatRuntime";
 import { trackEvent } from "../lib/analytics";
 import StreamingOptions from "../components/StreamingOptions";
 import { MovieCardSkeleton, ShelfSkeleton } from "../components/Skeleton";
-import { bottomSheetVariants, backdropVariants, usePrefersReducedMotion } from "../lib/motion";
+import {
+  bottomSheetVariants,
+  backdropVariants,
+  backdropVariantsReduced,
+  expandModalVariants,
+  expandModalVariantsReduced,
+  STAGED_FOCUS,
+  useKeyedActionStatus,
+  usePrefersReducedMotion,
+  type ActionStatus,
+} from "../lib/motion";
+import { ActionButton } from "../components/motion/ActionButton";
+import { IconTransition } from "../components/motion/IconTransition";
+import { SharedElement } from "../components/motion/SharedElement";
+import { BoundedOverscroll } from "../components/motion/BoundedOverscroll";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -57,6 +73,7 @@ export type Movie = {
   original_language?: string | null;
   trailer_url?: string | null;
   genres?: string[];
+  runtime?: number | null;
   streaming_providers?: { id: number; name: string; logo_url?: string; type?: string }[];
   is_in_watchlist?: boolean;
   explanation?: CuratorExplanation;
@@ -87,7 +104,6 @@ export const STREAMING_PLATFORMS = [
   { id: "119", label: "Prime Video", icon: "play_arrow" },
   { id: "122", label: "Disney+ Hotstar", icon: "stars" },
   { id: "350", label: "Apple TV+", icon: "tv" },
-  { id: "220", label: "JioCinema", icon: "movie" },
   { id: "237", label: "SonyLIV", icon: "ondemand_video" },
   { id: "232", label: "Zee5", icon: "smart_display" },
 ] as const;
@@ -321,23 +337,111 @@ function normalizeArchiveShelves(data: unknown): ArchiveShelf[] {
   return result;
 }
 
+const getMovieKey = (movie: Movie): number => movie.tmdb_id || movie.id || 0;
+
+const WatchlistActionContext = createContext<{
+  getStatus: (movie: Movie) => ActionStatus;
+  errorState: { key: number; message: string } | null;
+}>({
+  getStatus: () => "idle",
+  errorState: null,
+});
+
+function DiscoverBookmarkButton({
+  movie,
+  inWatchlist,
+  onClick,
+  ariaLabel,
+  buttonClassName,
+  circleClassName,
+  iconSizeClassName,
+}: {
+  movie: Movie;
+  inWatchlist: boolean;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  ariaLabel: string;
+  buttonClassName: string;
+  circleClassName: string;
+  iconSizeClassName: string;
+}) {
+  const { getStatus } = useContext(WatchlistActionContext);
+  const status = getStatus(movie);
+
+  return (
+    <ActionButton
+      status={status}
+      onClick={onClick}
+      enforceTouchTarget={false}
+      showConfirmedPulse={false}
+      className={buttonClassName}
+      ariaLabel={ariaLabel}
+    >
+      <span
+        className={`${circleClassName} rounded-full flex items-center justify-center backdrop-blur-sm transition-colors shadow-xs pointer-events-none ${
+          status === "error"
+            ? "bg-error text-white"
+            : inWatchlist
+            ? "bg-primary text-surface scale-105"
+            : "bg-black/50 text-white/85 hover:bg-black/70 hover:text-white"
+        }`}
+      >
+        <IconTransition iconKey={`${status}-${inWatchlist}`} sizeClassName="size-[18px]">
+          {status === "pending" ? (
+            <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <span
+              className={`material-symbols-outlined ${iconSizeClassName}`}
+              style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}
+            >
+              {status === "error" ? "error_outline" : "bookmark"}
+            </span>
+          )}
+        </IconTransition>
+      </span>
+    </ActionButton>
+  );
+}
+
 /* ============================
    MOVIE DETAIL SHEET
 ============================ */
+
+type DetailSelection = {
+  movie: Movie;
+  posterLayoutId?: string;
+  backdropLayoutId?: string;
+};
 
 export function MovieDetailSheet({
   movie,
   inWatchlist,
   onWatchlist,
   onClose,
+  watchlistStatus: propStatus,
+  watchlistError: propError,
+  sharedPosterLayoutId,
+  sharedBackdropLayoutId,
 }: {
   movie: Movie;
   inWatchlist: boolean;
   onWatchlist: (m: Movie) => void;
   onClose: () => void;
+  watchlistStatus?: ActionStatus;
+  watchlistError?: string | null;
+  sharedPosterLayoutId?: string;
+  sharedBackdropLayoutId?: string;
 }) {
   const targetId = movie.id || movie.tmdb_id;
   const dialogRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = usePrefersReducedMotion();
+  const { getStatus, errorState } = useContext(WatchlistActionContext);
+  const status = propStatus ?? getStatus(movie);
+  const effectiveError =
+    propError !== undefined
+      ? propError
+      : errorState && errorState.key === getMovieKey(movie)
+      ? errorState.message
+      : null;
 
   // Background scroll lock
   useEffect(() => {
@@ -402,11 +506,12 @@ export function MovieDetailSheet({
       onClick={onClose}
     >
       <motion.div
-        variants={backdropVariants}
-        initial="hidden"
-        animate="visible"
+        data-staged-focus="active"
+        variants={shouldReduceMotion ? backdropVariantsReduced : backdropVariants}
+        initial="initial"
+        animate="animate"
         exit="exit"
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className={`absolute inset-0 ${STAGED_FOCUS.backdropClassName}`}
       />
       <motion.div
         ref={dialogRef}
@@ -414,15 +519,24 @@ export function MovieDetailSheet({
         aria-modal="true"
         aria-labelledby="movie-detail-title"
         tabIndex={-1}
-        variants={bottomSheetVariants}
-        initial="hidden"
-        animate="visible"
+        variants={
+          shouldReduceMotion
+            ? expandModalVariantsReduced
+            : sharedPosterLayoutId || sharedBackdropLayoutId
+            ? expandModalVariants
+            : bottomSheetVariants
+        }
+        initial="initial"
+        animate="animate"
         exit="exit"
         className="relative bg-surface border-t md:border border-border rounded-t-3xl md:rounded-2xl overflow-hidden z-50 max-h-[88vh] md:max-h-[85vh] flex flex-col shadow-2xl max-w-lg md:max-w-xl mx-auto w-full focus:outline-hidden"
         onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
       >
         {/* Backdrop hero */}
-        <div className="relative h-44 md:h-48 shrink-0 bg-surface-secondary overflow-hidden">
+        <SharedElement
+          layoutId={sharedBackdropLayoutId}
+          className="relative h-44 md:h-48 shrink-0 bg-surface-secondary overflow-hidden"
+        >
           {movie.backdrop_url ? (
             <img src={movie.backdrop_url} alt="" className="w-full h-full object-cover opacity-60" />
           ) : movie.poster_url ? (
@@ -432,6 +546,7 @@ export function MovieDetailSheet({
 
           {/* Close pill with 44x44px hitbox */}
           <button
+            type="button"
             onClick={onClose}
             className="absolute top-3 right-3 size-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors z-10 cursor-pointer"
             aria-label="Close details"
@@ -441,7 +556,11 @@ export function MovieDetailSheet({
 
           {/* Poster + title overlay */}
           <div className="absolute bottom-3 left-4 right-4 flex items-end gap-3">
-            <div className="w-16 rounded-xl overflow-hidden shrink-0 shadow-lg border border-border bg-surface-secondary" style={{ aspectRatio: "2/3" }}>
+            <SharedElement
+              layoutId={sharedPosterLayoutId}
+              className="w-16 rounded-xl overflow-hidden shrink-0 shadow-lg border border-border bg-surface-secondary"
+              style={{ aspectRatio: "2/3" }}
+            >
               {movie.poster_url ? (
                 <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" />
               ) : (
@@ -449,7 +568,7 @@ export function MovieDetailSheet({
                   <span className="material-symbols-outlined text-[20px]">movie</span>
                 </div>
               )}
-            </div>
+            </SharedElement>
             <div className="flex-1 min-w-0 pb-1">
               <h2
                 id="movie-detail-title"
@@ -465,6 +584,14 @@ export function MovieDetailSheet({
                   </span>
                 )}
                 {movie.release_year && <span className="text-xs text-foreground-secondary">{movie.release_year}</span>}
+                {formatRuntime(movie.runtime) && (
+                  <span
+                    data-testid="detail-runtime"
+                    className="text-xs text-foreground-secondary"
+                  >
+                    · {formatRuntime(movie.runtime)}
+                  </span>
+                )}
                 {movie.original_language && (
                   <span className="text-[10px] font-semibold uppercase bg-surface-secondary px-1.5 py-0.5 rounded text-foreground-secondary border border-border">
                     {movie.original_language}
@@ -473,10 +600,23 @@ export function MovieDetailSheet({
               </div>
             </div>
           </div>
-        </div>
+        </SharedElement>
 
         {/* Scrollable body */}
         <div className="overflow-y-auto overscroll-contain flex-1 px-5 py-4 space-y-5">
+          {Array.isArray(movie.genres) && movie.genres.length > 0 && (
+            <div data-testid="detail-genres" className="flex flex-wrap gap-1.5">
+              {movie.genres.map((genre, idx) => (
+                <span
+                  key={`${genre}-${idx}`}
+                  className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Curatorial explanation if available */}
           {movie.explanation?.reason && (
             <div className="p-3.5 rounded-xl bg-surface-secondary/80 border border-primary/25 space-y-1.5">
@@ -529,22 +669,44 @@ export function MovieDetailSheet({
 
         {/* Action bar */}
         <div className="px-5 pb-[max(1.5rem,calc(1rem+env(safe-area-inset-bottom)))] md:pb-4 pt-3 border-t border-border/60 shrink-0">
-          <button
+          <ActionButton
+            status={status}
             onClick={() => onWatchlist(movie)}
-            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+            confirmedClassName="ring-1 ring-primary/40"
+            errorClassName="border border-error/60 bg-error/10 text-error"
+            className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-semibold text-xs uppercase tracking-wider transition-colors cursor-pointer ${
               inWatchlist
                 ? "bg-primary/10 border border-primary text-primary"
                 : "bg-primary hover:bg-primary-hover text-surface shadow-sm"
             }`}
           >
-            <span
-              className="material-symbols-outlined text-[18px]"
-              style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              bookmark
+            <IconTransition iconKey={`${status}-${inWatchlist}`} sizeClassName="size-[18px]">
+              {status === "pending" ? (
+                <span className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span
+                  className="material-symbols-outlined text-[18px]"
+                  style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  {status === "error" ? "error_outline" : "bookmark"}
+                </span>
+              )}
+            </IconTransition>
+            <span>
+              {status === "pending"
+                ? "Saving…"
+                : status === "error"
+                ? "Retry"
+                : inWatchlist
+                ? "Saved in Watchlist"
+                : "Save to Watchlist"}
             </span>
-            {inWatchlist ? "Saved in Watchlist" : "Save to Watchlist"}
-          </button>
+          </ActionButton>
+          {effectiveError && (
+            <p role="alert" className="mt-2 text-center text-xs font-medium text-error">
+              {effectiveError}
+            </p>
+          )}
         </div>
       </motion.div>
     </div>
@@ -560,14 +722,19 @@ function MovieCard({
   onWatchlist,
   inWatchlist,
   onTap,
+  layoutIdPrefix,
 }: {
   movie: Movie;
   onWatchlist: (m: Movie) => void;
   inWatchlist: boolean;
-  onTap: (movie: Movie) => void;
+  onTap: (movie: Movie, shared?: { posterLayoutId?: string }) => void;
+  layoutIdPrefix?: string;
 }) {
   const [imgError, setImgError] = useState(false);
   const shouldReduceMotion = usePrefersReducedMotion();
+  const posterLayoutId = layoutIdPrefix
+    ? `${layoutIdPrefix}-${getMovieKey(movie)}`
+    : undefined;
 
   function handleBookmark(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
@@ -580,9 +747,13 @@ function MovieCard({
       whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className="relative rounded-xl overflow-hidden bg-surface border border-border hover:border-primary/50 group flex flex-col cursor-pointer transition-colors shadow-xs hover:shadow-md h-full"
-      onClick={() => onTap(movie)}
+      onClick={() => onTap(movie, posterLayoutId ? { posterLayoutId } : undefined)}
     >
-      <div className="relative overflow-hidden bg-surface-secondary" style={{ aspectRatio: "2/3" }}>
+      <SharedElement
+        layoutId={posterLayoutId}
+        className="relative overflow-hidden bg-surface-secondary"
+        style={{ aspectRatio: "2/3" }}
+      >
         {!imgError && movie.poster_url ? (
           <img
             src={movie.poster_url}
@@ -608,28 +779,16 @@ function MovieCard({
           </div>
         )}
 
-        <motion.button
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
+        <DiscoverBookmarkButton
+          movie={movie}
+          inWatchlist={inWatchlist}
           onClick={handleBookmark}
-          className="absolute top-1 right-1 size-11 flex items-center justify-center z-10 cursor-pointer"
-          aria-label={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-        >
-          <span
-            className={`size-9 rounded-full flex items-center justify-center backdrop-blur-sm transition-all shadow-xs pointer-events-none ${
-              inWatchlist
-                ? "bg-primary text-surface scale-105"
-                : "bg-black/50 text-white/80 hover:bg-black/70 hover:text-white"
-            }`}
-          >
-            <span
-              className="material-symbols-outlined text-[15px]"
-              style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              bookmark
-            </span>
-          </span>
-        </motion.button>
-      </div>
+          ariaLabel={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+          buttonClassName="absolute top-1 right-1 size-11 flex items-center justify-center z-10 cursor-pointer"
+          circleClassName="size-9"
+          iconSizeClassName="text-[15px]"
+        />
+      </SharedElement>
 
       <div className="p-2.5 sm:p-3 flex flex-col gap-0.5 flex-1 justify-between">
         <div>
@@ -665,33 +824,39 @@ function HeroCard({
   movie: Movie;
   inWatchlist: boolean;
   onWatchlist: (m: Movie) => void;
-  onTap: (movie: Movie) => void;
+  onTap: (movie: Movie, shared?: { backdropLayoutId?: string }) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const shouldReduceMotion = usePrefersReducedMotion();
   const imageUrl = toHeroBackdropUrl(movie.backdrop_url) || movie.poster_url;
+  const backdropLayoutId = `discover-hero-${getMovieKey(movie)}`;
 
   return (
     <motion.div
       whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       className="group relative mx-4 sm:mx-6 lg:mx-8 mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer border border-border hover:border-primary/40 shadow-md hover:shadow-xl transition-all h-52 sm:h-72 md:h-80 lg:h-96"
-      onClick={() => onTap(movie)}
+      onClick={() => onTap(movie, { backdropLayoutId })}
     >
-      {!imgError && imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={movie.title}
-          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
-            shouldReduceMotion ? "" : "group-hover:scale-[1.02]"
-          }`}
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div className="w-full h-full bg-surface-secondary flex items-center justify-center text-foreground-secondary">
-          <span className="material-symbols-outlined text-5xl">movie</span>
-        </div>
-      )}
+      <SharedElement
+        layoutId={backdropLayoutId}
+        className="w-full h-full"
+      >
+        {!imgError && imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={movie.title}
+            className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+              shouldReduceMotion ? "" : "group-hover:scale-[1.02]"
+            }`}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full bg-surface-secondary flex items-center justify-center text-foreground-secondary">
+            <span className="material-symbols-outlined text-5xl">movie</span>
+          </div>
+        )}
+      </SharedElement>
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
       {/* Featured badge */}
@@ -701,20 +866,15 @@ function HeroCard({
       </div>
 
       {/* Watchlist */}
-      <motion.button
-        whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
+      <DiscoverBookmarkButton
+        movie={movie}
+        inWatchlist={inWatchlist}
         onClick={(e: React.MouseEvent<HTMLButtonElement>) => { e.stopPropagation(); onWatchlist(movie); }}
-        className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 size-11 flex items-center justify-center z-10 cursor-pointer"
-        aria-label="Save to watchlist"
-      >
-        <span
-          className={`size-9 sm:size-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all pointer-events-none ${
-            inWatchlist ? "bg-primary text-surface scale-105" : "bg-black/50 text-white hover:bg-black/70"
-          }`}
-        >
-          <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
-        </span>
-      </motion.button>
+        ariaLabel="Save to watchlist"
+        buttonClassName="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 size-11 flex items-center justify-center z-10 cursor-pointer"
+        circleClassName="size-9 sm:size-10"
+        iconSizeClassName="text-[18px]"
+      />
 
       {/* Info */}
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
@@ -747,7 +907,7 @@ function ArchiveShelfSection({
   shelf: ArchiveShelf;
   watchlistIds: Set<number>;
   onWatchlist: (m: Movie) => void;
-  onTap: (movie: Movie) => void;
+  onTap: (movie: Movie, shared?: { posterLayoutId?: string }) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -799,7 +959,7 @@ function ArchiveShelfSection({
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
             aria-label="Scroll left"
-            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+            className="size-10 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_left</span>
           </motion.button>
@@ -808,16 +968,18 @@ function ArchiveShelfSection({
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
             aria-label="Scroll right"
-            className="size-8 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
+            className="size-10 rounded-full border border-border bg-surface flex items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
           </motion.button>
         </div>
       </div>
-      <div
-        ref={scrollRef}
+      <BoundedOverscroll
+        axis="x"
+        scrollRef={scrollRef}
         onScroll={checkScroll}
-        className="flex gap-3.5 sm:gap-4 px-4 sm:px-6 lg:px-8 overflow-x-auto hide-scrollbar pb-2 scroll-smooth"
+        className="overflow-x-auto hide-scrollbar pb-2 scroll-smooth"
+        innerClassName="flex gap-3.5 sm:gap-4 px-4 sm:px-6 lg:px-8 w-max min-w-full"
       >
         {shelf.movies.map((movie, idx) => {
           const isMarked = watchlistIds.has(movie.tmdb_id) || (movie.id != null && watchlistIds.has(movie.id));
@@ -828,11 +990,12 @@ function ArchiveShelfSection({
                 inWatchlist={isMarked}
                 onWatchlist={onWatchlist}
                 onTap={onTap}
+                layoutIdPrefix={`discover-shelf-${shelf.id}-${idx}`}
               />
             </div>
           );
         })}
-      </div>
+      </BoundedOverscroll>
     </div>
   );
 }
@@ -857,10 +1020,15 @@ function SearchBar({
         value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
         placeholder="Search full catalogue by title or keyword..."
-        className="w-full h-11 bg-surface border border-border rounded-xl pl-10 pr-10 text-xs sm:text-sm text-foreground placeholder:text-foreground-secondary focus:outline-none focus:border-primary transition-colors"
+        className="w-full h-11 bg-surface border border-border rounded-xl pl-10 pr-10 text-sm text-foreground placeholder:text-foreground-secondary/75 focus-visible:outline-2 focus-visible:outline-focus focus:border-primary transition-colors"
       />
       {value && (
-        <button onClick={onClear} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors">
+        <button
+          type="button"
+          onClick={onClear}
+          aria-label="Clear search"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 size-9 flex items-center justify-center rounded-lg text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
+        >
           <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
       )}
@@ -928,11 +1096,27 @@ export default function DiscoverPage() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [pendingFilters, setPendingFilters] = useState<Filters>(initialFilters);
   const [showFilters, setShowFilters] = useState(false);
+  const filterSheetRef = useRef<HTMLDivElement>(null);
+  const filterSwipe = useSheetSwipeDismiss(() => setShowFilters(false), shouldReduceMotion);
+  useAccessibleDialog(showFilters, () => setShowFilters(false), filterSheetRef);
+  const watchlistAction = useKeyedActionStatus<number>({ errorDurationMs: 0 });
+  const pendingWatchlistRef = useRef<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState(urlSearch);
   const [activeMood, setActiveMood] = useState<string | null>(null);
 
   // Detail Sheet & Watchlist
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<DetailSelection | null>(null);
+  const selectedMovie = selectedDetail?.movie ?? null;
+  const openDetailSheet = useCallback(
+    (movie: Movie, shared?: { posterLayoutId?: string; backdropLayoutId?: string }) => {
+      setSelectedDetail({
+        movie,
+        posterLayoutId: shared?.posterLayoutId,
+        backdropLayoutId: shared?.backdropLayoutId,
+      });
+    },
+    []
+  );
   const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set());
 
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -1153,7 +1337,7 @@ export default function DiscoverPage() {
 
         if (selectedMovie) {
           e.preventDefault();
-          setSelectedMovie(null);
+          setSelectedDetail(null);
           return;
         }
         if (showFilters) {
@@ -1169,46 +1353,42 @@ export default function DiscoverPage() {
 
   /* ── Watchlist Toggle ── */
   async function toggleWatchlist(movie: Movie) {
-    const key = movie.tmdb_id || movie.id || 0;
-    if (!key) return;
+    const key = getMovieKey(movie);
+    if (!key || pendingWatchlistRef.current.has(key)) return;
 
     const already = watchlistIds.has(key) || (movie.id != null && watchlistIds.has(movie.id));
-    setWatchlistIds((prev) => {
-      const next = new Set(prev);
-      if (already) {
-        next.delete(key);
-        if (movie.id) next.delete(movie.id);
-      } else {
-        next.add(key);
-        if (movie.id) next.add(movie.id);
-      }
-      return next;
-    });
+    pendingWatchlistRef.current.add(key);
+    watchlistAction.setPending(key);
 
     try {
       if (already) {
         await apiRequest(`/api/watchlist/${key}/`, { method: "DELETE" });
+        setWatchlistIds((prev) => {
+          const next = new Set(prev);
+          next.delete(key);
+          if (movie.id) next.delete(movie.id);
+          return next;
+        });
+        watchlistAction.setConfirmed(key);
         trackEvent("watchlist_removed", { movie_id: key, source: "discover" });
       } else {
         await apiRequest("/api/watchlist/", {
           method: "POST",
           body: JSON.stringify({ tmdb_id: movie.tmdb_id, movie_id: movie.id || movie.tmdb_id }),
         });
+        setWatchlistIds((prev) => {
+          const next = new Set(prev);
+          next.add(key);
+          if (movie.id) next.add(movie.id);
+          return next;
+        });
+        watchlistAction.setConfirmed(key);
         trackEvent("watchlist_added", { movie_id: key, source: "discover" });
       }
     } catch {
-      // Revert on failure
-      setWatchlistIds((prev) => {
-        const next = new Set(prev);
-        if (already) {
-          next.add(key);
-          if (movie.id) next.add(movie.id);
-        } else {
-          next.delete(key);
-          if (movie.id) next.delete(movie.id);
-        }
-        return next;
-      });
+      watchlistAction.setError(key, "Couldn't update watchlist. Please try again.");
+    } finally {
+      pendingWatchlistRef.current.delete(key);
     }
   }
 
@@ -1263,7 +1443,7 @@ export default function DiscoverPage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="bg-background font-sans text-foreground min-h-screen flex flex-col antialiased">
+    <div className="bg-background font-sans text-foreground min-h-screen min-h-[100dvh] flex flex-col antialiased">
       {/* ── Editorial Header ── */}
       <CinemaHeader
         current="discover"
@@ -1343,7 +1523,24 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col pb-20 md:pb-10">
+      <WatchlistActionContext.Provider
+        value={{
+          getStatus: (m) => watchlistAction.getStatus(getMovieKey(m)),
+          errorState: watchlistAction.errorState,
+        }}
+      >
+      <motion.div
+        data-testid="discover-stage"
+        data-staged-focus={selectedDetail ? "dimmed" : "restored"}
+        animate={
+          selectedDetail
+            ? shouldReduceMotion
+              ? STAGED_FOCUS.inactiveDimmedReduced
+              : STAGED_FOCUS.inactiveDimmed
+            : STAGED_FOCUS.activeRestored
+        }
+        className="w-full max-w-6xl mx-auto flex-1 flex flex-col pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-10"
+      >
         <AnimatePresence mode="wait" initial={false}>
           {/* =======================================================
               SURFACE 1: YOUR ARCHIVE (Personalized Shelves)
@@ -1441,7 +1638,7 @@ export default function DiscoverPage() {
                       (archiveSpotlight.id != null && watchlistIds.has(archiveSpotlight.id))
                     }
                     onWatchlist={toggleWatchlist}
-                    onTap={setSelectedMovie}
+                    onTap={openDetailSheet}
                   />
                 )}
 
@@ -1452,7 +1649,7 @@ export default function DiscoverPage() {
                     shelf={shelf}
                     watchlistIds={watchlistIds}
                     onWatchlist={toggleWatchlist}
-                    onTap={setSelectedMovie}
+                    onTap={openDetailSheet}
                   />
                 ))}
 
@@ -1485,7 +1682,11 @@ export default function DiscoverPage() {
               <SearchBar value={searchQuery} onChange={setSearchQuery} onClear={clearSearch} />
 
             {/* Live Streaming Platforms Filter Bar */}
-            <div className="flex items-center gap-2 px-4 sm:px-6 lg:px-8 py-2.5 overflow-x-auto hide-scrollbar shrink-0 bg-surface/50 border-b border-border/40">
+            <BoundedOverscroll
+              axis="x"
+              className="overflow-x-auto hide-scrollbar shrink-0 bg-surface/50 border-b border-border/40"
+              innerClassName="flex items-center gap-2 px-4 sm:px-6 lg:px-8 py-2.5 w-max min-w-full"
+            >
               <span className="text-[11px] font-mono uppercase tracking-wider text-foreground-secondary shrink-0 flex items-center gap-1 font-semibold pr-1">
                 <span className="material-symbols-outlined text-[15px] text-primary">live_tv</span>
                 Stream On:
@@ -1511,7 +1712,7 @@ export default function DiscoverPage() {
                   </motion.button>
                 );
               })}
-            </div>
+            </BoundedOverscroll>
 
             {/* Sort & Quick Filter Bar */}
             <div className="px-4 sm:px-6 lg:px-8 py-2 flex flex-col gap-2.5 md:flex-row md:items-center md:justify-between shrink-0">
@@ -1555,7 +1756,11 @@ export default function DiscoverPage() {
             </div>
 
             {/* Global Language Filter Pills */}
-            <div className="flex gap-2 px-4 sm:px-6 lg:px-8 pb-3 overflow-x-auto hide-scrollbar shrink-0 border-b border-border/60">
+            <BoundedOverscroll
+              axis="x"
+              className="overflow-x-auto hide-scrollbar shrink-0 border-b border-border/60"
+              innerClassName="flex gap-2 px-4 sm:px-6 lg:px-8 pb-3 w-max min-w-full"
+            >
               {LANGUAGES.map((lang) => (
                 <Chip
                   key={lang.code === "" ? "__all__" : lang.code}
@@ -1567,7 +1772,7 @@ export default function DiscoverPage() {
                   }}
                 />
               ))}
-            </div>
+            </BoundedOverscroll>
 
             {/* Active Filters Display */}
             <div className="px-4 sm:px-6 lg:px-8 pt-4">
@@ -1675,7 +1880,8 @@ export default function DiscoverPage() {
                             movie={movie}
                             inWatchlist={isMarked}
                             onWatchlist={toggleWatchlist}
-                            onTap={setSelectedMovie}
+                            onTap={openDetailSheet}
+                            layoutIdPrefix={`discover-catalogue-${idx}`}
                           />
                         </motion.div>
                       );
@@ -1705,19 +1911,21 @@ export default function DiscoverPage() {
           </main>
         )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {/* ── Mobile Navigation ── */}
       <BottomNav current="discover" />
 
       {/* ── Movie Detail Sheet ── */}
       <AnimatePresence>
-        {selectedMovie && (
+        {selectedDetail && (
           <MovieDetailSheet
-            movie={selectedMovie}
-            inWatchlist={watchlistIds.has(selectedMovie.tmdb_id) || (selectedMovie.id != null && watchlistIds.has(selectedMovie.id))}
+            movie={selectedDetail.movie}
+            inWatchlist={watchlistIds.has(selectedDetail.movie.tmdb_id) || (selectedDetail.movie.id != null && watchlistIds.has(selectedDetail.movie.id))}
             onWatchlist={toggleWatchlist}
-            onClose={() => setSelectedMovie(null)}
+            onClose={() => setSelectedDetail(null)}
+            sharedPosterLayoutId={selectedDetail.posterLayoutId}
+            sharedBackdropLayoutId={selectedDetail.backdropLayoutId}
           />
         )}
       </AnimatePresence>
@@ -1730,41 +1938,51 @@ export default function DiscoverPage() {
             onClick={() => setShowFilters(false)}
           >
             <motion.div
-              variants={backdropVariants}
-              initial="hidden"
-              animate="visible"
+              variants={shouldReduceMotion ? backdropVariantsReduced : backdropVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
+              ref={filterSheetRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="catalogue-filters-title"
-              variants={bottomSheetVariants}
-              initial="hidden"
-              animate="visible"
+              tabIndex={-1}
+              variants={shouldReduceMotion ? expandModalVariantsReduced : bottomSheetVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
+              style={filterSwipe.dragOffsetY > 0 ? { transform: `translateY(${filterSwipe.dragOffsetY}px)` } : undefined}
               className="relative bg-surface border-t md:border border-border rounded-t-3xl md:rounded-2xl z-50 max-h-[85vh] flex flex-col max-w-lg md:max-w-xl mx-auto w-full shadow-2xl overflow-hidden"
               onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >
-              <div className="w-10 h-1 rounded-full bg-border mx-auto mt-3 mb-1 md:hidden" />
+              <div
+                {...filterSwipe.handleProps}
+                className="md:hidden flex justify-center pt-3 pb-2 touch-none cursor-grab active:cursor-grabbing shrink-0"
+              >
+                <div className="w-10 h-1 rounded-full bg-border" aria-hidden="true" />
+              </div>
               <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary text-xl">tune</span>
                   <h2 id="catalogue-filters-title" className="font-editorial text-xl font-bold text-foreground">
-                    Catalogue Filters
+                    Archive Filters
                   </h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={clearFilters}
-                    className="text-xs text-foreground-secondary hover:text-foreground transition-colors px-2 py-1 cursor-pointer"
+                    className="min-h-11 sm:min-h-9 text-sm text-foreground-secondary hover:text-foreground transition-colors px-3 py-1.5 rounded-lg cursor-pointer"
                   >
                     Reset
                   </button>
                   <button
+                    type="button"
                     onClick={() => setShowFilters(false)}
-                    className="size-9 rounded-full bg-surface-secondary border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
+                    className="size-11 sm:size-9 rounded-full bg-surface-secondary border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
                     aria-label="Close filters"
                   >
                     <span className="material-symbols-outlined text-[18px]">close</span>
@@ -1774,7 +1992,7 @@ export default function DiscoverPage() {
 
               <div className="overflow-y-auto overscroll-contain px-6 py-4 flex-1 space-y-5">
                 <div>
-                  <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-2 block">Genre</span>
+                  <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-2 block">Genre</span>
                   <div className="flex flex-wrap gap-2">
                     <Chip label="All Genres" active={pendingFilters.genre === ""} onClick={() => setPendingFilters((f) => ({ ...f, genre: "" }))} />
                     {genres.map((g) => {
@@ -1832,6 +2050,24 @@ export default function DiscoverPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {watchlistAction.errorState && !selectedMovie && (
+        <div
+          role="alert"
+          className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-[60] max-w-sm w-[calc(100%-2rem)] rounded-xl border border-error/50 bg-surface/95 backdrop-blur-md px-4 py-3 shadow-lg flex items-center justify-between gap-3 text-xs font-medium text-error"
+        >
+          <span>{watchlistAction.errorState.message}</span>
+          <button
+            type="button"
+            onClick={() => watchlistAction.clearError()}
+            className="text-error/80 hover:text-error font-semibold shrink-0 cursor-pointer"
+            aria-label="Dismiss watchlist error"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+      </WatchlistActionContext.Provider>
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

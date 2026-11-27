@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
+import AnimatedFlickLogo from "../components/AnimatedFlickLogo";
 
 /* ============================
    TYPES
@@ -297,13 +298,14 @@ export default function PreferencesPage() {
           `flick_draft_prefs_${id}`,
           JSON.stringify({ currentQuestion, answers })
         );
-      } catch {}
+      } catch {
+        // ignore storage errors
+      }
     }
   }, [answers, currentQuestion, hasSubmitted, loadingInitial, id]);
 
   /* ── Poll for partner ── */
   useEffect(() => {
-    let intervalId: number;
     let redirected = false;
 
     async function checkSessionState() {
@@ -319,18 +321,20 @@ export default function PreferencesPage() {
 
         if (s.preferences_set && !redirected) {
           redirected = true;
-          if (intervalId) window.clearInterval(intervalId);
-          try { localStorage.removeItem(`flick_draft_prefs_${id}`); } catch {}
+          window.clearInterval(intervalId);
+          try { localStorage.removeItem(`flick_draft_prefs_${id}`); } catch { /* ignore */ }
           setPartnerStatus("ready");
           setTimeout(() => navigate(`/session/${id}`, { replace: true }), 1200);
         }
-      } catch (_err: unknown) {}
+      } catch {
+        // ignore transient poll errors
+      }
     }
 
-    intervalId = window.setInterval(checkSessionState, hasSubmitted ? 2000 : 3000);
+    const intervalId = window.setInterval(checkSessionState, hasSubmitted ? 2000 : 3000);
 
     return () => {
-      if (intervalId) window.clearInterval(intervalId);
+      window.clearInterval(intervalId);
     };
   }, [hasSubmitted, id, navigate]);
 
@@ -438,7 +442,7 @@ export default function PreferencesPage() {
         body: JSON.stringify({ session_id: Number(id), preferences }),
       });
       trackEvent("preferences_submitted", { session_id: Number(id), answers });
-      try { localStorage.removeItem(`flick_draft_prefs_${id}`); } catch {}
+      try { localStorage.removeItem(`flick_draft_prefs_${id}`); } catch { /* ignore */ }
       setHasSubmitted(true);
       setIsSubmitting(false);
 
@@ -485,22 +489,25 @@ export default function PreferencesPage() {
           <div className={`size-24 rounded-full flex items-center justify-center border transition-all duration-500 ${
             isReady ? "bg-primary/10 border-primary text-primary" : "bg-surface-secondary border-border text-foreground-secondary"
           }`}>
-            <span className="material-symbols-outlined text-[42px]">
-              {isReady ? "movie" : "hourglass_empty"}
-            </span>
+            <AnimatedFlickLogo
+              variant="badge"
+              loop={!isReady}
+              decorative
+              className="size-16 rounded-2xl shadow-xs"
+            />
           </div>
 
           <div>
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-primary mb-1 block">
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-1 block">
               Curatorial Alignment
             </span>
             <h1 className="font-editorial text-2xl md:text-3xl font-semibold tracking-tight text-foreground mb-2">
               {isReady ? "Tastes Aligned" : "Awaiting Partner"}
             </h1>
-            <p className="text-foreground-secondary text-xs leading-relaxed max-w-xs mx-auto">
+            <p className="text-foreground-secondary text-sm leading-relaxed max-w-xs mx-auto">
               {isReady
                 ? "Your collaborator has completed their questionnaire. Preparing your screening deck..."
-                : "Waiting for your companion to submit their aesthetic preferences..."}
+                : "Waiting for your partner to finish their preferences..."}
             </p>
           </div>
 
@@ -509,10 +516,10 @@ export default function PreferencesPage() {
               {compatibilityScore !== null && (
                 <div className="flex items-baseline gap-3 mb-2">
                   <div className="font-editorial text-3xl font-bold text-primary">{compatibilityScore}%</div>
-                  <div className="text-[11px] uppercase tracking-wider text-foreground-secondary font-medium">Taste Alignment</div>
+                  <div className="text-xs uppercase tracking-wider text-foreground-secondary font-medium">Taste Alignment</div>
                 </div>
               )}
-              <p className="text-xs text-foreground leading-relaxed">{compatibilityMessage}</p>
+              <p className="text-sm text-foreground leading-relaxed">{compatibilityMessage}</p>
             </div>
           )}
 
@@ -547,27 +554,28 @@ export default function PreferencesPage() {
       {/* ── App Bar ── */}
       <div className="flex items-center px-4 py-3 justify-between sticky top-0 bg-background/95 backdrop-blur-md border-b border-border/60 z-10">
         <button
+          type="button"
           onClick={handleBack}
           disabled={currentQuestion === 0}
-          className="flex size-10 shrink-0 items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-20 transition-colors rounded-full hover:bg-surface-secondary"
+          className="flex size-11 sm:size-10 shrink-0 items-center justify-center text-foreground-secondary hover:text-foreground disabled:opacity-20 transition-colors rounded-full hover:bg-surface-secondary cursor-pointer"
           aria-label="Previous question"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
         </button>
 
         <div className="flex flex-col items-center">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">
             Step {currentQuestion + 1} of {QUESTIONS.length}
           </span>
           {question.id === "themes" && (
-            <p className="text-[10px] text-foreground-secondary mt-0.5">{currentAnswers.length}/3 selected</p>
+            <p className="text-xs text-foreground-secondary mt-0.5">{currentAnswers.length}/3 selected</p>
           )}
           {question.multiSelect && question.id !== "themes" && (
-            <p className="text-[10px] text-foreground-secondary mt-0.5">Select all that apply</p>
+            <p className="text-xs text-foreground-secondary mt-0.5">Select all that apply</p>
           )}
         </div>
 
-        <div className="size-10" />
+        <div className="size-11 sm:size-10" aria-hidden="true" />
       </div>
 
       {/* ── Progress Bar ── */}
@@ -585,7 +593,7 @@ export default function PreferencesPage() {
         <h1 className="font-editorial text-2xl md:text-3xl font-semibold tracking-tight text-foreground mb-1.5 leading-snug">
           {question.title}
         </h1>
-        <p className="text-xs text-foreground-secondary max-w-sm mx-auto">{question.subtitle}</p>
+        <p className="text-sm text-foreground-secondary max-w-sm mx-auto">{question.subtitle}</p>
       </div>
 
       {/* ── Options ── */}
@@ -601,7 +609,7 @@ export default function PreferencesPage() {
                   type="button"
                   onClick={() => handleSelect(option.value)}
                   disabled={hasSubmitted}
-                  className={`flex flex-col gap-2 rounded-xl border p-4 items-center justify-center transition-all active:scale-[0.98] relative overflow-hidden min-h-[112px] text-left focus:outline-none focus:ring-1 focus:ring-primary ${
+                  className={`flex flex-col gap-2 rounded-xl border p-4 items-center justify-center transition-all active:scale-[0.98] relative overflow-hidden min-h-[112px] text-left focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary cursor-pointer ${
                     isSelected
                       ? "border-primary bg-primary/10 shadow-sm"
                       : "border-border bg-surface hover:border-primary/40 hover:bg-surface-secondary/40"
@@ -613,11 +621,11 @@ export default function PreferencesPage() {
                     <OptionIcon icon={option.icon} selected={isSelected} />
                   </div>
                   <div className="text-center w-full">
-                    <p className={`text-xs font-semibold leading-tight ${isSelected ? "text-foreground" : "text-foreground"}`}>
+                    <p className="text-sm font-semibold leading-tight text-foreground">
                       {option.label}
                     </p>
                     {option.subtitle && (
-                      <p className="text-[10px] text-foreground-secondary mt-0.5 leading-tight line-clamp-2">
+                      <p className="text-xs text-foreground-secondary mt-0.5 leading-tight line-clamp-2">
                         {option.subtitle}
                       </p>
                     )}
@@ -644,7 +652,7 @@ export default function PreferencesPage() {
                   type="button"
                   onClick={() => handleSelect(option.value)}
                   disabled={hasSubmitted}
-                  className={`flex items-center gap-3.5 rounded-xl border p-3.5 text-left w-full transition-all active:scale-[0.98] focus:outline-none focus:ring-1 focus:ring-primary ${
+                  className={`flex items-center gap-3.5 rounded-xl border p-3.5 text-left w-full min-h-14 transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary cursor-pointer ${
                     isSelected
                       ? "border-primary bg-primary/10 shadow-sm"
                       : "border-border bg-surface hover:border-primary/40 hover:bg-surface-secondary/40"
@@ -656,11 +664,11 @@ export default function PreferencesPage() {
                     <OptionIcon icon={option.icon} selected={isSelected} />
                   </div>
                   <div className="flex grow flex-col">
-                    <p className={`text-xs ${isSelected ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
+                    <p className={`text-sm ${isSelected ? "font-semibold text-foreground" : "font-medium text-foreground"}`}>
                       {option.label}
                     </p>
                     {option.subtitle && (
-                      <p className="text-[11px] text-foreground-secondary mt-0.5">{option.subtitle}</p>
+                      <p className="text-xs text-foreground-secondary mt-0.5">{option.subtitle}</p>
                     )}
                   </div>
                   <span

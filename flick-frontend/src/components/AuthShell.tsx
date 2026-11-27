@@ -2,7 +2,7 @@
    SHARED AUTH SHELL — Art-House Editorial Style
    Used by LoginPage, RegisterPage, UsernamePage
 ============================ */
-import { useTheme } from "../context/ThemeContext";
+import AnimatedFlickLogo from "./AnimatedFlickLogo";
 
 export function AuthShell({
   onBack,
@@ -11,7 +11,6 @@ export function AuthShell({
   onBack: () => void;
   children: React.ReactNode;
 }) {
-  const { logoFull } = useTheme();
   return (
     <div className="relative bg-background text-foreground font-sans min-h-screen flex flex-col items-center justify-center sm:p-6 antialiased transition-colors duration-200">
       <div className="w-full h-full sm:h-auto sm:max-w-[420px] bg-surface text-foreground sm:rounded-2xl sm:shadow-lg overflow-hidden flex flex-col relative sm:border border-border">
@@ -26,8 +25,15 @@ export function AuthShell({
           >
             <span className="material-symbols-outlined text-[20px]">arrow_back_ios</span>
           </button>
-          <div className="flex-1 flex justify-center pr-11">
-            <img src={logoFull} alt="Flick" className="h-7 w-auto object-contain" />
+          <div className="flex-1 flex items-center justify-center gap-2 pr-11">
+            <AnimatedFlickLogo
+              variant="mark"
+              decorative
+              className="size-7 rounded-lg ring-1 ring-border shadow-2xs"
+            />
+            <span className="font-display text-base font-bold tracking-tight text-foreground">
+              Flick
+            </span>
           </div>
         </div>
         <div className="p-6 pt-4 flex-1 flex flex-col justify-between">

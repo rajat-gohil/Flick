@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { apiRequest } from "../lib/api";
 import { usePrefersReducedMotion } from "../lib/motion";
+import { useAccessibleDialog } from "../lib/useAccessibleDialog";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -28,13 +29,13 @@ function AvatarStack({ participants }: { participants: RecentSession["participan
       {participants.slice(0, 3).map((p, i) => (
         <div
           key={i}
-          className="size-7 rounded-full border border-border bg-surface-secondary flex items-center justify-center text-[10px] font-bold text-foreground shadow-xs"
+          className="size-7 rounded-full border border-border bg-surface-secondary flex items-center justify-center text-xs font-bold text-foreground shadow-xs"
         >
           {p.initials}
         </div>
       ))}
       {participants.length > 3 && (
-        <div className="size-7 rounded-full border border-border bg-surface-secondary flex items-center justify-center text-[10px] font-bold text-foreground-secondary">
+        <div className="size-7 rounded-full border border-border bg-surface-secondary flex items-center justify-center text-xs font-bold text-foreground-secondary">
           +{participants.length - 3}
         </div>
       )}
@@ -55,6 +56,14 @@ export default function SessionsListPage() {
   const [endingSessionId, setEndingSessionId] = useState<number | null>(null);
   const [confirmEndId, setConfirmEndId] = useState<number | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const endModalRef = useRef<HTMLDivElement>(null);
+  useAccessibleDialog(
+    confirmEndId !== null,
+    () => {
+      if (endingSessionId === null) setConfirmEndId(null);
+    },
+    endModalRef
+  );
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -127,8 +136,9 @@ export default function SessionsListPage() {
       } catch {
         // Optimistic state remains
       }
-    } catch (err: any) {
-      const msg = err?.message || err?.error || "Failed to end screening. Please try again.";
+    } catch (err: unknown) {
+      const apiErr = err as { message?: string; error?: string };
+      const msg = apiErr?.message || apiErr?.error || "Failed to end screening. Please try again.";
       setActionError(msg);
       setConfirmEndId(null);
     } finally {
@@ -146,7 +156,7 @@ export default function SessionsListPage() {
   const history = sessions.filter((s) => !isSessionActive(s));
 
   return (
-    <div className="bg-background font-sans text-foreground min-h-screen flex flex-col antialiased">
+    <div className="bg-background font-sans text-foreground min-h-screen min-h-[100dvh] flex flex-col antialiased">
 
       {/* ── Header ── */}
       <CinemaHeader
@@ -194,7 +204,7 @@ export default function SessionsListPage() {
                 )}
                 <span className="relative z-10">{t.label}</span>
                 {t.count !== undefined && !loading && (
-                  <span className={`relative z-10 text-[10px] px-1.5 py-0.2 rounded-full ${
+                  <span className={`relative z-10 text-xs px-1.5 py-0.2 rounded-full ${
                     filter === t.id ? "bg-surface/20 text-surface" : "bg-surface-secondary text-foreground-secondary"
                   }`}>
                     {t.count}
@@ -215,11 +225,12 @@ export default function SessionsListPage() {
                 <span className="truncate">{actionError}</span>
               </div>
               <button
+                type="button"
                 onClick={() => setActionError(null)}
-                className="text-error hover:text-error/80 shrink-0 p-1"
+                className="text-error hover:text-error/80 shrink-0 size-11 sm:size-9 flex items-center justify-center rounded-lg cursor-pointer"
                 aria-label="Dismiss error"
               >
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
           )}
@@ -254,7 +265,7 @@ export default function SessionsListPage() {
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <span className={`size-2 rounded-full bg-primary ${shouldReduceMotion ? "" : "animate-pulse"}`} />
-                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-primary">Live Screenings</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-primary">Live Screenings</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {active.map((s) => (
@@ -275,12 +286,13 @@ export default function SessionsListPage() {
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <span className="material-symbols-outlined text-foreground-secondary text-3xl">play_circle</span>
               <h3 className="font-editorial text-base font-semibold">No Live Sessions</h3>
-              <p className="text-xs text-foreground-secondary max-w-xs">
-                You do not currently have any uncompleted screening decks.
+              <p className="text-sm text-foreground-secondary max-w-xs">
+                You do not currently have any active screening rooms.
               </p>
               <button
+                type="button"
                 onClick={() => navigate("/session/create")}
-                className="mt-2 h-9 px-4 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs uppercase tracking-wider transition-colors shadow-xs"
+                className="mt-2 min-h-11 sm:min-h-9 px-5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm uppercase tracking-wider transition-colors shadow-xs cursor-pointer"
               >
                 Launch New Session
               </button>
@@ -290,7 +302,7 @@ export default function SessionsListPage() {
           {/* ── Past Sessions Section ── */}
           {!loading && (filter === "all" || filter === "history") && history.length > 0 && (
             <section>
-              <h2 className="text-[10px] font-semibold uppercase tracking-widest text-foreground-secondary mb-3">Archived Screenings</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-foreground-secondary mb-3">Archived Screenings</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {history.map((s) => (
                   <SessionCard key={s.id} session={s} onClick={() => navigate(`/session/${s.id}`)} />
@@ -304,8 +316,8 @@ export default function SessionsListPage() {
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <span className="material-symbols-outlined text-foreground-secondary text-3xl">history</span>
               <h3 className="font-editorial text-base font-semibold">No Archived Sessions</h3>
-              <p className="text-xs text-foreground-secondary max-w-xs">
-                Concluded screening sessions will be catalogued here for review.
+              <p className="text-sm text-foreground-secondary max-w-xs">
+                Concluded screening sessions will appear here for review.
               </p>
             </div>
           )}
@@ -326,20 +338,28 @@ export default function SessionsListPage() {
             }
           }}
         >
-          <div className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-xl p-6 flex flex-col gap-4">
+          <div
+            ref={endModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="end-room-dialog-title"
+            tabIndex={-1}
+            className="w-full max-w-sm bg-surface border border-border rounded-2xl shadow-xl p-6 flex flex-col gap-4"
+          >
             <div className="flex flex-col gap-1.5 text-center">
               <span className="material-symbols-outlined text-rose-500 text-[36px] mx-auto">stop_circle</span>
-              <h2 className="font-editorial text-lg font-semibold tracking-tight text-foreground">End this screening?</h2>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
+              <h2 id="end-room-dialog-title" className="font-editorial text-lg font-semibold tracking-tight text-foreground">End this screening?</h2>
+              <p className="text-sm text-foreground-secondary leading-relaxed">
                 Ending this room will terminate the screening for both participants. This action cannot be undone.
               </p>
             </div>
             <div className="flex flex-col gap-2.5 pt-1">
               <button
+                type="button"
                 onClick={() => handleEndSession(confirmEndId)}
                 disabled={endingSessionId !== null}
                 data-testid="archive-end-confirm-proceed-btn"
-                className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60"
+                className="w-full min-h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 cursor-pointer"
               >
                 {endingSessionId !== null ? (
                   <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -351,9 +371,10 @@ export default function SessionsListPage() {
                 )}
               </button>
               <button
+                type="button"
                 onClick={() => setConfirmEndId(null)}
                 disabled={endingSessionId !== null}
-                className="w-full h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors disabled:opacity-60"
+                className="w-full min-h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-semibold text-sm tracking-wider uppercase transition-colors disabled:opacity-60 cursor-pointer"
               >
                 Cancel
               </button>
@@ -409,14 +430,14 @@ function SessionCard({
             <h3 className="font-editorial text-sm font-semibold text-foreground truncate flex-1">{session.name}</h3>
             <span
               data-testid={`session-status-badge-${session.id}`}
-              className={`text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${statusLabel.cls}`}
+              className={`text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded shrink-0 ${statusLabel.cls}`}
             >
               {statusLabel.label}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <AvatarStack participants={session.participants} />
-            <span className="text-[11px] text-foreground-secondary">{session.date}</span>
+            <span className="text-xs text-foreground-secondary">{session.date}</span>
           </div>
         </div>
 
@@ -426,7 +447,7 @@ function SessionCard({
             <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
             <span className="text-xs font-bold">{session.matches}</span>
           </div>
-          <span className="text-[9px] text-foreground-secondary uppercase tracking-wider">
+          <span className="text-xs text-foreground-secondary uppercase tracking-wider">
             Consensus
           </span>
         </div>
@@ -437,11 +458,12 @@ function SessionCard({
       {/* End Room action — visible to both host and guest on active rooms */}
       {canEnd && (
         <div className="border-t border-border/60 px-3.5 py-2.5 flex items-center justify-between bg-surface-secondary/30">
-          <div className="flex items-center gap-1.5 text-[10px] text-foreground-secondary font-mono">
+          <div className="flex items-center gap-1.5 text-xs text-foreground-secondary font-mono">
             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span>Active Room</span>
           </div>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onEndRoom?.();
@@ -450,7 +472,7 @@ function SessionCard({
             data-testid={`end-room-btn-${session.id}`}
             data-end-btn={`end-screening-btn-${session.id}`}
             aria-label={`End screening room ${session.name}`}
-            className="h-7 px-3 rounded-lg border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 hover:text-rose-400 text-[10px] font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
+            className="min-h-11 sm:min-h-9 px-3.5 rounded-lg border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-xs cursor-pointer"
           >
             {endingId === session.id ? (
               <span className="size-3 border border-rose-400 border-t-transparent rounded-full animate-spin" />

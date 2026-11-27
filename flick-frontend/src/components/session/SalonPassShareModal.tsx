@@ -8,6 +8,15 @@ import {
   type SalonPassData,
 } from "../../lib/salonPassCanvas";
 import { Share2, Download, Check, Copy, X } from "lucide-react";
+import { ActionButton } from "../motion/ActionButton";
+import { IconTransition } from "../motion/IconTransition";
+import {
+  expandModalVariants,
+  expandModalVariantsReduced,
+  MASK_REVEAL,
+  useActionStatus,
+  usePrefersReducedMotion,
+} from "../../lib/motion";
 
 export interface SalonPassShareModalProps {
   isOpen: boolean;
@@ -20,12 +29,29 @@ export default function SalonPassShareModal({
   onClose,
   data,
 }: SalonPassShareModalProps) {
+  const shouldReduceMotion = usePrefersReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const {
+    status: copyStatus,
+    errorMessage: copyError,
+    setPending: setCopyPending,
+    setConfirmed: setCopyConfirmed,
+    setError: setCopyError,
+    reset: resetCopy,
+  } = useActionStatus({ confirmedDurationMs: 3000, errorDurationMs: 3000 });
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (statusTimerRef.current !== null) {
+        clearTimeout(statusTimerRef.current);
+      }
+    };
+  }, []);
 
   const providersKey = data.streamingProviders?.join(",") || "";
 
@@ -46,7 +72,7 @@ export default function SalonPassShareModal({
   useEffect(() => {
     if (!isOpen) {
       setShareStatus(null);
-      setCopied(false);
+      resetCopy();
       return;
     }
 
@@ -120,24 +146,38 @@ export default function SalonPassShareModal({
     const filename = `flick-match-${data.movieTitle.toLowerCase().replace(/[^a-z0-9]/g, "-")}.png`;
     triggerFileDownload(blob, filename);
     setShareStatus("Downloaded pass!");
-    setTimeout(() => setShareStatus(null), 3000);
+    if (statusTimerRef.current !== null) {
+      clearTimeout(statusTimerRef.current);
+    }
+    statusTimerRef.current = setTimeout(() => {
+      setShareStatus(null);
+      statusTimerRef.current = null;
+    }, 3000);
   }, [blob, data.movieTitle]);
 
   // Handle Copy Link (points to landing page so viewers can start their own session)
   const handleCopyLink = useCallback(async () => {
     const url = "https://flick-kappa.vercel.app";
+    setCopyPending();
     try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
       await navigator.clipboard.writeText(url);
-      setCopied(true);
+      setCopyConfirmed();
       setShareStatus("Link copied to clipboard!");
-      setTimeout(() => {
-        setCopied(false);
+      if (statusTimerRef.current !== null) {
+        clearTimeout(statusTimerRef.current);
+      }
+      statusTimerRef.current = setTimeout(() => {
         setShareStatus(null);
+        statusTimerRef.current = null;
       }, 3000);
     } catch {
-      setShareStatus("Could not copy link.");
+      setCopyError("Could not copy link automatically.");
+      setShareStatus(null);
     }
-  }, []);
+  }, [setCopyPending, setCopyConfirmed, setCopyError]);
 
   if (!isOpen) return null;
 
@@ -150,10 +190,10 @@ export default function SalonPassShareModal({
       onClick={onClose}
     >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
+          variants={shouldReduceMotion ? expandModalVariantsReduced : expandModalVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
           className="relative w-full max-w-sm sm:max-w-md bg-surface border border-primary/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
           onClick={(e) => e.stopPropagation()}
         >
@@ -189,20 +229,30 @@ export default function SalonPassShareModal({
                 </p>
               </div>
             ) : previewUrl ? (
-              <div className="relative group max-h-[52vh] rounded-xl overflow-hidden shadow-xl border border-primary/40">
+              <motion.div
+                data-testid="salon-pass-preview-reveal"
+                initial={shouldReduceMotion ? MASK_REVEAL.reduced.initial : MASK_REVEAL.ticketPrint.initial}
+                animate={shouldReduceMotion ? MASK_REVEAL.reduced.animate : MASK_REVEAL.ticketPrint.animate}
+                className="relative group max-h-[52vh] rounded-xl overflow-hidden shadow-xl border border-primary/40"
+              >
                 <img
                   src={previewUrl}
                   alt={`Salon Pass for ${data.movieTitle}`}
                   className="max-h-[52vh] w-auto object-contain rounded-xl select-none"
                 />
-              </div>
+              </motion.div>
             ) : (
               <p className="text-xs text-foreground-secondary py-12">Pass preview unavailable.</p>
             )}
 
-            {shareStatus && (
-              <p className="text-xs text-primary font-semibold mt-2.5 text-center animate-fade-in">
-                {shareStatus}
+            {(copyError || shareStatus) && (
+              <p
+                role={copyError ? "alert" : "status"}
+                className={`text-xs font-semibold mt-2.5 text-center ${
+                  copyError ? "text-error" : "text-primary"
+                }`}
+              >
+                {copyError || shareStatus}
               </p>
             )}
           </div>
@@ -226,20 +276,35 @@ export default function SalonPassShareModal({
                 type="button"
                 onClick={handleDownload}
                 disabled={isGenerating || !blob}
-                className="h-10 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-medium text-xs tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="min-h-11 h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-medium text-xs tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Download size={14} />
                 <span>Save PNG</span>
               </button>
 
-              <button
+              <ActionButton
                 type="button"
+                status={copyStatus}
                 onClick={handleCopyLink}
-                className="h-10 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-medium text-xs tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+                errorClassName="border-error/60 bg-error/10 text-error"
+                className="min-h-11 h-11 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground font-medium text-xs tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {copied ? <Check size={14} className="text-primary" /> : <Copy size={14} />}
-                <span>{copied ? "Copied!" : "Copy Link"}</span>
-              </button>
+                <IconTransition iconKey={copyStatus} sizeClassName="size-3.5">
+                  {copyStatus === "confirmed" ? (
+                    <Check size={14} className="text-primary" />
+                  ) : (
+                    <Copy size={14} />
+                  )}
+                </IconTransition>
+                <span>
+                  {copyStatus === "confirmed"
+                    ? "Copied!"
+                    : copyStatus === "error"
+                    ? "Copy Failed"
+                    : "Copy Link"}
+                </span>
+              </ActionButton>
             </div>
           </div>
         </motion.div>

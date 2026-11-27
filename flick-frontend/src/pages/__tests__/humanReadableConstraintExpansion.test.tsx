@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { ConstraintExhaustionNoticeModal } from "../../components/session/ConstraintExhaustionNoticeModal";
 import {
-  ConstraintExhaustionNoticeModal,
   CANONICAL_GENRES,
   CANONICAL_LANGUAGES,
   CANONICAL_ERAS,
@@ -11,7 +11,7 @@ import {
   formatConstraintLabel,
   formatConstraintValue,
   updateGenreCache,
-} from "../../components/session/ConstraintExhaustionNoticeModal";
+} from "../../lib/formatConstraints";
 
 // Mock analytics
 vi.mock("../../lib/analytics", () => ({
@@ -20,7 +20,7 @@ vi.mock("../../lib/analytics", () => ({
 
 const mockApiRequest = vi.fn();
 vi.mock("../../lib/api", () => ({
-  apiRequest: (...args: any[]) => mockApiRequest(...args),
+  apiRequest: (...args: unknown[]) => mockApiRequest(...args),
   getWsUrl: () => "ws://localhost:8000/ws/session/87/",
 }));
 
@@ -349,11 +349,11 @@ describe("Human-Readable Constraint Expansion Proposal Tests", () => {
     });
 
     it("preserves existing approval and rejection voting behaviour intact", async () => {
-      let dispatchedAction: any = null;
-      mockApiRequest.mockImplementation((url: string, opts?: any) => {
+      let dispatchedAction: Record<string, unknown> | null = null;
+      mockApiRequest.mockImplementation((url: string, opts?: { method?: string; body?: string }) => {
         if (url.includes("/api/sessions/87/expand-constraints/")) {
-          if (opts?.method === "POST") {
-            dispatchedAction = JSON.parse(opts.body);
+          if (opts?.method === "POST" && opts.body) {
+            dispatchedAction = JSON.parse(opts.body) as Record<string, unknown>;
             return Promise.resolve({ success: true });
           }
           return Promise.resolve({
@@ -390,11 +390,11 @@ describe("Human-Readable Constraint Expansion Proposal Tests", () => {
     });
 
     it("preserves decline voting behaviour intact", async () => {
-      let dispatchedAction: any = null;
-      mockApiRequest.mockImplementation((url: string, opts?: any) => {
+      let dispatchedAction: Record<string, unknown> | null = null;
+      mockApiRequest.mockImplementation((url: string, opts?: { method?: string; body?: string }) => {
         if (url.includes("/api/sessions/87/expand-constraints/")) {
-          if (opts?.method === "POST") {
-            dispatchedAction = JSON.parse(opts.body);
+          if (opts?.method === "POST" && opts.body) {
+            dispatchedAction = JSON.parse(opts.body) as Record<string, unknown>;
             return Promise.resolve({ success: true });
           }
           return Promise.resolve({

@@ -95,14 +95,14 @@ export default function GuestConvertPage() {
       <div className="flex flex-col gap-5">
         {/* Header */}
         <div className="flex flex-col gap-1.5 text-center">
-          <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">
-            Permanent Membership
+          <span className="text-xs font-semibold text-primary uppercase tracking-widest">
+            Permanent Account
           </span>
           <h1 className="font-editorial text-2xl sm:text-3xl font-normal tracking-tight text-foreground">
-            Register Your Cinema Journal
+            Save Your Cinema Journal
           </h1>
-          <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed font-sans max-w-sm mx-auto">
-            Upgrade this device to a permanent registered account. All your watchlist titles, sessions, and ratings are seamlessly preserved.
+          <p className="text-sm text-foreground-secondary leading-relaxed font-sans max-w-sm mx-auto">
+            Upgrade this device to a permanent account. All your watchlist titles, sessions, and ratings will be preserved.
           </p>
         </div>
 
@@ -117,8 +117,8 @@ export default function GuestConvertPage() {
               <h2 className="font-editorial text-2xl font-normal text-foreground">
                 Membership Activated
               </h2>
-              <p className="text-xs text-foreground-secondary max-w-xs mx-auto">
-                Your guest journal is now a permanent registered account. Returning to your profile...
+              <p className="text-sm text-foreground-secondary max-w-xs mx-auto">
+                Your guest journal is now saved to your account. Returning to your profile...
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function GuestConvertPage() {
                   autoComplete="email"
                   required
                   disabled={loading}
-                  className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-11 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-xs font-normal transition-all"
+                  className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
                 />
               </div>
             </label>
@@ -159,9 +159,9 @@ export default function GuestConvertPage() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your curator name"
+                  placeholder="Your name"
                   disabled={loading}
-                  className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-11 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-xs font-normal transition-all"
+                  className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
                 />
               </div>
             </label>
@@ -183,7 +183,7 @@ export default function GuestConvertPage() {
                   autoComplete="new-password"
                   required
                   disabled={loading}
-                  className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-11 placeholder:text-foreground-secondary/60 pl-10 pr-10 text-xs font-normal transition-all"
+                  className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-10 text-sm font-normal transition-all"
                 />
                 <button
                   type="button"
@@ -204,7 +204,7 @@ export default function GuestConvertPage() {
                       style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-foreground-secondary font-medium">
+                  <span className="text-xs text-foreground-secondary font-medium">
                     {passwordStrength.label}
                   </span>
                 </div>
@@ -228,7 +228,7 @@ export default function GuestConvertPage() {
                   autoComplete="new-password"
                   required
                   disabled={loading}
-                  className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-11 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-xs font-normal transition-all"
+                  className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
                 />
               </div>
             </label>

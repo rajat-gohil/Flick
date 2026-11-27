@@ -1,7 +1,20 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
+import {
+  DURATION,
+  EASING,
+  MASK_REVEAL,
+  SHARED_LAYOUT_SPRING,
+  inlineExpandVariants,
+  inlineExpandVariantsReduced,
+  useActionStatus,
+  usePrefersReducedMotion,
+} from "../lib/motion";
+import { ActionButton } from "../components/motion/ActionButton";
+import { IconTransition } from "../components/motion/IconTransition";
 import CinemaHeader from "../components/CinemaHeader";
 import BottomNav from "../components/BottomNav";
 
@@ -111,7 +124,6 @@ const STREAMING_SERVICES = [
   { id: "119", name: "Prime Video" },
   { id: "122", name: "Disney+ Hotstar" },
   { id: "350", name: "Apple TV+" },
-  { id: "220", name: "JioCinema" },
   { id: "237", name: "SonyLIV" },
   { id: "232", name: "Zee5" },
 ];
@@ -199,7 +211,11 @@ export default function CreateSessionPage() {
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
+  const shouldReduceMotion = usePrefersReducedMotion();
+  const codeCopy = useActionStatus();
+  const linkCopy = useActionStatus();
+  const createAction = useActionStatus({ confirmedDurationMs: 600 });
+  const [shareExpanded, setShareExpanded] = useState(false);
 
   // Auto-creation state when preseeded from Curator's Selection or Double Feature
   const [autoCreating, setAutoCreating] = useState(false);
@@ -207,6 +223,7 @@ export default function CreateSessionPage() {
     rawPreseed.map((m) => m.title).filter(Boolean) as string[]
   );
   const autoCreatedRef = useRef(false);
+  const isCreatingRef = useRef(false);
 
   /* ----------------------------
      FETCH GENRES WHEN INDUSTRY CHANGES
@@ -335,8 +352,11 @@ export default function CreateSessionPage() {
     if (selectedLanguages.length === 0) { setError("Please select at least one language"); return; }
     if (selectedGenreIds.length === 0) { setError("Please select at least one genre"); return; }
 
+    if (isCreatingRef.current) return;
+    isCreatingRef.current = true;
     setIsLoading(true);
     setError("");
+    createAction.setPending();
     try {
       const sessionData = await apiRequest("/api/sessions/create/", {
         method: "POST",
@@ -360,6 +380,8 @@ export default function CreateSessionPage() {
 
       setSessionId(sessionData.id);
       setSessionCode(sessionData.code);
+      createAction.setConfirmed();
+      setShareExpanded(false);
       setStep("created");
 
       const selectedProviderNames = STREAMING_SERVICES.filter((p) =>
@@ -377,8 +399,10 @@ export default function CreateSessionPage() {
         session_id: sessionData.id,
       });
     } catch {
+      createAction.setError("Failed to create session. Please try again.");
       setError("Failed to create session. Please try again.");
     } finally {
+      isCreatingRef.current = false;
       setIsLoading(false);
     }
   }
@@ -424,25 +448,31 @@ export default function CreateSessionPage() {
 
   const handleCopyCode = async () => {
     if (!sessionCode) return;
+    codeCopy.setPending();
     try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
       await navigator.clipboard.writeText(sessionCode);
-      setCopied(true);
+      codeCopy.setConfirmed();
       trackEvent("invite_code_copied", { session_id: sessionId });
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
+      codeCopy.setError("Couldn't copy code automatically — select the code to copy.");
     }
   };
 
   const handleCopyLink = async () => {
     if (!inviteLink) return;
+    linkCopy.setPending();
     try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
       await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
+      linkCopy.setConfirmed();
       trackEvent("invite_link_copied", { session_id: sessionId });
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
+      linkCopy.setError("Couldn't copy invite link — select the link field to copy.");
     }
   };
 
@@ -480,7 +510,7 @@ export default function CreateSessionPage() {
   ============================ */
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground font-sans flex flex-col antialiased transition-colors duration-200">
+    <div className="relative min-h-screen min-h-[100dvh] bg-background text-foreground font-sans flex flex-col antialiased transition-colors duration-200">
 
       {/* ── GLOBAL CINEMA HEADER ── */}
       <CinemaHeader
@@ -491,7 +521,7 @@ export default function CreateSessionPage() {
           (!autoCreating && (step === "genre" || step === "language")) ? (
             <button
               onClick={handleClear}
-              className="text-primary hover:text-primary-hover text-xs font-semibold uppercase tracking-wider transition-colors px-2 py-1"
+              className="text-primary hover:text-primary-hover text-xs font-semibold uppercase tracking-wider transition-colors min-h-11 sm:min-h-9 inline-flex items-center px-2.5 touch-manipulation"
             >
               Clear
             </button>
@@ -585,12 +615,12 @@ export default function CreateSessionPage() {
           STEP 1 — INDUSTRY
       ══════════════════════════════════ */}
       {!autoCreating && step === "industry" && (
-        <main className="flex-1 overflow-y-auto pb-4">
-          <div className="pt-2 pb-6 text-center">
-            <div className="size-16 rounded-2xl bg-surface-secondary border border-border flex items-center justify-center mx-auto mb-4 shadow-xs">
-              <span className="material-symbols-outlined text-primary text-[32px]">theaters</span>
+        <main className="flex-1 overflow-y-auto pb-28 md:pb-10">
+          <div className="pt-2 pb-5 text-center">
+            <div className="size-14 sm:size-16 rounded-2xl bg-surface-secondary border border-border flex items-center justify-center mx-auto mb-3.5 shadow-xs">
+              <span className="material-symbols-outlined text-primary text-[28px] sm:text-[32px]">theaters</span>
             </div>
-            <h1 className="font-editorial text-3xl font-normal leading-tight mb-1 text-foreground">
+            <h1 className="font-editorial text-2xl sm:text-3xl font-normal leading-tight mb-1 text-foreground">
               What cinema tradition?
             </h1>
             <p className="text-foreground-secondary text-xs sm:text-sm">
@@ -642,9 +672,9 @@ export default function CreateSessionPage() {
           STEP 2 — LANGUAGE
       ══════════════════════════════════ */}
       {!autoCreating && step === "language" && industry && (
-        <div className="flex-1 overflow-y-auto pb-4">
+        <div className="flex-1 overflow-y-auto pb-28 md:pb-10">
           <div className="pt-2 pb-2">
-            <h1 className="font-editorial text-3xl font-normal leading-tight text-foreground mb-1">
+            <h1 className="font-editorial text-2xl sm:text-3xl font-normal leading-tight text-foreground mb-1">
               Select Languages
             </h1>
             <p className="text-foreground-secondary text-xs sm:text-sm">
@@ -690,7 +720,7 @@ export default function CreateSessionPage() {
                       : "border-border bg-surface hover:border-primary/50"
                   }`}
                 >
-                  <span className={`size-7 rounded-md border text-[11px] font-bold flex items-center justify-center shrink-0 uppercase tracking-wider font-mono transition-colors ${
+                  <span className={`size-8 rounded-md border text-xs font-bold flex items-center justify-center shrink-0 uppercase tracking-wider font-mono transition-colors ${
                     isSelected
                       ? "bg-primary/20 border-primary text-primary"
                       : "bg-surface-secondary border-border text-foreground-secondary"
@@ -720,9 +750,9 @@ export default function CreateSessionPage() {
           STEP 3 — GENRE
       ══════════════════════════════════ */}
       {!autoCreating && step === "genre" && industry && (
-        <div className="flex-1 overflow-y-auto pb-4">
+        <div className="flex-1 overflow-y-auto pb-28 md:pb-10">
           <div className="pt-2 pb-2">
-            <h1 className="font-editorial text-3xl font-normal leading-tight text-foreground mb-1">
+            <h1 className="font-editorial text-2xl sm:text-3xl font-normal leading-tight text-foreground mb-1">
               Select Film Genres
             </h1>
             <p className="text-foreground-secondary text-xs sm:text-sm">
@@ -786,7 +816,7 @@ export default function CreateSessionPage() {
                   <span className="material-symbols-outlined text-[15px] text-primary">live_tv</span>
                   Streaming Services (Optional)
                 </span>
-                <p className="text-[11px] text-foreground-secondary">
+                <p className="text-xs text-foreground-secondary">
                   Only show movies available on platforms you both share
                 </p>
               </div>
@@ -794,7 +824,7 @@ export default function CreateSessionPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedProviders([])}
-                  className="text-[11px] text-primary hover:underline font-medium"
+                  className="min-h-11 sm:min-h-9 px-2 text-xs text-primary hover:underline font-medium cursor-pointer"
                 >
                   Clear
                 </button>
@@ -856,11 +886,21 @@ export default function CreateSessionPage() {
             </div>
           )}
 
-          {/* Code Card */}
-          <div className="bg-surface border border-border rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden mb-5 shadow-xs">
+          {/* Code Card: outer wrapper owns one-shot mask reveal; inner card owns layout height expansion */}
+          <motion.div
+            data-testid="session-code-ticket"
+            initial={shouldReduceMotion ? MASK_REVEAL.reduced.initial : MASK_REVEAL.curtain.initial}
+            animate={shouldReduceMotion ? MASK_REVEAL.reduced.animate : MASK_REVEAL.curtain.animate}
+            className="mb-5"
+          >
+            <motion.div
+              layout={!shouldReduceMotion}
+              transition={SHARED_LAYOUT_SPRING}
+              className="bg-surface border border-border rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden shadow-xs"
+            >
             <div className="h-1 w-full bg-primary/40 absolute top-0 left-0" />
 
-            <p className="text-[11px] font-semibold text-foreground-secondary uppercase tracking-widest mb-3">
+            <p className="text-xs font-semibold text-foreground-secondary uppercase tracking-widest mb-3">
               Session Code
             </p>
 
@@ -873,38 +913,90 @@ export default function CreateSessionPage() {
             </button>
 
             <div className="grid grid-cols-2 gap-2.5 w-full mb-2.5">
-              <button
+              <ActionButton
+                status={codeCopy.status}
                 onClick={handleCopyCode}
-                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-[0.99] cursor-pointer"
+                confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+                errorClassName="border-error/60 bg-error/10 text-error"
+                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  {copied ? "check" : "content_copy"}
+                <IconTransition iconKey={codeCopy.status} sizeClassName="size-4">
+                  <span className="material-symbols-outlined text-[16px]">
+                    {codeCopy.status === "confirmed"
+                      ? "check"
+                      : codeCopy.status === "error"
+                      ? "error_outline"
+                      : "content_copy"}
+                  </span>
+                </IconTransition>
+                <span>
+                  {codeCopy.status === "confirmed"
+                    ? "Copied!"
+                    : codeCopy.status === "error"
+                    ? "Copy Failed"
+                    : "Copy Code"}
                 </span>
-                {copied ? "Copied!" : "Copy Code"}
-              </button>
+              </ActionButton>
               <button
-                onClick={handleShare}
-                className="h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-[0.99] cursor-pointer"
+                type="button"
+                aria-expanded={shareExpanded}
+                aria-controls="invite-share-drawer"
+                onClick={() => setShareExpanded((prev) => !prev)}
+                className={`min-h-11 h-11 border font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98] cursor-pointer ${
+                  shareExpanded
+                    ? "bg-primary/10 border-primary/50 text-primary"
+                    : "bg-surface-secondary hover:bg-surface border-border text-foreground"
+                }`}
               >
-                <span className="material-symbols-outlined text-[16px]">share</span>
-                Share Options
+                <IconTransition iconKey={shareExpanded ? "close" : "share"} sizeClassName="size-4">
+                  <span className="material-symbols-outlined text-[16px]">
+                    {shareExpanded ? "expand_less" : "share"}
+                  </span>
+                </IconTransition>
+                <span>Share Options</span>
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                if (!inviteLink) return;
-                const text = encodeURIComponent(
-                  `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${inviteLink}`
-                );
-                window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
-              }}
-              className="w-full h-11 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs active:scale-[0.99]"
-            >
-              <span className="font-bold text-sm">💬</span>
-              <span>Send via WhatsApp</span>
-            </button>
-          </div>
+            <AnimatePresence initial={false}>
+              {shareExpanded && (
+                <motion.div
+                  id="invite-share-drawer"
+                  data-testid="invite-share-drawer"
+                  variants={shouldReduceMotion ? inlineExpandVariantsReduced : inlineExpandVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="w-full overflow-hidden"
+                >
+                  <div className="pt-2.5 mt-0.5 border-t border-border/60 flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!inviteLink) return;
+                        const text = encodeURIComponent(
+                          `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${inviteLink}`
+                        );
+                        window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
+                      }}
+                      className="w-full min-h-11 h-11 bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs active:scale-[0.99]"
+                    >
+                      <span className="font-bold text-sm">💬</span>
+                      <span>Send via WhatsApp</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      className="w-full min-h-11 h-11 bg-surface-secondary hover:bg-surface border border-border text-foreground font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer active:scale-[0.99]"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">ios_share</span>
+                      <span>{typeof navigator !== "undefined" && typeof navigator.share === "function" ? "Share via Device" : "Copy Screening Link"}</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            </motion.div>
+          </motion.div>
 
           {/* Invite link direct row */}
           <div className="mb-4">
@@ -913,28 +1005,52 @@ export default function CreateSessionPage() {
               <input
                 type="text"
                 readOnly
+                aria-label="Screening room invite link"
                 value={inviteLink}
-                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground-secondary font-mono focus:outline-hidden"
+                className="flex-1 min-h-11 rounded-xl border border-border bg-surface px-3 py-2 text-xs text-foreground-secondary font-mono focus-visible:outline-2 focus-visible:outline-focus"
               />
-              <button
+              <ActionButton
                 type="button"
+                status={linkCopy.status}
                 onClick={handleCopyLink}
-                className="rounded-xl border border-border bg-surface-secondary px-3.5 py-2 text-xs font-semibold hover:bg-surface text-foreground transition-colors"
+                confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+                errorClassName="border-error/60 bg-error/10 text-error"
+                className="min-h-11 min-w-[88px] rounded-xl border border-border bg-surface-secondary px-3.5 py-2 text-xs font-semibold hover:bg-surface text-foreground transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {copied ? "✓" : "Copy"}
-              </button>
+                <IconTransition iconKey={linkCopy.status} sizeClassName="size-4">
+                  <span className="material-symbols-outlined text-[15px]">
+                    {linkCopy.status === "confirmed"
+                      ? "check"
+                      : linkCopy.status === "error"
+                      ? "error_outline"
+                      : "content_copy"}
+                  </span>
+                </IconTransition>
+                <span>
+                  {linkCopy.status === "confirmed"
+                    ? "Copied!"
+                    : linkCopy.status === "error"
+                    ? "Failed"
+                    : "Copy"}
+                </span>
+              </ActionButton>
             </div>
+            {(codeCopy.errorMessage || linkCopy.errorMessage) && (
+              <p role="alert" className="mt-2 text-xs font-medium text-error">
+                {codeCopy.errorMessage || linkCopy.errorMessage}
+              </p>
+            )}
           </div>
 
           {/* Optional: Adjust criteria */}
-          <div className="text-center mb-5">
+          <div className="text-center mb-4">
             <button
               type="button"
               onClick={() => {
                 fetchGenres(industry || "hollywood");
                 setStep("industry");
               }}
-              className="text-xs text-foreground-secondary hover:text-foreground font-medium underline underline-offset-4 transition-colors cursor-pointer"
+              className="min-h-11 inline-flex items-center justify-center px-3 text-xs text-foreground-secondary hover:text-foreground font-medium underline underline-offset-4 transition-colors cursor-pointer touch-manipulation"
             >
               Adjust Screening Scope & Filters
             </button>
@@ -943,7 +1059,7 @@ export default function CreateSessionPage() {
           {/* Continue CTA */}
           <button
             onClick={() => navigate(`/session/${sessionId}`)}
-            className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors flex items-center justify-center gap-2 shadow-xs"
+            className="w-full min-h-12 h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors flex items-center justify-center gap-2 shadow-xs touch-manipulation"
           >
             <span>Enter Screening Deck</span>
             <span className="material-symbols-outlined text-[18px]">play_arrow</span>
@@ -959,7 +1075,22 @@ export default function CreateSessionPage() {
       {!autoCreating && step !== "created" && (
         <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-30 pointer-events-none">
           <div className="w-full max-w-xl mx-auto px-4 pb-4 pt-3 md:pb-6 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-auto">
-            <button
+            <motion.button
+              type="button"
+              whileTap={
+                shouldReduceMotion ||
+                (step === "industry" && !industry) ||
+                (step === "language" && selectedLanguages.length === 0) ||
+                (step === "genre" && (selectedGenreIds.length === 0 || isLoading))
+                  ? undefined
+                  : { scale: 0.97 }
+              }
+              animate={
+                !shouldReduceMotion && step === "genre" && createAction.status === "error"
+                  ? { x: [0, -5, 5, -3, 2, 0] }
+                  : { x: 0 }
+              }
+              transition={{ duration: DURATION.micro, ease: EASING.easeOutCubic }}
               onClick={() => {
                 if (step === "industry") {
                   if (!industry) { setError("Please select an industry to continue"); return; }
@@ -974,11 +1105,13 @@ export default function CreateSessionPage() {
                 (step === "language" && selectedLanguages.length === 0) ||
                 (step === "genre" && (selectedGenreIds.length === 0 || isLoading))
               }
-              className={`flex w-full items-center justify-center rounded-full h-12 px-5 transition-colors text-sm font-semibold tracking-wide shadow-xs focus:outline-hidden ${
+              className={`flex w-full items-center justify-center rounded-full h-12 px-5 transition-colors text-sm font-semibold tracking-wide shadow-xs focus-visible:outline-2 focus-visible:outline-focus ${
                 (step === "industry" && !industry) ||
                 (step === "language" && selectedLanguages.length === 0) ||
                 (step === "genre" && (selectedGenreIds.length === 0 || isLoading))
-                  ? "bg-surface-secondary text-foreground-secondary/50 border border-border cursor-not-allowed"
+                  ? "bg-surface-secondary text-foreground-secondary border border-border cursor-not-allowed"
+                  : step === "genre" && createAction.status === "error"
+                  ? "bg-error hover:bg-error/90 text-white"
                   : "bg-primary hover:bg-primary-hover text-primary-foreground"
               }`}
             >
@@ -994,7 +1127,7 @@ export default function CreateSessionPage() {
                   {step === "genre"    && (selectedGenreIds.length > 0 ? `Create Session · ${selectedGenreIds.length} genre${selectedGenreIds.length > 1 ? "s" : ""}` : "Create Session")}
                 </span>
               )}
-            </button>
+            </motion.button>
           </div>
         </div>
       )}

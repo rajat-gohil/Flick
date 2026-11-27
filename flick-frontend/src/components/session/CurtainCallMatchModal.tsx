@@ -1,33 +1,12 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import { Share2 } from "lucide-react";
+import { ActionButton } from "../motion/ActionButton";
+import { IconTransition } from "../motion/IconTransition";
+import { SHARED_LAYOUT_SPRING, MASK_REVEAL, type ActionStatus } from "../../lib/motion";
 import StreamingOptions from "../StreamingOptions";
 import SalonPassShareModal from "./SalonPassShareModal";
-
-export type MatchPresentationStyle = "antique_brass" | "amber" | "emerald" | "neutral";
-
-/**
- * Strict fail-closed resolution matching backend properties:
- * - 'mutual' + 'mutual_superlike' -> 'antique_brass'
- * - 'host' | 'guest' + 'superlike' -> 'amber'
- * - 'none' + 'ordinary' -> 'emerald'
- * - 'unknown' + 'unknown' or any contradictory mismatch -> 'neutral' (fail-closed)
- */
-export function resolveMatchStyle(
-  superlikeAttr?: string,
-  matchType?: string
-): MatchPresentationStyle {
-  if (superlikeAttr === "mutual" && matchType === "mutual_superlike") {
-    return "antique_brass";
-  }
-  if ((superlikeAttr === "host" || superlikeAttr === "guest") && matchType === "superlike") {
-    return "amber";
-  }
-  if (superlikeAttr === "none" && matchType === "ordinary") {
-    return "emerald";
-  }
-  return "neutral";
-}
+import { resolveMatchStyle } from "../../lib/matchPresentation";
 
 export interface MatchMovie {
   id: number;
@@ -52,6 +31,8 @@ export interface CurtainCallMatchModalProps {
   watchlistLoading: boolean;
   onToggleWatchlist: () => void;
   savedBurstId: number | null;
+  watchlistStatus?: ActionStatus;
+  watchlistError?: string | null;
   onDismiss: () => void;
   onEndSession: () => Promise<void>;
   endSessionLoading: boolean;
@@ -62,6 +43,8 @@ export interface CurtainCallMatchModalProps {
   sessionCode?: string;
   partnerNames?: string;
   onSharePassClick?: () => void;
+  /** Session-level familiarity pacing: true for 2nd+ matches in the same session. */
+  isRepeatMatch?: boolean;
 }
 
 export function CurtainCallMatchModal({
@@ -73,6 +56,8 @@ export function CurtainCallMatchModal({
   watchlistLoading,
   onToggleWatchlist,
   savedBurstId,
+  watchlistStatus,
+  watchlistError = null,
   onDismiss,
   onEndSession,
   endSessionLoading,
@@ -83,6 +68,7 @@ export function CurtainCallMatchModal({
   sessionCode,
   partnerNames,
   onSharePassClick,
+  isRepeatMatch = false,
 }: CurtainCallMatchModalProps) {
   const [showSharePassModal, setShowSharePassModal] = useState(false);
   const [streamingProviders, setStreamingProviders] = useState<string[]>([]);
@@ -90,6 +76,7 @@ export function CurtainCallMatchModal({
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const isMinimal = renderMode === "minimal";
   const suppressMotion = shouldReduceMotion || isMinimal;
+  const allowTheatricalFlourish = renderMode === "full" && !shouldReduceMotion && !isRepeatMatch;
 
   const styleTier = resolveMatchStyle(
     matchedMovie.superlike_attribution,
@@ -184,7 +171,7 @@ export function CurtainCallMatchModal({
           onDismiss();
         }
       }}
-      className="fixed inset-0 z-50 bg-[#0D0F0D]/96 backdrop-blur-md overflow-y-auto overscroll-contain px-4 py-6 sm:p-6 sm:py-8 flex flex-col items-center outline-none"
+      className="fixed inset-0 z-50 bg-background/95 backdrop-blur-md overflow-y-auto overscroll-contain px-4 py-6 sm:p-6 sm:py-8 flex flex-col items-center outline-none"
     >
       {/* Prominent top-right Close button for instant dismissal & mobile navigation */}
       <button
@@ -202,18 +189,18 @@ export function CurtainCallMatchModal({
         Mutual match found: {matchedMovie.title}
       </div>
 
-      {/* Atmospheric Radial Spotlight (Omitted in Minimal Mode) */}
+      {/* Atmospheric Radial Spotlight (Static in repeat-match / reduced motion, omitted in Minimal Mode) */}
       {!isMinimal && (
         <motion.div
           aria-hidden="true"
           data-testid="match-theatre-spotlight"
-          initial={suppressMotion ? { opacity: 0.4 } : { opacity: 0, scale: 0.7 }}
+          initial={suppressMotion || isRepeatMatch ? { opacity: 0.4 } : { opacity: 0, scale: 0.7 }}
           animate={{
-            opacity: suppressMotion ? 0.4 : [0.45, 0.75, 0.45],
-            scale: suppressMotion ? 1 : [0.95, 1.15, 0.95],
+            opacity: suppressMotion || isRepeatMatch ? 0.4 : [0.45, 0.75, 0.45],
+            scale: suppressMotion || isRepeatMatch ? 1 : [0.95, 1.15, 0.95],
           }}
           transition={
-            suppressMotion
+            suppressMotion || isRepeatMatch
               ? { duration: 0.2 }
               : { duration: 4, repeat: Infinity, ease: "easeInOut" }
           }
@@ -231,7 +218,13 @@ export function CurtainCallMatchModal({
         />
       )}
 
-      <div className="max-w-sm w-full my-auto flex flex-col py-1 relative z-10">
+      <motion.div
+        data-testid="match-presentation-card"
+        initial={suppressMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={suppressMotion ? { duration: 0.15 } : SHARED_LAYOUT_SPRING}
+        className="max-w-sm w-full my-auto flex flex-col py-1 relative z-10"
+      >
         {/* Header with Badges */}
         <div className="text-center pt-0 mb-0.5">
           <span
@@ -300,8 +293,8 @@ export function CurtainCallMatchModal({
             data-testid="theatrical-ticket-pass"
             className="relative w-full my-2 flex items-center justify-center overflow-hidden py-1 px-1"
           >
-            {/* Soft 250ms amber projector light sweep (Full Mode + !shouldReduceMotion ONLY) */}
-            {renderMode === "full" && !shouldReduceMotion && (
+            {/* Soft 250ms amber projector light sweep (First match + Full Mode + !shouldReduceMotion ONLY) */}
+            {allowTheatricalFlourish && (
               <motion.div
                 data-testid="projector-light-sweep"
                 aria-hidden="true"
@@ -330,17 +323,17 @@ export function CurtainCallMatchModal({
                 }
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-l-md border-y border-l text-[9px] sm:text-[10px] font-mono tracking-wider sm:tracking-widest relative overflow-hidden select-none border-dashed border-r-0 ${
                   styleTier === "antique_brass"
-                    ? "bg-[#181510] border-amber-500/60 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                    ? "bg-amber-500/15 dark:bg-[#181510] border-amber-500/60 text-amber-800 dark:text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
                     : styleTier === "amber"
-                    ? "bg-[#19150e] border-amber-500/40 text-amber-300/90"
+                    ? "bg-amber-500/10 dark:bg-[#19150e] border-amber-500/40 text-amber-800 dark:text-amber-300/90"
                     : styleTier === "emerald"
-                    ? "bg-[#0d1712] border-emerald-500/30 text-emerald-300/90"
+                    ? "bg-emerald-500/10 dark:bg-[#0d1712] border-emerald-500/30 text-emerald-800 dark:text-emerald-300/90"
                     : "bg-surface border-border text-foreground-secondary"
                 }`}
               >
                 {/* Outer notch */}
                 <span
-                  className="absolute -left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#0D0F0D] border-r border-border/40 pointer-events-none"
+                  className="absolute -left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-background border-r border-border/40 pointer-events-none"
                   aria-hidden="true"
                 />
                 <span className="font-semibold truncate">ADMIT ONE · SCREENING A</span>
@@ -385,17 +378,17 @@ export function CurtainCallMatchModal({
                 }
                 className={`flex-1 flex items-center justify-center py-2 px-2.5 rounded-r-md border-y border-r text-[9px] sm:text-[10px] font-mono tracking-wider sm:tracking-widest relative overflow-hidden select-none border-dashed border-l-0 ${
                   styleTier === "antique_brass"
-                    ? "bg-[#181510] border-amber-500/60 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                    ? "bg-amber-500/15 dark:bg-[#181510] border-amber-500/60 text-amber-800 dark:text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
                     : styleTier === "amber"
-                    ? "bg-[#19150e] border-amber-500/40 text-amber-300/90"
+                    ? "bg-amber-500/10 dark:bg-[#19150e] border-amber-500/40 text-amber-800 dark:text-amber-300/90"
                     : styleTier === "emerald"
-                    ? "bg-[#0d1712] border-emerald-500/30 text-emerald-300/90"
+                    ? "bg-emerald-500/10 dark:bg-[#0d1712] border-emerald-500/30 text-emerald-800 dark:text-emerald-300/90"
                     : "bg-surface border-border text-foreground-secondary"
                 }`}
               >
                 {/* Outer notch */}
                 <span
-                  className="absolute -right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#0D0F0D] border-l border-border/40 pointer-events-none"
+                  className="absolute -right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-background border-l border-border/40 pointer-events-none"
                   aria-hidden="true"
                 />
                 <span className="font-semibold truncate">ADMIT ONE · SCREENING B</span>
@@ -405,8 +398,13 @@ export function CurtainCallMatchModal({
         )}
 
         {/* Poster Stage */}
-        <div
+        <motion.div
           data-testid="match-poster-stage"
+          initial={suppressMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={
+            suppressMotion ? { duration: 0.15 } : { ...SHARED_LAYOUT_SPRING, delay: 0.06 }
+          }
           className="relative w-full max-w-[120px] sm:max-w-[150px] md:max-w-[170px] aspect-[2/3] mx-auto my-1.5 sm:my-2 shrink-0"
         >
           {/* Back accent card (omitted in minimal mode) */}
@@ -418,8 +416,11 @@ export function CurtainCallMatchModal({
             </div>
           )}
 
-          {/* Front card */}
-          <div
+          {/* Front card with selective editorial curtain mask reveal */}
+          <motion.div
+            data-testid="match-poster-reveal"
+            initial={suppressMotion ? MASK_REVEAL.reduced.initial : MASK_REVEAL.curtain.initial}
+            animate={suppressMotion ? MASK_REVEAL.reduced.animate : MASK_REVEAL.curtain.animate}
             className={`absolute inset-0 rounded-2xl overflow-hidden shadow-2xl border-2 bg-surface z-10 ${
               isMinimal ? "" : "rotate-2"
             } ${
@@ -445,8 +446,8 @@ export function CurtainCallMatchModal({
                 </span>
               </div>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Title & Metadata */}
         <div className="text-center mb-1.5">
@@ -509,30 +510,53 @@ export function CurtainCallMatchModal({
           )}
 
           {/* Action 2: Watchlist Toggle */}
-          <button
+          <ActionButton
             type="button"
+            status={
+              watchlistStatus ??
+              (watchlistLoading
+                ? "pending"
+                : savedBurstId === matchedMovie.id
+                ? "confirmed"
+                : "idle")
+            }
             onClick={onToggleWatchlist}
             disabled={watchlistLoading}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 sm:py-2 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all relative overflow-hidden cursor-pointer ${
+            showConfirmedPulse={!suppressMotion}
+            confirmedClassName="border-primary bg-primary/10 text-primary"
+            errorClassName="border-error/60 bg-error/10 text-error"
+            title={watchlistError ?? undefined}
+            className={`flex-1 flex items-center justify-center gap-1.5 min-h-11 py-1.5 sm:py-2 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
               isWatchlisted
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-surface hover:bg-surface-secondary text-foreground"
             }`}
           >
-            {savedBurstId === matchedMovie.id && !suppressMotion && (
-              <span
-                className="absolute inset-0 bg-primary/25 animate-ping pointer-events-none rounded-xl"
-                aria-hidden="true"
-              />
-            )}
-            <span
-              className="material-symbols-outlined text-[16px]"
-              style={{ fontVariationSettings: isWatchlisted ? "'FILL' 1" : undefined }}
+            <IconTransition
+              iconKey={`${watchlistStatus ?? (watchlistLoading ? "pending" : isWatchlisted ? "saved" : "idle")}-${isWatchlisted}`}
+              sizeClassName="size-4"
             >
-              bookmark
+              {watchlistStatus === "pending" || watchlistLoading ? (
+                <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span
+                  className="material-symbols-outlined text-[16px]"
+                  style={{ fontVariationSettings: isWatchlisted ? "'FILL' 1" : undefined }}
+                >
+                  {watchlistStatus === "error" ? "error_outline" : "bookmark"}
+                </span>
+              )}
+            </IconTransition>
+            <span>
+              {watchlistStatus === "pending" || watchlistLoading
+                ? "Saving…"
+                : watchlistStatus === "error"
+                ? "Retry"
+                : isWatchlisted
+                ? "Saved"
+                : "Save"}
             </span>
-            <span>{isWatchlisted ? "Saved" : "Save"}</span>
-          </button>
+          </ActionButton>
 
           {/* Action 3: Share Theatrical Salon Pass */}
           <button
@@ -548,6 +572,12 @@ export function CurtainCallMatchModal({
             <span>Pass</span>
           </button>
         </div>
+
+        {watchlistError && (
+          <p role="alert" className="w-full text-center text-[11px] font-medium text-error mb-2">
+            {watchlistError}
+          </p>
+        )}
 
         {/* Action 4: Streaming Options Preview */}
         <div className="w-full mb-2 max-h-36 overflow-y-auto rounded-xl">
@@ -605,7 +635,7 @@ export function CurtainCallMatchModal({
             streamingProviders,
           }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }

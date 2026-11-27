@@ -4,16 +4,35 @@ import { apiRequest, getWsUrl } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Variants, type MotionValue } from "framer-motion";
+import { useAccessibleDialog, useSheetSwipeDismiss } from "../lib/useAccessibleDialog";
 import StreamingOptions from "../components/StreamingOptions";
 import CinematicLoader from "../components/CinematicLoader";
 import { DeckCardSkeleton, MatchItemSkeleton, StreamingItemSkeleton } from "../components/Skeleton";
-import { bottomSheetVariants, backdropVariants, prefersReducedMotion, usePrefersReducedMotion } from "../lib/motion";
+import {
+  bottomSheetVariants,
+  backdropVariants,
+  backdropVariantsReduced,
+  expandModalVariants,
+  expandModalVariantsReduced,
+  inlineExpandVariants,
+  inlineExpandVariantsReduced,
+  SHARED_LAYOUT_SPRING,
+  STAGED_FOCUS,
+  prefersReducedMotion,
+  usePrefersReducedMotion,
+} from "../lib/motion";
 import { ConstraintExhaustionNoticeModal } from "../components/session/ConstraintExhaustionNoticeModal";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { hasSeenTour, markTourFinished, type TourIdentityInput } from "../lib/tutorial";
 import SpotlightTour, { type SpotlightTourStep } from "../components/SpotlightTour";
 import { CurtainCallMatchModal } from "../components/session/CurtainCallMatchModal";
+import { ActionButton } from "../components/motion/ActionButton";
+import { IconTransition } from "../components/motion/IconTransition";
+import { SharedElement } from "../components/motion/SharedElement";
+import { BoundedOverscroll } from "../components/motion/BoundedOverscroll";
+import { useActionStatus, useKeyedActionStatus } from "../lib/motion";
 import { sound } from "../lib/sound";
+import { formatRuntime } from "../lib/formatRuntime";
 
 /* ============================
    TYPES (MATCH BACKEND)
@@ -28,6 +47,8 @@ export type Movie = {
   vote_count?: number;
   release_year?: number;
   trailer_url?: string;
+  genres?: string[];
+  runtime?: number | null;
   metadataStatus?: "pending" | "success" | "failed";
   superlike_attribution?: "none" | "host" | "guest" | "mutual" | "unknown";
   match_type?: "ordinary" | "superlike" | "mutual_superlike" | "unknown";
@@ -45,6 +66,7 @@ type Match = {
   release_year?: number;
   overview?: string;
   genres?: string[];
+  runtime?: number | null;
   original_language?: string;
   superlike_attribution?: "none" | "host" | "guest" | "mutual" | "unknown";
   match_type?: "ordinary" | "superlike" | "mutual_superlike" | "unknown";
@@ -207,7 +229,22 @@ const cardVariants: Variants = {
   },
 };
 
-function normalizeDeckCard(card: any): Movie {
+interface DeckCardPayload {
+  movie_id: number;
+  title?: string;
+  overview?: string;
+  poster_path?: string | null;
+  release_date?: string | null;
+  rating?: number | null;
+  vote_count?: number | null;
+  genres?: string[];
+  runtime?: number | null;
+  card_index: number;
+  slot_type?: string;
+  [key: string]: unknown;
+}
+
+function normalizeDeckCard(card: DeckCardPayload): Movie {
   const posterUrl = card.poster_path
     ? (card.poster_path.startsWith("http")
         ? card.poster_path
@@ -225,6 +262,8 @@ function normalizeDeckCard(card: any): Movie {
     rating: typeof card.rating === "number" ? card.rating : undefined,
     vote_count: typeof card.vote_count === "number" ? card.vote_count : undefined,
     release_year: releaseYear,
+    genres: Array.isArray(card.genres) ? card.genres.filter((g): g is string => typeof g === "string" && g.length > 0) : undefined,
+    runtime: typeof card.runtime === "number" ? card.runtime : null,
     metadataStatus: "success",
   };
 }
@@ -390,7 +429,7 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
                   className="w-1.5 h-2.5 rounded-[1px] border border-white/30 bg-black/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]"
                 />
               ))}
-              <span className="text-[7px] text-white/50 font-mono tracking-widest [writing-mode:vertical-lr] rotate-180 uppercase">
+              <span className="text-[10px] text-white/50 font-mono tracking-widest [writing-mode:vertical-lr] rotate-180 uppercase">
                 35mm safety
               </span>
             </div>
@@ -405,7 +444,7 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
                   className="w-1.5 h-2.5 rounded-[1px] border border-white/30 bg-black/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]"
                 />
               ))}
-              <span className="text-[7px] text-white/50 font-mono tracking-widest [writing-mode:vertical-lr] uppercase">
+              <span className="text-[10px] text-white/50 font-mono tracking-widest [writing-mode:vertical-lr] uppercase">
                 celluloid
               </span>
             </div>
@@ -467,18 +506,18 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
 
         {/* Drag cues */}
         <div className="absolute inset-x-0 top-2.5 sm:top-3 flex justify-center pointer-events-none z-20">
-          <span className="bg-black/50 backdrop-blur-md rounded-full px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-[10px] uppercase tracking-widest text-white/80 font-medium">
+          <span className="bg-black/60 backdrop-blur-md rounded-full px-3 py-1 text-xs uppercase tracking-widest text-white/90 font-medium">
             ← Pass · Consider →
           </span>
         </div>
 
         {/* Bottom metadata banner */}
-        <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5 flex justify-between items-end z-20">
-          <div className="flex-1 min-w-0 pr-2 sm:pr-3">
-            <h1 className="font-editorial text-xl sm:text-2xl font-bold text-white leading-tight drop-shadow-sm truncate mb-0.5">
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-6 sm:p-5 flex justify-between items-end gap-2 z-20">
+          <div className="flex-1 min-w-0 pr-1 sm:pr-3">
+            <h1 className="font-editorial text-xl sm:text-2xl font-bold text-white leading-tight drop-shadow-sm line-clamp-2 mb-1">
               {movie.title}
             </h1>
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-white/80 font-medium">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-white/85 font-medium">
               <span>{movie.release_year ?? new Date().getFullYear()}</span>
               {movie.rating != null && (
                 <>
@@ -494,14 +533,15 @@ export const MovieSwipeCard = forwardRef<HTMLDivElement, MovieSwipeCardProps>(
 
           {/* Info button */}
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onInfoClick();
             }}
-            className="size-9 sm:size-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-all active:scale-90 shrink-0"
+            className="size-11 sm:size-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-all active:scale-90 shrink-0 touch-manipulation"
             aria-label="View film details"
           >
-            <span className="material-symbols-outlined text-[18px] sm:text-[20px]">info</span>
+            <span className="material-symbols-outlined text-[20px]">info</span>
           </button>
         </div>
       </motion.div>
@@ -518,6 +558,14 @@ function SessionPageInner() {
   const navigate = useNavigate();
   const shouldReduceMotion = usePrefersReducedMotion();
   const [savedBurstId, setSavedBurstId] = useState<number | null>(null);
+  const savedBurstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (savedBurstTimerRef.current !== null) {
+        clearTimeout(savedBurstTimerRef.current);
+      }
+    };
+  }, []);
 
   /* ----------------------------
      STATE
@@ -540,10 +588,10 @@ function SessionPageInner() {
 
   // Phase 3 Collaborative Manifest Deck State
   const [isManifestDeck, setIsManifestDeck] = useState(false);
-  const [currentDeckCard, setCurrentDeckCard] = useState<any>(null);
-  const currentDeckCardRef = useRef<any>(null);
-  const [, setNextDeckCard] = useState<any>(null);
-  const nextDeckCardRef = useRef<any>(null);
+  const [currentDeckCard, setCurrentDeckCard] = useState<DeckCardPayload | null>(null);
+  const currentDeckCardRef = useRef<DeckCardPayload | null>(null);
+  const [, setNextDeckCard] = useState<DeckCardPayload | null>(null);
+  const nextDeckCardRef = useRef<DeckCardPayload | null>(null);
   const [deckCardIndex, setDeckCardIndex] = useState(0);
   const [totalDeckCards, setTotalDeckCards] = useState(40);
   const [waitingForPartner, setWaitingForPartner] = useState(false);
@@ -590,6 +638,14 @@ function SessionPageInner() {
   // Theatrical Elevation: Three-tier rendering mode state and strict session-scoped deduplication
   const [renderMode, setRenderMode] = useState<"full" | "reduced" | "minimal">("full");
   const processedMatchIdsRef = useRef<Set<number>>(new Set());
+  const celebratedMatchIdsRef = useRef<Map<number, boolean>>(new Map());
+  const recordSessionMatch = useCallback((movieId: number): boolean => {
+    const existing = celebratedMatchIdsRef.current.get(movieId);
+    if (existing !== undefined) return existing;
+    const repeat = celebratedMatchIdsRef.current.size >= 1;
+    celebratedMatchIdsRef.current.set(movieId, repeat);
+    return repeat;
+  }, []);
   const isMonitoringActiveRef = useRef<boolean>(false);
   const frameMonitorStateRef = useRef<{ samples: number[]; lastTime: number | null }>({
     samples: [],
@@ -601,6 +657,7 @@ function SessionPageInner() {
     if (!id) return;
     setRenderMode("full");
     processedMatchIdsRef.current.clear();
+    celebratedMatchIdsRef.current.clear();
     frameMonitorStateRef.current = { samples: [], lastTime: null };
   }, [id]);
 
@@ -679,6 +736,7 @@ function SessionPageInner() {
   const [partnerJoinedToastMsg, setPartnerJoinedToastMsg] = useState("");
   const [partnerDisplayName, setPartnerDisplayName] = useState<string>("");
   const [selectedMatchDetail, setSelectedMatchDetail] = useState<Match | null>(null);
+  const [selectedMatchLayoutId, setSelectedMatchLayoutId] = useState<string | null>(null);
 
   // Phase 1 Deck Depth Physics: Shared real-time drag motion value driving stack depth
   const activeCardDragX = useMotionValue(0);
@@ -753,9 +811,15 @@ function SessionPageInner() {
 
   /* ── Info bottom sheet ── */
   const [showInfoSheet, setShowInfoSheet] = useState(false);
+  const infoSheetRef = useRef<HTMLDivElement>(null);
+  const infoSwipe = useSheetSwipeDismiss(() => setShowInfoSheet(false), shouldReduceMotion);
+  useAccessibleDialog(showInfoSheet, () => setShowInfoSheet(false), infoSheetRef);
 
   /* ── Streaming bottom sheet ── */
   const [showStreamingSheet, setShowStreamingSheet] = useState(false);
+  const streamingSheetRef = useRef<HTMLDivElement>(null);
+  const streamingSwipe = useSheetSwipeDismiss(() => setShowStreamingSheet(false), shouldReduceMotion);
+  useAccessibleDialog(showStreamingSheet, () => setShowStreamingSheet(false), streamingSheetRef);
   const [streamingProviders, setStreamingProviders] = useState<{name:string;logo_url:string;url:string;type:string}[]>([]);
   const [streamingLoading, setStreamingLoading] = useState(false);
   const [streamingMovieId, setStreamingMovieId] = useState<number|null>(null);
@@ -763,7 +827,8 @@ function SessionPageInner() {
 
   /* ── Watchlist ── */
   const [watchlistedIds, setWatchlistedIds] = useState<Set<number>>(new Set());
-  const [watchlistLoading, setWatchlistLoading] = useState<number | null>(null);
+  const watchlistAction = useKeyedActionStatus<number>({ errorDurationMs: 0 });
+  const pendingWatchlistIdsRef = useRef<Set<number>>(new Set());
 
   /* ── Re-questionnaire ── */
   const [showReQuestionnaire, setShowReQuestionnaire] = useState(false);
@@ -776,8 +841,9 @@ function SessionPageInner() {
   const [undoLoading, setUndoLoading] = useState(false);
 
   // Waiting screen state
-  const [codeCopied, setCodeCopied] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const codeCopy = useActionStatus();
+  const linkCopy = useActionStatus();
+  const [waitingShareExpanded, setWaitingShareExpanded] = useState(false);
 
   /* ── Slice D: partner waiting overlay (non-blocking) ── */
   const [partnerLeftSession, setPartnerLeftSession] = useState(false);
@@ -926,7 +992,7 @@ function SessionPageInner() {
           };
         });
       }
-    } catch (_e) {
+    } catch {
       setMatches([]);
     } finally {
       setLoadingMatches(false);
@@ -943,11 +1009,14 @@ function SessionPageInner() {
   }, []);
 
   const toggleWatchlist = async (movieId: number, sessionId?: number) => {
-    setWatchlistLoading(movieId);
+    if (pendingWatchlistIdsRef.current.has(movieId)) return;
+    pendingWatchlistIdsRef.current.add(movieId);
+    watchlistAction.setPending(movieId);
     try {
       if (watchlistedIds.has(movieId)) {
         await apiRequest(`/api/watchlist/${movieId}/`, { method: "DELETE" });
         setWatchlistedIds(prev => { const s = new Set(prev); s.delete(movieId); return s; });
+        watchlistAction.setConfirmed(movieId);
         trackEvent("watchlist_removed", { movie_id: movieId, session_id: sessionId, source: "session" });
       } else {
         await apiRequest("/api/watchlist/", {
@@ -955,12 +1024,22 @@ function SessionPageInner() {
           body: JSON.stringify({ movie_id: movieId, session_id: sessionId }),
         });
         setWatchlistedIds(prev => new Set([...prev, movieId]));
+        if (savedBurstTimerRef.current !== null) {
+          clearTimeout(savedBurstTimerRef.current);
+        }
         setSavedBurstId(movieId);
-        setTimeout(() => setSavedBurstId(null), 1200);
+        savedBurstTimerRef.current = setTimeout(() => {
+          setSavedBurstId(null);
+          savedBurstTimerRef.current = null;
+        }, 1200);
+        watchlistAction.setConfirmed(movieId);
         trackEvent("watchlist_added", { movie_id: movieId, session_id: sessionId, source: "session" });
       }
-    } catch { /* ignored */ }
-    setWatchlistLoading(null);
+    } catch {
+      watchlistAction.setError(movieId, "Couldn't update watchlist. Please try again.");
+    } finally {
+      pendingWatchlistIdsRef.current.delete(movieId);
+    }
   };
 
   /* ============================
@@ -1004,7 +1083,7 @@ function SessionPageInner() {
         }
         return current;
       });
-    } catch (_err) {
+    } catch {
       if (!isMountedRef.current) return;
       setMatchQueue((prev) =>
         prev.map((m) =>
@@ -1107,7 +1186,11 @@ function SessionPageInner() {
     } catch (err: unknown) {
       console.warn("[fetchDeckCard] Collaborative deck retrieval error:", err);
       if (typeof err === "object" && err !== null) {
-        const errorObj = err as { status?: number; data?: any; message?: string };
+        const errorObj = err as {
+          status?: number;
+          data?: { is_legacy?: boolean; exhausted?: boolean; proposal_required?: boolean; error?: string };
+          message?: string;
+        };
         if (errorObj.data?.is_legacy) {
           return { status: "legacy" as const };
         }
@@ -1260,7 +1343,7 @@ function SessionPageInner() {
           recommendationsFetchedRef.current = false;
         }
       }
-    } catch (_e) {
+    } catch {
       if (!sessionRef.current && !moviesLoaded) {
         setError("Failed to load session");
       } else {
@@ -1523,7 +1606,9 @@ function SessionPageInner() {
               fetchMetadata(incomingMovieId, fallbackTitle);
             }
 
-            if (!prefersReducedMotion()) {
+            const repeatMatch = recordSessionMatch(incomingMovieId);
+
+            if (!prefersReducedMotion() && !repeatMatch) {
               confetti({
                 particleCount: 80,
                 spread: 60,
@@ -1643,7 +1728,7 @@ function SessionPageInner() {
             if (!prefersReduced) {
               navigator.vibrate([40, 60, 40]);
             }
-          } catch (_e) {
+          } catch {
             // Graceful fallback for environments with restricted permissions
           }
         }
@@ -1764,9 +1849,10 @@ function SessionPageInner() {
               match_type: res.match_type || (reaction === "superlike" ? "superlike" : "ordinary"),
               metadataStatus: "success",
             };
+            const repeatMatch = recordSessionMatch(matched.id);
             setMatchedMovie(matched);
             setShowMatch(true);
-            if (!prefersReducedMotion()) {
+            if (!prefersReducedMotion() && !repeatMatch) {
               confetti({
                 particleCount: 80,
                 spread: 60,
@@ -2022,7 +2108,7 @@ function SessionPageInner() {
         } : prev));
         const active = activeSessionSockets.get(String(id));
         if (active) {
-          try { active.close(1000, "Session ended by user"); } catch {}
+          try { active.close(1000, "Session ended by user"); } catch { /* ignore */ }
           activeSessionSockets.delete(String(id));
         }
         loadMatchHistory();
@@ -2072,7 +2158,7 @@ function SessionPageInner() {
         setHasLeftSession(true);
         const active = activeSessionSockets.get(String(id));
         if (active) {
-          try { active.close(1000, "Session left by user"); } catch {}
+          try { active.close(1000, "Session left by user"); } catch { /* ignore */ }
           activeSessionSockets.delete(String(id));
         }
       }
@@ -2213,7 +2299,7 @@ function SessionPageInner() {
     try {
       const data = await apiRequest(`/api/movies/${movieId}/streaming-options/`);
       setStreamingProviders(Array.isArray(data.providers) ? data.providers : []);
-    } catch (_e) {
+    } catch {
       setStreamingProviders([]);
     } finally {
       setStreamingLoading(false);
@@ -2503,7 +2589,23 @@ function SessionPageInner() {
         )}
 
         {/* ── Match list ── */}
-        <main className="flex-1 overflow-y-auto px-6 pb-36 divide-y divide-border/60">
+        <main className="flex-1 flex flex-col min-h-0">
+          <motion.div
+            data-staged-focus={selectedMatchDetail ? "dimmed" : "restored"}
+            animate={
+              selectedMatchDetail
+                ? shouldReduceMotion
+                  ? STAGED_FOCUS.inactiveDimmedReduced
+                  : STAGED_FOCUS.inactiveDimmed
+                : STAGED_FOCUS.activeRestored
+            }
+            className="flex-1 flex flex-col min-h-0"
+          >
+          <BoundedOverscroll
+            axis="y"
+            className="flex-1 overflow-y-auto overscroll-contain px-6 pb-36"
+            innerClassName="divide-y divide-border/60"
+          >
           {loadingMatches && (
             <div className="py-2 space-y-1">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -2523,15 +2625,21 @@ function SessionPageInner() {
 
           {!loadingMatches && filteredMatches.map((m, index) => {
             const isWatchlisted = watchlistedIds.has(m.movie_id);
+            const rowPosterLayoutId = `match-poster-${m.movie_id}-${index}`;
+            const openDetail = () => {
+              setSelectedMatchLayoutId(rowPosterLayoutId);
+              setSelectedMatchDetail(m);
+            };
             return (
               <div
                 key={`${m.movie_id}-${index}`}
                 className="flex items-center gap-3.5 py-3 hover:bg-surface-secondary/40 transition-colors rounded-xl px-2 -mx-2"
               >
                 {/* Poster thumbnail */}
-                <div
+                <SharedElement
+                  layoutId={rowPosterLayoutId}
                   className="shrink-0 w-12 aspect-[2/3] rounded-md overflow-hidden bg-surface-secondary border border-border shadow-sm cursor-pointer relative"
-                  onClick={() => setSelectedMatchDetail(m)}
+                  onClick={openDetail}
                 >
                   {m.poster_url ? (
                     <img
@@ -2546,26 +2654,26 @@ function SessionPageInner() {
                   <div className="w-full h-full flex items-center justify-center text-foreground-secondary absolute inset-0 -z-0">
                     <span className="material-symbols-outlined text-[18px]">movie</span>
                   </div>
-                </div>
+                </SharedElement>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedMatchDetail(m)}>
+                <button type="button" className="flex-1 min-w-0 cursor-pointer text-left" onClick={openDetail}>
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-editorial text-sm font-semibold text-foreground line-clamp-1">{m.movie_title}</h3>
                     {m.match_type === "mutual_superlike" && (
-                      <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
-                        <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                        <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                         Mutual
                       </span>
                     )}
                     {m.match_type === "superlike" && (
-                      <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary/15 text-primary border border-primary/30">
-                        <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-bold bg-primary/15 text-primary border border-primary/30">
+                        <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                         Super-Liked
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-foreground-secondary">
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-foreground-secondary">
                     {m.rating != null && (
                       <span className="flex items-center gap-0.5 text-primary font-semibold">
                         <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
@@ -2577,14 +2685,15 @@ function SessionPageInner() {
                       <span className="hidden sm:inline">· Agreed {new Date(m.matched_at).toLocaleDateString()}</span>
                     )}
                   </div>
-                </div>
+                </button>
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 shrink-0">
                   {/* Info button */}
                   <button
-                    onClick={() => setSelectedMatchDetail(m)}
-                    className="size-9 rounded-full flex items-center justify-center border border-border bg-surface text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-all"
+                    type="button"
+                    onClick={openDetail}
+                    className="size-11 sm:size-9 rounded-full flex items-center justify-center border border-border bg-surface text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-all cursor-pointer"
                     title="Film details"
                     aria-label="Film details"
                   >
@@ -2592,46 +2701,58 @@ function SessionPageInner() {
                   </button>
 
                   {/* Watchlist button */}
-                  <button
+                  <ActionButton
+                    status={watchlistAction.getStatus(m.movie_id)}
                     onClick={() => toggleWatchlist(m.movie_id, m.session_id)}
-                    disabled={watchlistLoading === m.movie_id}
-                    className={`size-9 rounded-full flex items-center justify-center border transition-all ${
+                    disabled={watchlistAction.getStatus(m.movie_id) === "pending"}
+                    enforceTouchTarget={true}
+                    confirmedClassName="ring-1 ring-primary/40"
+                    errorClassName="bg-error/10 border-error/60 text-error"
+                    className={`size-11 sm:size-9 sm:min-h-9 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
                       isWatchlisted
                         ? "bg-primary/10 border-primary text-primary"
                         : "bg-surface border-border text-foreground-secondary hover:text-foreground hover:border-foreground-secondary"
                     }`}
-                    aria-label={isWatchlisted ? "Saved in watchlist" : "Save to watchlist"}
+                    ariaLabel={isWatchlisted ? "Saved in watchlist" : "Save to watchlist"}
                   >
-                    {watchlistLoading === m.movie_id ? (
-                      <span className="size-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span
-                        className="material-symbols-outlined text-[18px]"
-                        style={{ fontVariationSettings: isWatchlisted ? "'FILL' 1" : undefined }}
-                      >
-                        bookmark
-                      </span>
-                    )}
-                  </button>
+                    <IconTransition
+                      iconKey={`${watchlistAction.getStatus(m.movie_id)}-${isWatchlisted}`}
+                      sizeClassName="size-[18px]"
+                    >
+                      {watchlistAction.getStatus(m.movie_id) === "pending" ? (
+                        <span className="size-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span
+                          className="material-symbols-outlined text-[18px]"
+                          style={{ fontVariationSettings: isWatchlisted ? "'FILL' 1" : undefined }}
+                        >
+                          {watchlistAction.getStatus(m.movie_id) === "error" ? "error_outline" : "bookmark"}
+                        </span>
+                      )}
+                    </IconTransition>
+                  </ActionButton>
                 </div>
               </div>
             );
           })}
+          </BoundedOverscroll>
+          </motion.div>
         </main>
 
         {/* ── Selected match detail sheet ── */}
         <AnimatePresence>
           {selectedMatchDetail && (
             <motion.div
-              variants={backdropVariants}
+              data-staged-focus="active"
+              variants={shouldReduceMotion ? backdropVariantsReduced : backdropVariants}
               initial="initial"
               animate="animate"
               exit="exit"
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center sm:justify-center p-0 sm:p-4"
+              className={`fixed inset-0 ${STAGED_FOCUS.backdropClassName} z-50 flex items-end sm:items-center sm:justify-center p-0 sm:p-4`}
               onClick={() => setSelectedMatchDetail(null)}
             >
               <motion.div
-                variants={bottomSheetVariants}
+                variants={shouldReduceMotion ? expandModalVariantsReduced : expandModalVariants}
                 initial="initial"
                 animate="animate"
                 exit="exit"
@@ -2644,7 +2765,10 @@ function SessionPageInner() {
 
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex gap-4">
-                    <div className="w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden bg-surface-secondary border border-border shrink-0">
+                    <SharedElement
+                      layoutId={selectedMatchLayoutId ?? undefined}
+                      className="w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden bg-surface-secondary border border-border shrink-0"
+                    >
                       {selectedMatchDetail.poster_url ? (
                         <img src={selectedMatchDetail.poster_url} alt={selectedMatchDetail.movie_title} className="w-full h-full object-cover" />
                       ) : (
@@ -2652,7 +2776,7 @@ function SessionPageInner() {
                           <span className="material-symbols-outlined text-[24px]">movie</span>
                         </div>
                       )}
-                    </div>
+                    </SharedElement>
                     <div>
                       <h3 className="font-editorial text-xl font-bold text-foreground leading-tight">{selectedMatchDetail.movie_title}</h3>
                       <div className="flex items-center gap-2 mt-1 text-xs text-foreground-secondary flex-wrap">
@@ -2665,6 +2789,9 @@ function SessionPageInner() {
                         )}
                         {selectedMatchDetail.release_year && (
                           <span>· {selectedMatchDetail.release_year}</span>
+                        )}
+                        {formatRuntime(selectedMatchDetail.runtime) && (
+                          <span data-testid="match-detail-runtime">· {formatRuntime(selectedMatchDetail.runtime)}</span>
                         )}
                         {selectedMatchDetail.original_language && (
                           <span className="uppercase text-[10px] px-1.5 py-0.5 bg-surface-secondary rounded border border-border">
@@ -2684,8 +2811,10 @@ function SessionPageInner() {
                     </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setSelectedMatchDetail(null)}
-                    className="size-8 rounded-full bg-surface-secondary flex items-center justify-center text-foreground-secondary hover:text-foreground shrink-0 transition-transform active:scale-90"
+                    aria-label="Close match details"
+                    className="size-11 sm:size-9 rounded-full bg-surface-secondary flex items-center justify-center text-foreground-secondary hover:text-foreground shrink-0 transition-transform active:scale-90 cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[18px]">close</span>
                   </button>
@@ -2693,8 +2822,8 @@ function SessionPageInner() {
 
                 {selectedMatchDetail.overview && (
                   <div className="mb-5">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-1 block">Synopsis</span>
-                    <p className="text-foreground text-xs leading-relaxed">{selectedMatchDetail.overview}</p>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-1 block">Synopsis</span>
+                    <p className="text-foreground text-sm leading-relaxed">{selectedMatchDetail.overview}</p>
                   </div>
                 )}
 
@@ -2704,19 +2833,48 @@ function SessionPageInner() {
                 </div>
 
                 <div className="flex gap-2">
-                  <button
+                  <ActionButton
+                    status={watchlistAction.getStatus(selectedMatchDetail.movie_id)}
                     onClick={() => toggleWatchlist(selectedMatchDetail.movie_id, selectedMatchDetail.session_id)}
-                    className={`flex-1 h-11 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] ${
+                    confirmedClassName="ring-1 ring-primary/40"
+                    errorClassName="border-error/60 bg-error/10 text-error"
+                    className={`flex-1 h-11 rounded-xl border text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                       watchlistedIds.has(selectedMatchDetail.movie_id)
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-surface hover:bg-surface-secondary text-foreground"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: watchlistedIds.has(selectedMatchDetail.movie_id) ? "'FILL' 1" : undefined }}>
-                      bookmark
+                    <IconTransition
+                      iconKey={`${watchlistAction.getStatus(selectedMatchDetail.movie_id)}-${watchlistedIds.has(selectedMatchDetail.movie_id)}`}
+                      sizeClassName="size-4"
+                    >
+                      {watchlistAction.getStatus(selectedMatchDetail.movie_id) === "pending" ? (
+                        <span className="size-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span
+                          className="material-symbols-outlined text-[16px]"
+                          style={{
+                            fontVariationSettings: watchlistedIds.has(selectedMatchDetail.movie_id)
+                              ? "'FILL' 1"
+                              : undefined,
+                          }}
+                        >
+                          {watchlistAction.getStatus(selectedMatchDetail.movie_id) === "error"
+                            ? "error_outline"
+                            : "bookmark"}
+                        </span>
+                      )}
+                    </IconTransition>
+                    <span>
+                      {watchlistAction.getStatus(selectedMatchDetail.movie_id) === "pending"
+                        ? "Saving…"
+                        : watchlistAction.getStatus(selectedMatchDetail.movie_id) === "error"
+                        ? "Retry Save"
+                        : watchlistedIds.has(selectedMatchDetail.movie_id)
+                        ? "Saved in Watchlist"
+                        : "Save to Watchlist"}
                     </span>
-                    {watchlistedIds.has(selectedMatchDetail.movie_id) ? "Saved in Watchlist" : "Save to Watchlist"}
-                  </button>
+                  </ActionButton>
                   <button
                     onClick={() => setSelectedMatchDetail(null)}
                     className="h-11 px-5 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground text-xs font-semibold uppercase tracking-wider transition-colors active:scale-95"
@@ -2724,6 +2882,11 @@ function SessionPageInner() {
                     Close
                   </button>
                 </div>
+                {watchlistAction.errorState?.key === selectedMatchDetail.movie_id && (
+                  <p role="alert" className="mt-2 text-xs font-medium text-error">
+                    {watchlistAction.errorState.message}
+                  </p>
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -2755,13 +2918,30 @@ function SessionPageInner() {
   ============================ */
 
   const sessionLink = session ? `${window.location.origin}/join/${session.code}` : "";
-  const copyCode = () => {
-    if (session) navigator.clipboard?.writeText(session.code);
-    setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000);
+  const copyCode = async () => {
+    if (!session) return;
+    codeCopy.setPending();
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(session.code);
+      codeCopy.setConfirmed();
+    } catch {
+      codeCopy.setError("Couldn't copy code automatically — select and copy manually.");
+    }
   };
-  const copyLink = () => {
-    navigator.clipboard?.writeText(sessionLink);
-    setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000);
+  const copyLink = async () => {
+    linkCopy.setPending();
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
+      }
+      await navigator.clipboard.writeText(sessionLink);
+      linkCopy.setConfirmed();
+    } catch {
+      linkCopy.setError("Couldn't copy link automatically — share manually.");
+    }
   };
   const shareLink = async () => {
     if (navigator.share) {
@@ -2800,50 +2980,128 @@ function SessionPageInner() {
           </div>
 
           {/* Session code card */}
-          <div className="w-full bg-surface border border-border rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm">
+          <motion.div
+            layout={!shouldReduceMotion}
+            transition={SHARED_LAYOUT_SPRING}
+            className="w-full bg-surface border border-border rounded-2xl p-6 flex flex-col items-center gap-3 shadow-sm overflow-hidden"
+          >
             <span className="text-[10px] text-foreground-secondary uppercase tracking-widest font-semibold">Passcode</span>
             <div className="font-editorial text-4xl font-bold tracking-[0.25em] text-foreground">{session.code}</div>
-            <button
+            <ActionButton
+              status={codeCopy.status}
               onClick={copyCode}
-              className="flex items-center gap-1.5 text-xs text-foreground-secondary hover:text-foreground transition-colors font-medium mt-1"
+              confirmedClassName="text-primary"
+              errorClassName="text-error"
+              className="min-h-11 px-3 flex items-center justify-center gap-1.5 text-xs text-foreground-secondary hover:text-foreground transition-colors font-medium mt-1 rounded-xl cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[15px]">{codeCopied ? "check" : "content_copy"}</span>
-              {codeCopied ? "Copied" : "Copy code"}
-            </button>
-          </div>
+              <IconTransition iconKey={codeCopy.status} sizeClassName="size-4">
+                <span className="material-symbols-outlined text-[15px]">
+                  {codeCopy.status === "confirmed"
+                    ? "check"
+                    : codeCopy.status === "error"
+                    ? "error_outline"
+                    : "content_copy"}
+                </span>
+              </IconTransition>
+              <span>
+                {codeCopy.status === "confirmed"
+                  ? "Copied"
+                  : codeCopy.status === "error"
+                  ? "Copy failed"
+                  : "Copy code"}
+              </span>
+            </ActionButton>
+            {(codeCopy.errorMessage || linkCopy.errorMessage) && (
+              <p role="alert" className="mt-1 text-[11px] font-medium text-error text-center">
+                {codeCopy.errorMessage || linkCopy.errorMessage}
+              </p>
+            )}
 
-          {/* Share options */}
-          <div className="w-full flex flex-col gap-2.5">
-            <button
-              onClick={() => {
-                if (!sessionLink) return;
-                const text = encodeURIComponent(
-                  `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${sessionLink}`
-                );
-                window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
-              }}
-              className="w-full h-11 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-[0.99]"
-            >
-              <span className="font-bold text-sm">💬</span>
-              <span>Send via WhatsApp</span>
-            </button>
-            <div className="w-full flex gap-3">
-              <button
-                onClick={shareLink}
-                className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[16px]">share</span>
-                Share Invite
-              </button>
-              <button
+            {/* Primary Copy Link + Expandable Share Options inside invitation */}
+            <div className="w-full flex gap-2.5 pt-2 border-t border-border/50">
+              <ActionButton
+                status={linkCopy.status}
                 onClick={copyLink}
-                className="flex-1 h-11 rounded-xl bg-surface border border-border hover:bg-surface-secondary text-foreground font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                confirmedClassName="border-primary/50 bg-primary/10 text-primary"
+                errorClassName="border-error/60 bg-error/10 text-error"
+                className="flex-1 h-11 rounded-xl bg-surface-secondary border border-border hover:bg-surface text-foreground font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">{linkCopied ? "check" : "link"}</span>
-                {linkCopied ? "Copied" : "Copy Link"}
+                <IconTransition iconKey={linkCopy.status} sizeClassName="size-4">
+                  <span className="material-symbols-outlined text-[16px]">
+                    {linkCopy.status === "confirmed"
+                      ? "check"
+                      : linkCopy.status === "error"
+                      ? "error_outline"
+                      : "link"}
+                  </span>
+                </IconTransition>
+                <span>
+                  {linkCopy.status === "confirmed"
+                    ? "Copied"
+                    : linkCopy.status === "error"
+                    ? "Copy Failed"
+                    : "Copy Link"}
+                </span>
+              </ActionButton>
+              <button
+                type="button"
+                aria-expanded={waitingShareExpanded}
+                aria-controls="waiting-share-drawer"
+                onClick={() => setWaitingShareExpanded((prev) => !prev)}
+                className={`flex-1 min-h-11 h-11 rounded-xl border font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                  waitingShareExpanded
+                    ? "border-primary/50 bg-primary/10 text-primary"
+                    : "border-border bg-surface hover:bg-surface-secondary text-foreground"
+                }`}
+              >
+                <IconTransition iconKey={waitingShareExpanded ? "close" : "share"} sizeClassName="size-4">
+                  <span className="material-symbols-outlined text-[16px]">
+                    {waitingShareExpanded ? "expand_less" : "share"}
+                  </span>
+                </IconTransition>
+                <span>Share Options</span>
               </button>
             </div>
-          </div>
+
+            <AnimatePresence initial={false}>
+              {waitingShareExpanded && (
+                <motion.div
+                  id="waiting-share-drawer"
+                  data-testid="waiting-share-drawer"
+                  variants={shouldReduceMotion ? inlineExpandVariantsReduced : inlineExpandVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="w-full overflow-hidden"
+                >
+                  <div className="w-full flex flex-col gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!sessionLink) return;
+                        const text = encodeURIComponent(
+                          `🎬 Join my movie night on Flick! Swipe together to match on what to watch in 3 minutes:\n${sessionLink}`
+                        );
+                        window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank", "noopener,noreferrer");
+                      }}
+                      className="w-full h-11 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] font-semibold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-[0.99]"
+                    >
+                      <span className="font-bold text-sm">💬</span>
+                      <span>Send via WhatsApp</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={shareLink}
+                      className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">ios_share</span>
+                      <span>Share Invite</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* Pulsing indicator */}
           <div className="flex gap-2 pt-2">
@@ -2867,11 +3125,18 @@ function SessionPageInner() {
         matchedMovie={matchedMovie}
         renderMode={renderMode}
         shouldReduceMotion={shouldReduceMotion}
+        isRepeatMatch={celebratedMatchIdsRef.current.get(matchedMovie.id) ?? false}
         userRole={session?.user_role}
         isWatchlisted={watchlistedIds.has(matchedMovie.id)}
-        watchlistLoading={watchlistLoading === matchedMovie.id}
+        watchlistLoading={watchlistAction.getStatus(matchedMovie.id) === "pending"}
         onToggleWatchlist={() => toggleWatchlist(matchedMovie.id, Number(id))}
         savedBurstId={savedBurstId}
+        watchlistStatus={watchlistAction.getStatus(matchedMovie.id)}
+        watchlistError={
+          watchlistAction.errorState?.key === matchedMovie.id
+            ? watchlistAction.errorState.message
+            : null
+        }
         onDismiss={() => {
           trackEvent("match_continue");
           setShowMatch(false);
@@ -3130,7 +3395,7 @@ function SessionPageInner() {
           setCurrentIndex(0);
           trackEvent("movies_refetched", { session_id: Number(id), count: newMovies.length });
         }
-      } catch (_e) {
+      } catch {
         setError("Failed to load more films");
       } finally {
         setCheckingMore(false);
@@ -3262,7 +3527,7 @@ function SessionPageInner() {
               }`}
             />
           </div>
-          <span className="text-xs font-medium text-foreground-secondary tracking-wide truncate max-w-[125px] xs:max-w-[170px] sm:max-w-xs">
+          <span className="text-xs font-medium text-foreground-secondary tracking-wide truncate max-w-[180px] sm:max-w-xs">
             {partnerStatus === "online"  && (effectivePartnerName ? `${effectivePartnerName} connected` : "Partner connected")}
             {partnerStatus === "swiping" && (effectivePartnerName ? `${effectivePartnerName} reviewing…` : "Partner reviewing…")}
             {partnerStatus === "offline" && (effectivePartnerName ? `${effectivePartnerName} disconnected` : "Partner disconnected")}
@@ -3273,18 +3538,18 @@ function SessionPageInner() {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={() => setShowReQuestionnaire(true)}
-            className="size-8 rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors"
+            className="size-11 sm:size-9 rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors touch-manipulation"
             title="Adjust taste parameters"
             aria-label="Adjust taste parameters"
           >
-            <span className="material-symbols-outlined text-[18px]">tune</span>
+            <span className="material-symbols-outlined text-[19px] sm:text-[18px]">tune</span>
           </button>
           {session?.user_role === "guest" ? (
             <button
               onClick={leaveSession}
               disabled={leaveSessionLoading || sessionLocked || session?.ended}
               data-testid="leave-screening-btn"
-              className="inline-flex min-h-[36px] items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
+              className="inline-flex min-h-11 sm:min-h-9 items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               {leaveSessionLoading ? "Leaving…" : "Leave"}
             </button>
@@ -3296,7 +3561,7 @@ function SessionPageInner() {
               }}
               disabled={endSessionLoading || sessionLocked || session?.ended}
               data-testid="conclude-screening-btn"
-              className="inline-flex min-h-[36px] items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
+              className="inline-flex min-h-11 sm:min-h-9 items-center px-2.5 -mr-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-foreground-secondary hover:text-foreground hover:bg-surface-secondary transition-colors disabled:opacity-50 cursor-pointer touch-manipulation"
             >
               {endSessionLoading ? "Concluding…" : "Conclude"}
             </button>
@@ -3554,7 +3819,7 @@ function SessionPageInner() {
       </div>
 
       {/* ── Action buttons & counter ── */}
-      <div className="pb-[max(0.75rem,calc(0.5rem+env(safe-area-inset-bottom)))] sm:pb-5 pt-1 px-4 sm:px-6 z-10 relative shrink-0">
+      <div className="pb-[max(1rem,calc(0.5rem+env(safe-area-inset-bottom)))] sm:pb-5 pt-1 px-4 sm:px-6 z-10 relative shrink-0">
         <div className="flex justify-around items-center max-w-sm mx-auto">
 
           {/* Undo */}
@@ -3563,7 +3828,7 @@ function SessionPageInner() {
             data-tour="session-undo"
             onClick={handleUndo}
             disabled={!lastSwiped || undoLoading || isSessionTourLocked}
-            className={`size-10 sm:size-11 md:size-12 rounded-full border flex items-center justify-center transition-all ${
+            className={`size-11 md:size-12 rounded-full border flex items-center justify-center transition-all touch-manipulation ${
               lastSwiped && !undoLoading && !isSessionTourLocked
                 ? "border-border bg-surface text-foreground hover:bg-surface-secondary shadow-sm active:scale-95"
                 : "border-border/40 bg-surface/40 text-foreground-secondary/30 cursor-not-allowed"
@@ -3624,7 +3889,7 @@ function SessionPageInner() {
               data-tour="session-superlike"
               onClick={handleSuperLike}
               disabled={!canSwipe}
-              className={`size-10 sm:size-11 md:size-12 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center justify-center shadow-sm transition-all ${
+              className={`size-11 md:size-12 rounded-full border border-primary/40 bg-primary/10 text-primary flex items-center justify-center shadow-sm transition-all touch-manipulation ${
                 canSwipe
                   ? "hover:bg-primary/20 hover:scale-105 hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-90 cursor-pointer"
                   : "opacity-40 cursor-not-allowed"
@@ -3680,29 +3945,41 @@ function SessionPageInner() {
         {showInfoSheet && (
           <>
             <motion.div
-              variants={backdropVariants}
-              initial="hidden"
-              animate="visible"
+              data-staged-focus="active"
+              variants={shouldReduceMotion ? backdropVariantsReduced : backdropVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              className={`fixed inset-0 ${STAGED_FOCUS.backdropClassName} z-40`}
               onClick={() => setShowInfoSheet(false)}
             />
             <motion.div
-              variants={bottomSheetVariants}
-              initial="hidden"
-              animate="visible"
+              ref={infoSheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="session-info-sheet-title"
+              tabIndex={-1}
+              variants={shouldReduceMotion ? expandModalVariantsReduced : bottomSheetVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
+              style={infoSwipe.dragOffsetY > 0 ? { transform: `translateY(${infoSwipe.dragOffsetY}px)` } : undefined}
               className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto z-50 bg-surface border-t border-border rounded-t-3xl max-h-[85vh] overflow-y-auto overscroll-contain px-6 pt-3 pb-[max(2.5rem,calc(1.5rem+env(safe-area-inset-bottom)))] shadow-2xl"
             >
-              <div className="flex justify-center mb-5">
-                <div className="w-10 h-1 bg-border rounded-full cursor-pointer" onClick={() => setShowInfoSheet(false)} />
+              <div
+                {...infoSwipe.handleProps}
+                className="flex justify-center mb-3 py-2 -mx-6 px-6 touch-none cursor-grab active:cursor-grabbing"
+              >
+                <div className="w-10 h-1 bg-border rounded-full" aria-hidden="true" />
               </div>
 
               <div className="flex justify-between items-center mb-5">
-                <h2 className="font-editorial text-2xl font-semibold text-foreground">Film Overview</h2>
+                <h2 id="session-info-sheet-title" className="font-editorial text-2xl font-semibold text-foreground">Film Overview</h2>
                 <button
+                  type="button"
                   onClick={() => setShowInfoSheet(false)}
-                  className="size-8 flex items-center justify-center rounded-full bg-surface-secondary text-foreground-secondary hover:text-foreground transition-transform active:scale-90"
+                  aria-label="Close film overview"
+                  className="size-11 sm:size-9 flex items-center justify-center rounded-full bg-surface-secondary text-foreground-secondary hover:text-foreground transition-transform active:scale-90 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">close</span>
                 </button>
@@ -3710,9 +3987,22 @@ function SessionPageInner() {
 
               {movie && (
                 <div className="space-y-5">
+                  {Array.isArray(movie.genres) && movie.genres.length > 0 && (
+                    <div data-testid="film-overview-genres" className="flex flex-wrap gap-1.5">
+                      {movie.genres.map((g, i) => (
+                        <span
+                          key={`${g}-${i}`}
+                          className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20"
+                        >
+                          {g}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2 block">Synopsis</span>
-                    <p className="text-foreground text-xs leading-relaxed">{movie.overview || "No synopsis available."}</p>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-2 block">Synopsis</span>
+                    <p className="text-foreground text-[15px] leading-relaxed">{movie.overview || "No synopsis available."}</p>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
@@ -3726,6 +4016,14 @@ function SessionPageInner() {
                     {movie.release_year && (
                       <span className="px-3 py-1.5 rounded-lg bg-surface-secondary border border-border text-xs text-foreground-secondary font-medium">
                         {movie.release_year}
+                      </span>
+                    )}
+                    {formatRuntime(movie.runtime) && (
+                      <span
+                        data-testid="film-overview-runtime"
+                        className="px-3 py-1.5 rounded-lg bg-surface-secondary border border-border text-xs text-foreground-secondary font-medium"
+                      >
+                        {formatRuntime(movie.runtime)}
                       </span>
                     )}
                     {movie.trailer_url && (
@@ -3764,32 +4062,45 @@ function SessionPageInner() {
         {showStreamingSheet && (
           <>
             <motion.div
-              variants={backdropVariants}
-              initial="hidden"
-              animate="visible"
+              variants={shouldReduceMotion ? backdropVariantsReduced : backdropVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
               onClick={() => setShowStreamingSheet(false)}
             />
             <motion.div
-              variants={bottomSheetVariants}
-              initial="hidden"
-              animate="visible"
+              ref={streamingSheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="streaming-sheet-title"
+              tabIndex={-1}
+              variants={shouldReduceMotion ? expandModalVariantsReduced : bottomSheetVariants}
+              initial="initial"
+              animate="animate"
               exit="exit"
+              style={streamingSwipe.dragOffsetY > 0 ? { transform: `translateY(${streamingSwipe.dragOffsetY}px)` } : undefined}
               className="fixed inset-x-0 bottom-0 max-w-lg mx-auto z-50"
             >
               <div className="bg-surface rounded-t-3xl border-t border-border max-h-[70vh] flex flex-col px-6 pt-3 pb-[max(2rem,calc(1rem+env(safe-area-inset-bottom)))] shadow-2xl">
-                <div className="flex justify-center mb-4">
-                  <div className="w-10 h-1 rounded-full bg-border" />
+                <div
+                  {...streamingSwipe.handleProps}
+                  className="flex justify-center mb-2 py-2 -mx-6 px-6 touch-none cursor-grab active:cursor-grabbing"
+                >
+                  <div className="w-10 h-1 rounded-full bg-border" aria-hidden="true" />
                 </div>
 
                 <div className="flex items-center justify-between pb-3 border-b border-border/60 mb-4">
                   <div>
-                    <h3 className="font-editorial text-xl font-semibold text-foreground">Streaming Availability</h3>
+                    <h3 id="streaming-sheet-title" className="font-editorial text-xl font-semibold text-foreground">Streaming Availability</h3>
                     {streamingMovieTitle && <p className="text-xs text-foreground-secondary mt-0.5">{streamingMovieTitle}</p>}
                   </div>
-                  <button onClick={() => setShowStreamingSheet(false)}
-                    className="size-8 rounded-full bg-surface-secondary flex items-center justify-center text-foreground-secondary hover:text-foreground transition-transform active:scale-90">
+                  <button
+                    type="button"
+                    onClick={() => setShowStreamingSheet(false)}
+                    aria-label="Close streaming availability"
+                    className="size-11 sm:size-9 rounded-full bg-surface-secondary flex items-center justify-center text-foreground-secondary hover:text-foreground transition-transform active:scale-90 cursor-pointer"
+                  >
                     <span className="material-symbols-outlined text-[18px]">close</span>
                   </button>
                 </div>

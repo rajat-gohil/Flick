@@ -29,19 +29,19 @@ export default function PrivacyPage() {
             </div>
             <div>
               <h2 className="font-editorial text-xl font-bold">Data Stewardship Policy</h2>
-              <p className="text-[11px] text-foreground-secondary">Last updated: March 2026</p>
+              <p className="text-xs text-foreground-secondary">Last updated: March 2026</p>
             </div>
           </div>
 
           {/* TL;DR box */}
           <div className="mb-6 p-4 rounded-xl bg-surface border border-primary/20 shadow-xs">
-            <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1">Principles</p>
-            <p className="text-xs text-foreground leading-relaxed">
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-1">Principles</p>
+            <p className="text-sm text-foreground leading-relaxed">
               We retain strictly the data required to facilitate film matching. We do not monetize your data, run commercial ad networks, or track browsing activity outside Flick.
             </p>
           </div>
 
-          <div className="flex flex-col gap-6 text-xs text-foreground-secondary leading-relaxed">
+          <div className="flex flex-col gap-6 text-sm text-foreground-secondary leading-relaxed">
 
             <Section title="1. Information Collected">
               <p className="mb-2">We process the following data attributes:</p>
@@ -102,8 +102,8 @@ function DataItem({ icon, label, desc }: { icon: string; label: string; desc: st
     <div className="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface border border-border">
       <span className="material-symbols-outlined text-[16px] text-primary shrink-0 mt-0.5">{icon}</span>
       <div>
-        <p className="font-semibold text-foreground text-xs">{label}</p>
-        <p className="text-[11px] text-foreground-secondary">{desc}</p>
+        <p className="font-semibold text-foreground text-sm">{label}</p>
+        <p className="text-xs text-foreground-secondary">{desc}</p>
       </div>
     </div>
   );

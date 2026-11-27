@@ -254,9 +254,19 @@ class DeckAdvancementService:
         movie_id = card_meta.get("movie_id")
         if not movie_id:
             return None
-        movie = Movie.objects.filter(id=movie_id).first()
+        movie = Movie.objects.prefetch_related("genres").filter(id=movie_id).first()
         if not movie:
             return None
+        genres = [g.name for g in movie.genres.all() if g.name]
+        if not genres and getattr(movie, "tmdb_genre_ids", None):
+            from core.services.recommendation_engine import TMDB_GENRE_MAP
+            genres = [TMDB_GENRE_MAP[gid] for gid in movie.tmdb_genre_ids if gid in TMDB_GENRE_MAP]
+        raw_runtime = getattr(movie, "runtime", None)
+        runtime = (
+            int(raw_runtime)
+            if isinstance(raw_runtime, (int, float)) and not isinstance(raw_runtime, bool) and int(raw_runtime) > 0
+            else None
+        )
         return {
             "card_index": index,
             "movie_id": movie.id,
@@ -268,6 +278,8 @@ class DeckAdvancementService:
             "rating": movie.rating,
             "vote_count": movie.vote_count,
             "release_date": str(movie.release_date) if movie.release_date else None,
+            "genres": genres,
+            "runtime": runtime,
             "slot_type": card_meta.get("slot_type"),
             "turn": card_meta.get("turn"),
             "scores": card_meta.get("scores", {}),

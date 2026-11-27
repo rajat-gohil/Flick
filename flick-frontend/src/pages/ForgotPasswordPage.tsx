@@ -64,18 +64,20 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div className="bg-surface-secondary/70 rounded-xl p-3 border border-border w-full text-left">
-              <p className="text-[10px] text-foreground-secondary mb-1 font-semibold uppercase tracking-wider">Didn't receive it?</p>
+              <p className="text-xs text-foreground-secondary mb-1 font-semibold uppercase tracking-wider">Didn't receive it?</p>
               <button
+                type="button"
                 onClick={() => { setSent(false); setEmail(""); }}
-                className="text-xs text-primary font-medium hover:underline"
+                className="min-h-11 sm:min-h-9 text-sm text-primary font-medium hover:underline cursor-pointer"
               >
                 Try a different email address
               </button>
             </div>
 
             <button
+              type="button"
               onClick={() => navigate("/login")}
-              className="w-full h-12 rounded-full border border-border hover:bg-surface-secondary text-foreground font-semibold text-sm transition-colors mt-2"
+              className="w-full h-12 rounded-full border border-border hover:bg-surface-secondary text-foreground font-semibold text-sm transition-colors mt-2 cursor-pointer"
             >
               Back to Sign In
             </button>
@@ -93,7 +95,7 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                     placeholder="Enter registered email"
-                    className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-sm font-normal transition-all"
+                    className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
                   />
                 </div>
               </label>
@@ -107,9 +109,10 @@ export default function ForgotPasswordPage() {
 
             <div className="mt-auto pt-6 flex flex-col gap-3">
               <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors disabled:opacity-60 flex items-center justify-center shadow-xs"
+                className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors disabled:opacity-60 flex items-center justify-center shadow-xs cursor-pointer"
               >
                 {isLoading
                   ? <span className="size-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -117,8 +120,9 @@ export default function ForgotPasswordPage() {
                 }
               </button>
               <button
+                type="button"
                 onClick={() => navigate("/login")}
-                className="text-center text-xs text-foreground-secondary hover:text-foreground font-medium py-1"
+                className="min-h-11 sm:min-h-9 text-center text-sm text-foreground-secondary hover:text-foreground font-medium py-2 cursor-pointer"
               >
                 Return to Sign In
               </button>

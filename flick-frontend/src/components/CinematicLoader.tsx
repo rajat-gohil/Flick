@@ -1,4 +1,4 @@
-import { useTheme } from "../context/ThemeContext";
+import AnimatedFlickLogo from "./AnimatedFlickLogo";
 
 interface CinematicLoaderProps {
   message?: string;
@@ -11,8 +11,6 @@ export default function CinematicLoader({
   submessage = "Synchronizing with global cinematic archive...",
   fullScreen = true,
 }: CinematicLoaderProps) {
-  const { logoIcon } = useTheme();
-
   return (
     <div
       className={`flex flex-col items-center justify-center bg-background text-foreground select-none ${
@@ -24,16 +22,15 @@ export default function CinematicLoader({
       <div className="relative flex items-center justify-center size-24 mb-6">
         {/* Soft glowing ambient aperture ring */}
         <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping" style={{ animationDuration: "2.8s" }} />
-        <div className="absolute inset-1.5 rounded-full border border-primary/40 animate-pulse" />
-        
-        {/* Inner subtle reel plate */}
-        <div className="size-16 rounded-full bg-surface-secondary/80 border border-border flex items-center justify-center shadow-md relative z-10">
-          <img
-            src={logoIcon}
-            alt="Flick"
-            className="size-8 object-contain transition-transform duration-700 ease-out animate-pulse-subtle"
-          />
-        </div>
+        <div className="absolute inset-1.5 rounded-full border border-primary/35 animate-pulse" />
+
+        {/* Animated Flick badge */}
+        <AnimatedFlickLogo
+          variant="badge"
+          loop
+          decorative
+          className="size-16 rounded-2xl shadow-md relative z-10"
+        />
       </div>
 
       <div className="text-center px-6 max-w-sm">

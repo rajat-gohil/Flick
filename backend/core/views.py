@@ -211,7 +211,7 @@ class MovieDetailView(generics.RetrieveAPIView):
     """
     Retrieve details for a single movie.
     """
-    queryset = Movie.objects.all()
+    queryset = Movie.objects.all().prefetch_related("genres")
     serializer_class = MovieSerializer
     permission_classes = [AllowAny]
 
@@ -1533,6 +1533,7 @@ def serialize_session_matches(session):
             "release_year": movie.release_date.year if movie.release_date else None,
             "overview": movie.overview or "",
             "genres": [g.name for g in movie.genres.all()],
+            "runtime": movie.runtime,
             "original_language": movie.original_language or "",
             "superlike_attribution": match.superlike_attribution,
             "match_type": match.match_type,
@@ -2439,7 +2440,8 @@ class MatchListView(APIView):
                 "release_year": movie.release_date.year if movie.release_date else None,
                 "overview": movie.overview or "",
                 "genres": [g.name for g in movie.genres.all()],
-                "original_language": movie.original_language or "",
+                "runtime": movie.runtime,
+                "original_language": match.movie.original_language or "",
                 "superlike_attribution": match.superlike_attribution,
                 "match_type": match.match_type,
             })
@@ -2567,9 +2569,9 @@ class RecommendationView(APIView):
             session_genres = [session.genre]
 
         if session_genres:
-            base_qs = Movie.objects.filter(genres__in=session_genres)
+            base_qs = Movie.objects.filter(genres__in=session_genres).prefetch_related("genres")
         else:
-            base_qs = Movie.objects.all()
+            base_qs = Movie.objects.all().prefetch_related("genres")
 
         # ✅ STEP 2: Apply language / industry filtering
         if session.selected_languages:

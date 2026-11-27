@@ -1,28 +1,194 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, useMotionValue, useTransform, type PanInfo } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
+import { usePrefersReducedMotion } from "../lib/motion";
+import AnimatedFlickLogo from "../components/AnimatedFlickLogo";
 import { ApiError } from "../lib/api";
 import { coordinateGuestProvisioning } from "../services/guestProvisionCoordinator";
 import RecoveryCodeModal from "../components/RecoveryCodeModal";
 
 /* ============================
-   ENTRY / SPLASH PAGE — Art-House Cinema Editorial
-   - Hero: Instant Guest Provisioning & Direct Actions
-   - How Access Works: In-depth explanation of Guest vs Sign-Up vs Sign-In vs Recovery Key
-   - Comparison Matrix & 3-Step Film Night Walkthrough
+   VERIFIED FILM DATASET (FROM FLICK DB / TMDB)
+   Used only as illustrative sample cards for the landing demonstration.
 ============================ */
+
+type SampleFilm = {
+  id: number;
+  title: string;
+  year: number;
+  rating: string;
+  genres: string[];
+  posterUrl: string;
+  backdropUrl: string;
+  synopsis: string;
+  fallbackTone: string;
+};
+
+const SAMPLE_DECK: SampleFilm[] = [
+  {
+    id: 157336,
+    title: "Interstellar",
+    year: 2014,
+    rating: "8.5",
+    genres: ["Adventure", "Drama", "Sci-Fi"],
+    posterUrl: "https://image.tmdb.org/t/p/w780/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
+    backdropUrl: "https://image.tmdb.org/t/p/w1280/8sNiAPPYU14PUepFNeSNGUTiHW.jpg",
+    synopsis:
+      "Explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+    fallbackTone: "from-slate-900 via-amber-950/70 to-zinc-950",
+  },
+  {
+    id: 155,
+    title: "The Dark Knight",
+    year: 2008,
+    rating: "8.5",
+    genres: ["Action", "Crime", "Thriller"],
+    posterUrl: "https://image.tmdb.org/t/p/w780/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+    backdropUrl: "https://image.tmdb.org/t/p/w1280/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+    synopsis:
+      "Batman faces the Joker, a criminal mastermind testing the limits of order and chaos in Gotham.",
+    fallbackTone: "from-zinc-900 via-sky-950/70 to-neutral-950",
+  },
+  {
+    id: 27205,
+    title: "Inception",
+    year: 2010,
+    rating: "8.4",
+    genres: ["Action", "Crime", "Sci-Fi"],
+    posterUrl: "https://image.tmdb.org/t/p/w780/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+    backdropUrl: "https://image.tmdb.org/t/p/w1280/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+    synopsis:
+      "A thief who steals corporate secrets through dream-sharing technology takes on an inverse mission.",
+    fallbackTone: "from-stone-900 via-orange-950/60 to-zinc-950",
+  },
+];
+
+const SHAWSHANK_STILL: SampleFilm = {
+  id: 278,
+  title: "The Shawshank Redemption",
+  year: 1994,
+  rating: "8.7",
+  genres: ["Crime", "Drama"],
+  posterUrl: "https://image.tmdb.org/t/p/w780/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+  backdropUrl: "https://image.tmdb.org/t/p/w1280/pNjh59JSxChQktamG3LMp9ZoQzp.jpg",
+  synopsis: "Two imprisoned men bond over a number of years, finding solace and eventual redemption.",
+  fallbackTone: "from-zinc-900 via-amber-950/50 to-neutral-950",
+};
+
+type WorkflowStep = {
+  number: string;
+  title: string;
+  summary: string;
+};
+
+const WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    number: "01",
+    title: "Create a Screening Room",
+    summary:
+      "Choose Hollywood, Indian, or World Cinema, along with languages and genres to shape the deck for tonight.",
+  },
+  {
+    number: "02",
+    title: "Share the 6-letter room code",
+    summary:
+      "Send the invite link or room code to your partner. They join in any browser without installing an app.",
+  },
+  {
+    number: "03",
+    title: "Swipe independently",
+    summary:
+      "Browse the same film lineup on your own screens. Passes stay private so nobody steers the vote.",
+  },
+  {
+    number: "04",
+    title: "See only what you both chose",
+    summary:
+      "When both viewers recommend the same film, Flick unlocks the match with details, watchlist saving, and regional streaming info where available.",
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "Do we both need accounts to use Flick?",
+    a: "No. Tap Start a Movie Night to open a guest session without entering an email or password. Your partner can join from your room link in seconds.",
+  },
+  {
+    q: "Does Flick stream or play movies?",
+    a: "No. Flick helps two people agree on what to watch. When you match on a film, Flick displays its overview, rating, and streaming providers via TMDB/JustWatch data where available for your region.",
+  },
+  {
+    q: "How does my partner join my Screening Room?",
+    a: "When you create a session, Flick gives you a 6-character room code and an invite URL. Send either one so your partner can open the same room and set their own preferences.",
+  },
+  {
+    q: "What is the 16-character recovery key?",
+    a: "Guest sessions issue a private 16-character key so you can restore your matches and watchlist on another browser or device, or convert your guest session into a permanent email account later.",
+  },
+];
+
+function PosterArtwork({
+  film,
+  imgFailed,
+  onImgError,
+  className = "",
+}: {
+  film: SampleFilm;
+  imgFailed: boolean;
+  onImgError: () => void;
+  className?: string;
+}) {
+  if (!imgFailed) {
+    return (
+      <img
+        src={film.posterUrl}
+        alt={`${film.title} (${film.year}) film poster`}
+        className={`w-full h-full object-cover ${className}`}
+        onError={onImgError}
+      />
+    );
+  }
+  return (
+    <div
+      className={`w-full h-full bg-gradient-to-br ${film.fallbackTone} flex flex-col justify-between p-5 text-white`}
+    >
+      <div className="flex items-center justify-between text-xs text-white/70 font-medium">
+        <span>{film.year}</span>
+        <span>★ {film.rating}</span>
+      </div>
+      <div>
+        <p className="font-display text-2xl font-bold leading-tight text-white">{film.title}</p>
+        <p className="text-xs text-white/75 mt-1.5">{film.genres.join(" · ")}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function EntryPage() {
   const navigate = useNavigate();
-  const { theme, toggleTheme, logoFull } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const shouldReduceMotion = usePrefersReducedMotion();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [leftPosterErr, setLeftPosterErr] = useState(false);
-  const [rightPosterErr, setRightPosterErr] = useState(false);
+
+  // Interactive hero sample deck state
+  const [deckIndex, setDeckIndex] = useState(0);
+  const [sampleHistory, setSampleHistory] = useState<number[]>([]);
+  const [matchedSampleFilm, setMatchedSampleFilm] = useState<SampleFilm | null>(null);
+  const dragX = useMotionValue(0);
+  const cardRotate = useTransform(dragX, [-180, 0, 180], [-10, 0, 10]);
+  const likeBadgeOpacity = useTransform(dragX, [24, 95], [0, 1]);
+  const passBadgeOpacity = useTransform(dragX, [-95, -24], [1, 0]);
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+  const [failedBackdrops, setFailedBackdrops] = useState<Record<number, boolean>>({});
+
+  // Interactive 4-stage workflow showcase state
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     if (localStorage.getItem("auth_token")) {
@@ -40,7 +206,6 @@ export default function EntryPage() {
         if (data.recovery_code) {
           setRecoveryCode(data.recovery_code);
         }
-        // Silently provisioned, navigate directly to /home without modal
         navigate("/home", { replace: true });
       } else {
         setError("Unable to initialize guest discovery. Please try again.");
@@ -51,7 +216,7 @@ export default function EntryPage() {
       } else if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Network error initializing guest journal. Check your internet connection.");
+        setError("Network error initializing session. Check your internet connection.");
       }
     } finally {
       setLoading(false);
@@ -70,77 +235,158 @@ export default function EntryPage() {
     }
   };
 
+  const activeFilm = SAMPLE_DECK[deckIndex % SAMPLE_DECK.length];
+  const nextFilm = SAMPLE_DECK[(deckIndex + 1) % SAMPLE_DECK.length];
+
+  const handleSampleDecision = (action: "pass" | "like") => {
+    dragX.set(0);
+    if (action === "pass") {
+      setSampleHistory((prev) => [...prev, deckIndex]);
+      setMatchedSampleFilm(null);
+      setDeckIndex((prev) => (prev + 1) % SAMPLE_DECK.length);
+    } else {
+      setSampleHistory((prev) => [...prev, deckIndex]);
+      setMatchedSampleFilm(activeFilm);
+    }
+  };
+
+  const handleUndoSampleSwipe = () => {
+    dragX.set(0);
+    if (matchedSampleFilm) {
+      setMatchedSampleFilm(null);
+      setSampleHistory((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (sampleHistory.length === 0) return;
+    const prevIndex = sampleHistory[sampleHistory.length - 1];
+    setSampleHistory((prev) => prev.slice(0, -1));
+    setDeckIndex(prevIndex);
+  };
+
+  const handleSampleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (matchedSampleFilm) return;
+    if (info.offset.x > 75 || info.velocity.x > 380) {
+      handleSampleDecision("like");
+    } else if (info.offset.x < -75 || info.velocity.x < -380) {
+      handleSampleDecision("pass");
+    }
+  };
+
+  const handleResetSampleDeck = () => {
+    setMatchedSampleFilm(null);
+    setDeckIndex((prev) => (prev + 1) % SAMPLE_DECK.length);
+  };
+
+  const markImageFailed = (id: number) => {
+    setFailedImages((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const markBackdropFailed = (id: number) => {
+    setFailedBackdrops((prev) => ({ ...prev, [id]: true }));
+  };
+
   return (
     <>
-      <div className="relative bg-background text-foreground font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-clip transition-colors duration-200">
-        
-        {/* ── Top Bar: Brand mark & Actions ── */}
-        <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center gap-3">
-            <img src={logoFull} alt="Flick" className="h-8 w-auto object-contain" />
-            <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest uppercase text-foreground-secondary">
-              Art-House Edition
-            </span>
-          </div>
+      <div
+        data-landing="true"
+        className="relative bg-background text-foreground font-sans antialiased min-h-screen min-h-[100dvh] flex flex-col justify-between overflow-x-clip transition-colors duration-200"
+      >
+        {/* Subtle diffused ambient poster atmosphere in the top viewport */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[760px] overflow-hidden select-none"
+        >
+          {!failedBackdrops[activeFilm.id] && (
+            <img
+              src={activeFilm.backdropUrl}
+              alt=""
+              onError={() => markBackdropFailed(activeFilm.id)}
+              className="w-full h-full object-cover object-top scale-105 opacity-[0.16] dark:opacity-[0.22] blur-3xl transition-opacity duration-500"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/85 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+        </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
+        {/* ── Top Bar ── */}
+        <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18">
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded-lg py-1"
+          >
+            <AnimatedFlickLogo
+              variant="mark"
+              decorative
+              className="size-8 shrink-0 rounded-lg ring-1 ring-border shadow-2xs transition-transform duration-150 group-hover:scale-105"
+            />
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">
+              Flick
+            </span>
+          </a>
+
+          <nav aria-label="Landing navigation" className="flex items-center gap-1 sm:gap-2">
             <button
+              type="button"
               onClick={() => scrollToSection("screening-flow")}
-              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-2.5 rounded-lg cursor-pointer"
+              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs sm:text-[13px] font-medium text-foreground-secondary hover:text-foreground transition-colors px-2.5 sm:px-3 rounded-lg cursor-pointer whitespace-nowrap"
             >
-              How It Works
+              How it works
             </button>
 
             <button
+              type="button"
               onClick={() => navigate("/register")}
-              className="hidden sm:inline-flex min-h-9 items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-2.5 rounded-lg cursor-pointer"
+              className="hidden sm:inline-flex min-h-9 items-center text-[13px] font-medium text-foreground-secondary hover:text-foreground transition-colors px-3 rounded-lg cursor-pointer whitespace-nowrap"
             >
               Sign Up
             </button>
 
             <button
+              type="button"
               onClick={() => navigate("/login")}
-              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs font-semibold text-foreground-secondary hover:text-foreground transition-colors px-3.5 rounded-full border border-border/80 hover:bg-surface-secondary active:scale-[0.99] cursor-pointer"
+              className="min-h-11 sm:min-h-9 inline-flex items-center text-xs sm:text-[13px] font-semibold text-foreground hover:text-primary transition-colors px-3.5 rounded-full border border-border bg-surface/70 hover:bg-surface-secondary active:scale-[0.99] cursor-pointer whitespace-nowrap"
             >
               Sign In
             </button>
 
             <button
+              type="button"
               onClick={toggleTheme}
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-              className="size-11 sm:size-9 rounded-full border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary active:scale-[0.99] transition-colors cursor-pointer"
+              className="size-11 sm:size-9 rounded-full border border-border bg-surface/70 flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-secondary active:scale-[0.99] transition-colors cursor-pointer shrink-0"
             >
               <span className="material-symbols-outlined text-[18px]">
                 {theme === "dark" ? "light_mode" : "dark_mode"}
               </span>
             </button>
-          </div>
+          </nav>
         </header>
 
         {/* ── Hero Section ── */}
-        <main className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 min-h-[calc(100dvh-4.75rem)] flex items-center py-8 sm:py-12 lg:py-16">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-
-            {/* Left Column: Core Narrative & 2 Primary CTAs */}
-            <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left">
-              <p className="mb-4 font-mono text-[11px] font-semibold tracking-widest uppercase text-primary">
-                Collaborative Film Curation
-              </p>
-
-              <h1 className="font-editorial text-4xl sm:text-5xl xl:text-6xl font-normal leading-[1.08] tracking-tight text-foreground mb-5">
-                Movie night, <br />
-                <span className="italic font-normal">thoughtfully decided.</span>
+        <main
+          id="top"
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-10 sm:pt-10 sm:pb-16 lg:min-h-[calc(100svh-4.5rem)] flex items-center"
+        >
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-center">
+            {/* Left Column: Direct Headline, Product Value, Clear Actions */}
+            <div className="lg:col-span-6 flex flex-col items-start text-left">
+              <h1 className="font-display text-[2rem] sm:text-5xl lg:text-[3.35rem] font-extrabold leading-[1.08] tracking-[-0.03em] text-foreground max-w-xl">
+                Find the movie you both want to watch.
               </h1>
 
-              <p className="text-foreground-secondary text-base sm:text-lg max-w-lg leading-relaxed mb-7 font-sans">
-                Swipe through curated cinema with your partner. Discover independent features, festival selections, and world cinema together.
+              <p className="mt-3 sm:mt-5 text-foreground-secondary text-sm sm:text-lg max-w-lg leading-relaxed">
+                Open a Screening Room, send the invite code, and swipe through the same film deck on your own screens. Flick reveals only the titles you both choose.
               </p>
 
               {/* Error Banner if Provisioning Failed */}
               {error && (
                 <div
                   role="alert"
-                  className="mb-6 w-full max-w-md p-3.5 bg-error/10 border border-error/20 rounded-xl flex items-start gap-2.5 text-left"
+                  className="mt-4 w-full max-w-md p-3.5 bg-error/10 border border-error/25 rounded-xl flex items-start gap-2.5 text-left"
                 >
                   <span className="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">
                     error
@@ -149,12 +395,13 @@ export default function EntryPage() {
                 </div>
               )}
 
-              {/* Primary & Secondary CTA Pair */}
-              <div className="w-full max-w-md flex flex-col sm:flex-row gap-3">
+              {/* Primary & Secondary Action Pair */}
+              <div className="mt-5 sm:mt-7 w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                 <button
+                  type="button"
                   onClick={handleStartExploring}
                   disabled={loading}
-                  className="flex-1 min-h-12 sm:h-13 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors duration-150 active:scale-[0.99] flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-60"
+                  className="min-h-11 h-11 sm:h-12 px-7 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-60 whitespace-nowrap"
                 >
                   {loading ? (
                     <span className="size-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -167,485 +414,666 @@ export default function EntryPage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => navigate("/login")}
                   disabled={loading}
-                  className="min-h-12 sm:h-13 px-6 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-sm tracking-wide transition-colors duration-150 active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                  className="min-h-11 h-11 sm:h-12 px-6 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-sm transition-colors duration-150 active:scale-[0.99] flex items-center justify-center cursor-pointer whitespace-nowrap"
                 >
                   Sign In
                 </button>
               </div>
 
-              {/* Micro-clarity hint + secondary Restore link */}
-              <div className="mt-4 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-[11px] text-foreground-secondary">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-primary">bolt</span>
-                  <span>Instant guest session • No email or registration required</span>
-                </span>
+              {/* Clean inline access reassurance (no bordered pill, no clutter) */}
+              <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-foreground-secondary">
+                <span>No email needed to start.</span>
+                <span aria-hidden="true" className="text-foreground-secondary/50">·</span>
                 <button
                   type="button"
                   onClick={() => navigate("/recover")}
-                  className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-primary underline underline-offset-4 transition-colors cursor-pointer py-1"
-                  title="Restore with your 16-character recovery key"
+                  className="font-medium text-foreground hover:text-primary underline underline-offset-4 transition-colors cursor-pointer py-0.5"
+                  title="Restore a guest session with your 16-character recovery key"
                 >
-                  <span>Restore key</span>
+                  Restore key
+                </button>
+                <span aria-hidden="true" className="sm:hidden text-foreground-secondary/50">·</span>
+                <button
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  className="sm:hidden font-medium text-foreground hover:text-primary underline underline-offset-4 transition-colors cursor-pointer py-0.5"
+                >
+                  Sign Up
                 </button>
               </div>
             </div>
 
-            {/* Right Column: Illustrative Two-Poster Consensus Composition */}
-            <div className="lg:col-span-6 w-full max-w-md mx-auto lg:max-w-none">
-              <div
-                aria-label="Illustrative preview showing how two viewers match on a film"
-                className="relative rounded-2xl border border-border bg-surface p-5 sm:p-7 shadow-md"
-              >
-                {/* Card Header */}
-                <div className="flex items-center justify-between pb-3 mb-5 border-b border-border/60">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-foreground-secondary font-semibold">
-                    How It Works
-                  </span>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-primary font-semibold">
-                    2 Viewers · 1 Pick
-                  </span>
-                </div>
-
-                {/* Two Opposite Film Posters Connected by Central Consensus Seal */}
-                <div className="relative flex items-center justify-between gap-2 sm:gap-4 py-2">
-                  {/* Subtle horizontal connection line spanning behind posters & seal */}
-                  <div
-                    aria-hidden="true"
-                    className="absolute left-12 right-12 top-1/2 -translate-y-1/2 border-t border-dashed border-primary/45 pointer-events-none z-0"
-                  />
-
-                  {/* Left Film Poster */}
-                  <div className="relative z-10 w-[38%] sm:w-[36%] aspect-[2/3] rounded-xl overflow-hidden border border-border bg-surface-secondary shadow-sm">
-                    {!leftPosterErr ? (
-                      <img
-                        src="https://image.tmdb.org/t/p/w500/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg"
-                        alt="Interstellar film poster"
-                        className="w-full h-full object-cover"
-                        onError={() => setLeftPosterErr(true)}
+            {/* Right Column: Live-UI Swipe Deck Demonstration (No outer box wrapper) */}
+            <div className="lg:col-span-6 flex flex-col items-center">
+              <div className="w-full max-w-[300px] sm:max-w-[330px]">
+                {/* Card Stack Wrapper (isolated height so background card never bleeds onto controls) */}
+                <div className="relative w-full aspect-[4/5]">
+                  {/* Stacked next film card peeking beneath */}
+                  {!matchedSampleFilm && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 translate-x-3 translate-y-2 rotate-[2.5deg] scale-[0.96] rounded-2xl overflow-hidden border border-white/10 bg-zinc-900 opacity-55 pointer-events-none"
+                    >
+                      <PosterArtwork
+                        film={nextFilm}
+                        imgFailed={Boolean(failedImages[nextFilm.id])}
+                        onImgError={() => markImageFailed(nextFilm.id)}
                       />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-foreground-secondary">
-                        <span className="material-symbols-outlined text-3xl mb-1">movie</span>
-                        <span className="font-editorial text-xs font-semibold text-foreground">Interstellar</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Central Consensus Seal */}
-                  <div className="relative z-10 shrink-0 flex flex-col items-center">
-                    <div className="size-12 sm:size-14 rounded-full bg-surface border-2 border-primary/70 shadow-sm flex items-center justify-center text-primary">
-                      <span
-                        className="material-symbols-outlined text-[24px] sm:text-[26px]"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        verified
-                      </span>
+                      <div className="absolute inset-0 bg-black/55" />
                     </div>
-                  </div>
+                  )}
 
-                  {/* Right Film Poster */}
-                  <div className="relative z-10 w-[38%] sm:w-[36%] aspect-[2/3] rounded-xl overflow-hidden border border-border bg-surface-secondary shadow-sm">
-                    {!rightPosterErr ? (
-                      <img
-                        src="https://image.tmdb.org/t/p/w500/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg"
-                        alt="Pulp Fiction film poster"
-                        className="w-full h-full object-cover"
-                        onError={() => setRightPosterErr(true)}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center text-foreground-secondary">
-                        <span className="material-symbols-outlined text-3xl mb-1">movie</span>
-                        <span className="font-editorial text-xs font-semibold text-foreground">Pulp Fiction</span>
+                  {/* Active Interactive Sample Deck Card or Mutual Match View */}
+                  <motion.div
+                    aria-label="Sample screening card preview"
+                    drag={matchedSampleFilm ? false : "x"}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.45}
+                    onDragEnd={handleSampleDragEnd}
+                    style={
+                      matchedSampleFilm || shouldReduceMotion
+                        ? undefined
+                        : { x: dragX, rotate: cardRotate }
+                    }
+                    className={`relative z-10 w-full h-full rounded-2xl overflow-hidden border border-white/15 bg-zinc-950 shadow-2xl ${
+                      matchedSampleFilm ? "" : "touch-pan-y cursor-grab active:cursor-grabbing select-none"
+                    }`}
+                  >
+                    {matchedSampleFilm ? (
+                      <div className="relative w-full h-full flex flex-col justify-between p-4 sm:p-5 text-white">
+                        {!failedBackdrops[matchedSampleFilm.id] && (
+                          <img
+                            src={matchedSampleFilm.backdropUrl}
+                            alt=""
+                            onError={() => markBackdropFailed(matchedSampleFilm.id)}
+                            className="absolute inset-0 w-full h-full object-cover opacity-35"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/95" />
+
+                        <div className="relative z-10 flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300 bg-emerald-500/20 border border-emerald-400/35 px-2.5 py-1 rounded-full">
+                            <span
+                              className="material-symbols-outlined text-[14px]"
+                              style={{ fontVariationSettings: "'FILL' 1" }}
+                            >
+                              verified
+                            </span>
+                            Mutual Match Example
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleResetSampleDeck}
+                            className="text-xs font-medium text-white/80 hover:text-white underline underline-offset-4 cursor-pointer"
+                          >
+                            Next film
+                          </button>
+                        </div>
+
+                        <div className="relative z-10 flex items-center gap-3 sm:gap-3.5 my-auto py-2.5 sm:py-3">
+                          <div className="w-20 sm:w-24 aspect-[2/3] rounded-lg overflow-hidden border border-white/20 shrink-0 shadow-lg">
+                            <PosterArtwork
+                              film={matchedSampleFilm}
+                              imgFailed={Boolean(failedImages[matchedSampleFilm.id])}
+                              onImgError={() => markImageFailed(matchedSampleFilm.id)}
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-display text-xl font-bold text-white leading-tight">
+                              {matchedSampleFilm.title}
+                            </h3>
+                            <p className="text-xs text-white/75 mt-1">
+                              {matchedSampleFilm.year} · ★ {matchedSampleFilm.rating}
+                            </p>
+                            <p className="text-xs text-white/70 mt-2 leading-relaxed">
+                              Both viewers recommended this film. Unlocked in shared matches with watchlist & provider info.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between gap-3">
+                          <span className="text-xs text-white/85">
+                            Sample interaction preview
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleResetSampleDeck}
+                            className="px-3.5 py-1.5 rounded-full bg-white text-zinc-950 text-xs font-semibold hover:bg-white/90 transition-colors cursor-pointer"
+                          >
+                            Try another card
+                          </button>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <PosterArtwork
+                          film={activeFilm}
+                          imgFailed={Boolean(failedImages[activeFilm.id])}
+                          onImgError={() => markImageFailed(activeFilm.id)}
+                        />
+                        {/* Top subtle vignette & heavy bottom scrim so poster footer text never clashes */}
+                        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 to-transparent pointer-events-none" />
+                        <div className="absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#090A0D] via-[#090A0D]/92 via-[42%] to-transparent pointer-events-none" />
+
+                        {!shouldReduceMotion && (
+                          <>
+                            <motion.span
+                              style={{ opacity: likeBadgeOpacity }}
+                              className="pointer-events-none absolute top-14 left-4 z-20 px-3 py-1 rounded-lg border-2 border-emerald-400 bg-emerald-950/75 text-emerald-300 font-bold text-xs uppercase tracking-widest -rotate-12"
+                            >
+                              Recommend
+                            </motion.span>
+                            <motion.span
+                              style={{ opacity: passBadgeOpacity }}
+                              className="pointer-events-none absolute top-14 right-4 z-20 px-3 py-1 rounded-lg border-2 border-rose-400 bg-rose-950/75 text-rose-300 font-bold text-xs uppercase tracking-widest rotate-12"
+                            >
+                              Pass
+                            </motion.span>
+                          </>
+                        )}
+
+                        {/* Top Metadata Row */}
+                        <div className="absolute top-3.5 inset-x-3.5 flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/15">
+                            Sample deck · {deckIndex + 1} of {SAMPLE_DECK.length}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300 bg-black/65 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/15">
+                            <span
+                              className="material-symbols-outlined text-[13px]"
+                              style={{ fontVariationSettings: "'FILL' 1" }}
+                            >
+                              star
+                            </span>
+                            {activeFilm.rating}
+                          </span>
+                        </div>
+
+                        {/* Bottom Film Title & Metadata (Matches SessionPage card layout) */}
+                        <div className="absolute bottom-0 inset-x-0 p-4 sm:p-5 text-white">
+                          <div className="flex items-center gap-2 text-xs text-white/80 mb-1">
+                            <span>{activeFilm.year}</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="truncate">{activeFilm.genres.join(" · ")}</span>
+                          </div>
+                          <h2 className="font-display text-xl sm:text-2xl font-bold text-white leading-tight">
+                            {activeFilm.title}
+                          </h2>
+                          <p className="text-xs text-white/80 line-clamp-2 mt-1.5 leading-relaxed">
+                            {activeFilm.synopsis}
+                          </p>
+                        </div>
+                      </>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
 
-                {/* Concise Message & Supporting Explanation */}
-                <div className="mt-5 pt-4 border-t border-border/60 text-center space-y-1">
-                  <p className="font-editorial text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-                    Two tastes. One movie night.
-                  </p>
-                  <p className="text-xs text-foreground-secondary leading-relaxed">
-                    A match happens when both people choose the same film.
-                  </p>
+                {/* Real Swipe Controls below deck (Pass, Recommend, Undo) */}
+                <div className="mt-4 flex items-center justify-center gap-5">
+                  <button
+                    type="button"
+                    onClick={() => handleSampleDecision("pass")}
+                    aria-label="Preview pass film"
+                    title="Pass"
+                    className="size-12 rounded-full border border-border bg-surface text-foreground-secondary hover:text-rose-500 hover:border-rose-500/60 shadow-xs transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[22px]">close</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSampleDecision("like")}
+                    aria-label="Preview recommend film"
+                    title="Recommend"
+                    className="size-14 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground shadow-md transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+                  >
+                    <span
+                      className="material-symbols-outlined text-[26px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      favorite
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleUndoSampleSwipe}
+                    disabled={sampleHistory.length === 0 && !matchedSampleFilm}
+                    aria-label="Preview undo last swipe"
+                    title="Undo"
+                    className="size-12 rounded-full border border-border bg-surface text-foreground-secondary hover:text-primary hover:border-primary/60 shadow-xs transition-all active:scale-95 flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+                  >
+                    <span className="material-symbols-outlined text-[21px]">
+                      undo
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
-
           </div>
         </main>
 
-        {/* ── Section: 3-Step Film Night Walkthrough (Product-First) ── */}
+        {/* ── Section 2: Interactive 4-Step Product Walkthrough (Asymmetric Split) ── */}
         <section
           id="screening-flow"
-          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 border-t border-border/60"
+          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-border/70"
         >
-          <div className="text-center max-w-lg mx-auto mb-10">
-            <p className="font-mono text-[11px] font-semibold text-primary uppercase tracking-widest">
-              The Screening Flow
-            </p>
-            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mt-3 mb-2">
-              Three Steps to Movie Night
-            </h2>
-            <p className="text-xs sm:text-sm text-foreground-secondary font-sans">
-              Designed to eliminate endless scrolling and make movie selection joyful.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
-              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                1
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Open a Room
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                Create a session in one tap and send the 6-letter room code or link to your partner. No app install needed.
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            {/* Left Column: Heading & Unboxed Hairline-Divided Interactive Steps */}
+            <div className="lg:col-span-5">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                How a Screening Room works
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-foreground-secondary leading-relaxed">
+                Select any step to see the actual flow from room setup to mutual match.
               </p>
+
+              <div className="mt-8 border-t border-border">
+                {WORKFLOW_STEPS.map((step, idx) => {
+                  const isSelected = activeStep === idx;
+                  return (
+                    <button
+                      key={step.number}
+                      type="button"
+                      onClick={() => setActiveStep(idx)}
+                      aria-pressed={isSelected}
+                      className={`w-full text-left py-4 sm:py-5 border-b border-border transition-all cursor-pointer flex items-start gap-4 group ${
+                        isSelected
+                          ? "border-l-2 border-l-primary pl-3.5 text-foreground"
+                          : "pl-1 text-foreground-secondary hover:text-foreground"
+                      }`}
+                    >
+                      <span
+                        className={`text-xs font-bold tabular-nums pt-1 transition-colors ${
+                          isSelected ? "text-primary" : "text-foreground-secondary/70 group-hover:text-foreground"
+                        }`}
+                      >
+                        {step.number}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-display text-base sm:text-lg font-bold leading-snug">
+                          {step.title}
+                        </h3>
+                        <p
+                          className={`mt-1.5 text-sm leading-relaxed transition-colors ${
+                            isSelected ? "text-foreground-secondary" : "text-foreground-secondary/80"
+                          }`}
+                        >
+                          {step.summary}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
-              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                2
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Swipe in Sync
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                Swipe right to Recommend, left to Pass, or Star to Super-Like. Cards pre-buffer instantly with zero delay.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-surface border border-border/80">
-              <div className="size-10 rounded-full bg-surface-secondary flex items-center justify-center font-editorial font-bold text-base text-primary mb-3">
-                3
-              </div>
-              <h4 className="font-editorial text-lg font-bold text-foreground mb-1">
-                Instant Consensus
-              </h4>
-              <p className="text-xs text-foreground-secondary leading-relaxed">
-                When you both swipe right, Flick locks in your mutual match with streaming options and a shareable Salon Pass.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section: How Account Access Works ── */}
-        <section
-          id="access-guide"
-          className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 border-t border-border/60"
-        >
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <p className="font-mono text-[11px] font-semibold text-primary uppercase tracking-widest">
-              Access Guide
-            </p>
-            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mt-3 mb-3">
-              How Sign-Up, Sign-In & Guest Access Work
-            </h2>
-            <p className="text-sm text-foreground-secondary leading-relaxed font-sans">
-              Flick gives you complete control over your privacy and experience. Choose between zero-friction guest discovery or a permanent synchronized cinema account.
-            </p>
-          </div>
-
-          {/* Three Access Pillars */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            {/* Pillar 1: Instant Guest */}
-            <div className="bg-surface border border-border/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <span className="material-symbols-outlined text-[22px]">explore</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground-secondary">
-                    Quickest Start
+            {/* Right Column: Dynamic Authentic Product Screen Representation */}
+            <div className="lg:col-span-7">
+              <div className="relative rounded-2xl border border-border bg-surface overflow-hidden shadow-lg">
+                {/* Ambient Cinema Header Strip inside Preview */}
+                <div className="px-5 py-3.5 border-b border-border bg-surface-secondary/50 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-foreground">
+                    {WORKFLOW_STEPS[activeStep].number} · {WORKFLOW_STEPS[activeStep].title}
                   </span>
+                  <span className="text-foreground-secondary">Example screening UI</span>
                 </div>
 
-                <h3 className="font-editorial text-xl font-bold text-foreground mb-2">
-                  1. Instant Guest Mode
-                </h3>
-                <p className="text-xs text-foreground-secondary leading-relaxed mb-5">
-                  Tap <strong>Start a Movie Night</strong> to begin immediately. No name, email, or password is needed. Flick provisions a private guest journal saved in your browser.
-                </p>
-
-                <ul className="text-xs text-foreground-secondary space-y-2 mb-6">
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Zero forms — jump into rooms in seconds</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Full screening deck & real-time matching</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Generates a private 16-character backup key</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Can be converted to a permanent account anytime</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={handleStartExploring}
-                disabled={loading}
-                className="w-full min-h-11 py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Start a Movie Night</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            </div>
-
-            {/* Pillar 2: Permanent Account */}
-            <div className="bg-surface border-2 border-primary/40 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-xs relative">
-              <div className="absolute -top-3 right-6 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-2xs">
-                Recommended
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <span className="material-symbols-outlined text-[22px]">badge</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-primary">
-                    Permanent Sync
-                  </span>
-                </div>
-
-                <h3 className="font-editorial text-xl font-bold text-foreground mb-2">
-                  2. Permanent Cinema Account
-                </h3>
-                <p className="text-xs text-foreground-secondary leading-relaxed mb-5">
-                  Register with an email and password to permanently save your taste profile, partner consensus matches, and custom watchlists across all devices.
-                </p>
-
-                <ul className="text-xs text-foreground-secondary space-y-2 mb-6">
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Seamless cloud sync across phones, tablets & desktop</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Permanent match history & collaborative lists</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Secure email sign-in & password recovery</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Custom display names for room hosts and guests</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navigate("/register")}
-                  className="flex-1 min-h-11 py-2.5 px-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span>Sign Up</span>
-                </button>
-                <button
-                  onClick={() => navigate("/login")}
-                  className="flex-1 min-h-11 py-2.5 px-3 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <span>Sign In</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Pillar 3: Recovery Key */}
-            <div className="bg-surface border border-border/80 rounded-2xl p-6 sm:p-7 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <span className="material-symbols-outlined text-[22px]">key</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-foreground-secondary">
-                    Device Transfer
-                  </span>
-                </div>
-
-                <h3 className="font-editorial text-xl font-bold text-foreground mb-2">
-                  3. Key-Based Recovery
-                </h3>
-                <p className="text-xs text-foreground-secondary leading-relaxed mb-5">
-                  Started on mobile and want to continue on your living room laptop? Or cleared your cache? Use your 16-character recovery key to instantly restore your journal.
-                </p>
-
-                <ul className="text-xs text-foreground-secondary space-y-2 mb-6">
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>No personal data or email needed to transfer</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Issued automatically when you start a movie night</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Rotates a fresh key upon restoration for security</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined text-primary text-[15px] shrink-0 mt-0.5">check_circle</span>
-                    <span>Accessible anytime from your profile settings</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                onClick={() => navigate("/recover")}
-                className="w-full min-h-11 py-2.5 px-4 rounded-xl bg-surface-secondary hover:bg-border text-foreground text-xs font-semibold tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Enter Recovery Code</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            </div>
-
-          </div>
-        </section>
-
-        {/* ── Section: Feature Comparison Table ── */}
-        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="bg-surface border border-border/80 rounded-2xl overflow-hidden shadow-xs">
-            <div className="p-6 border-b border-border/60">
-              <h3 className="font-editorial text-2xl font-bold text-foreground">
-                Comparing Account Modes
-              </h3>
-              <p className="text-xs text-foreground-secondary mt-1">
-                Both modes enjoy full access to Flick's collaborative screening engine. Here is how they differ:
-              </p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="bg-surface-secondary/60 text-foreground-secondary font-semibold border-b border-border">
-                    <th className="py-3 px-5">Feature</th>
-                    <th className="py-3 px-5">Instant Guest Mode</th>
-                    <th className="py-3 px-5 text-primary">Permanent Cinema Account</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Sign-up Required</td>
-                    <td className="py-3 px-5 text-emerald-600 dark:text-emerald-400 font-semibold">None (0 seconds)</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Email + Password (~30s)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Curated 40-Film Deck Swiping</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Full Access</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Full Access</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Real-Time Partner Rooms</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Full Access</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Full Access</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Switch Devices</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Via 16-character Recovery Key</td>
-                    <td className="py-3 px-5 text-primary font-semibold">One-click Sign In</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Permanent Cloud History</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Retained with recovery key</td>
-                    <td className="py-3 px-5 text-primary font-semibold">Saved permanently</td>
-                  </tr>
-                  <tr>
-                    <td className="py-3 px-5 font-medium text-foreground">Upgrade / Convert</td>
-                    <td className="py-3 px-5 text-emerald-600 dark:text-emerald-400 font-semibold">Convert anytime from Profile</td>
-                    <td className="py-3 px-5 text-foreground-secondary">Already permanent</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section: Common Questions Accordion ── */}
-        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12 border-t border-border/60">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-              <h3 className="font-editorial text-2xl font-bold text-foreground">
-                Frequently Asked Questions
-              </h3>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                {
-                  q: "Do I need to create an account to use Flick?",
-                  a: "No! You can tap 'Start a Movie Night' to immediately start swiping and creating rooms with your partner as an anonymous guest. No email or password is ever required for guest mode.",
-                },
-                {
-                  q: "What is the 16-character recovery code?",
-                  a: "When you start as a guest, Flick gives you a unique 16-character key (e.g. ABCD-1234-EFGH-5678). If you switch phones, open a new laptop, or clear browser data, simply go to 'Restore key' and enter your key to bring back all your matches and watchlist.",
-                },
-                {
-                  q: "Can I convert my guest account into a permanent account later?",
-                  a: "Yes! If you start as a guest and later decide you want a permanent account with email sign-in, you can visit your Profile page at any time and click 'Convert to Permanent Account'. All your existing history will be seamlessly transferred.",
-                },
-                {
-                  q: "How does my partner join my screening session?",
-                  a: "When you create a session, Flick generates a 6-letter room code (e.g. CINEMA) and a direct join link. Send the link to your partner; they can tap it to join directly from any browser.",
-                },
-              ].map((faq, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl border border-border/80 bg-surface overflow-hidden transition-colors"
-                >
-                  <button
-                    onClick={() => setActiveFaq(activeFaq === index ? null : index)}
-                    className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-surface-secondary/40 transition-colors"
-                  >
-                    <span className="text-sm font-semibold text-foreground">
-                      {faq.q}
-                    </span>
-                    <span className="material-symbols-outlined text-[18px] text-foreground-secondary transition-transform duration-200" style={{ transform: activeFaq === index ? "rotate(180deg)" : "rotate(0deg)" }}>
-                      keyboard_arrow_down
-                    </span>
-                  </button>
-                  {activeFaq === index && (
-                    <div className="px-5 pb-4 pt-1 text-xs text-foreground-secondary leading-relaxed border-t border-border/40 bg-surface-secondary/20">
-                      {faq.a}
+                {/* Stage 1: Room Configuration (Matches CreateSessionPage) */}
+                {activeStep === 0 && (
+                  <div className="p-6 sm:p-8 space-y-6">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground-secondary mb-3">
+                        Cinema tradition
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {[
+                          { label: "Hollywood & Global", active: true },
+                          { label: "Indian Cinema", active: false },
+                          { label: "World & Festivals", active: false },
+                        ].map((item) => (
+                          <div
+                            key={item.label}
+                            className={`rounded-xl px-3.5 py-3 border text-xs font-semibold ${
+                              item.active
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border bg-surface-secondary/40 text-foreground-secondary"
+                            }`}
+                          >
+                            {item.label}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div>
+                      <p className="text-xs font-semibold text-foreground-secondary mb-3">
+                        Genres for tonight
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: "Thriller", selected: true },
+                          { name: "Science Fiction", selected: true },
+                          { name: "Drama", selected: false },
+                          { name: "Comedy", selected: false },
+                          { name: "Mystery", selected: true },
+                          { name: "Crime", selected: false },
+                        ].map((g) => (
+                          <span
+                            key={g.name}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                              g.selected
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border bg-background text-foreground-secondary"
+                            }`}
+                          >
+                            {g.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-border/70 flex items-center justify-between text-xs text-foreground-secondary">
+                      <span>Shared deck generated from TMDB catalogue</span>
+                      <span className="font-semibold text-primary">Create Room →</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stage 2: Partner Join via Code or Link */}
+                {activeStep === 1 && (
+                  <div className="p-6 sm:p-8 space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-xs font-semibold text-foreground-secondary">
+                            Example 6-letter room code
+                          </p>
+                          <div className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-secondary border border-border text-2xl font-display font-extrabold tracking-[0.22em] text-foreground">
+                            CINE24
+                          </div>
+                        </div>
+                        <p className="text-xs text-foreground-secondary leading-relaxed">
+                          Your partner enters the code on the Home screen or taps the shared link to enter the room directly.
+                        </p>
+                        <div className="rounded-xl bg-background border border-border px-3.5 py-2.5 text-xs text-foreground-secondary flex items-center justify-between gap-2">
+                          <span className="truncate">flick.app/join/CINE24</span>
+                          <span className="font-semibold text-primary shrink-0">Copy link</span>
+                        </div>
+                      </div>
+
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-border">
+                        {!failedBackdrops[SAMPLE_DECK[1].id] ? (
+                          <img
+                            src={SAMPLE_DECK[1].backdropUrl}
+                            alt={`${SAMPLE_DECK[1].title} film backdrop`}
+                            onError={() => markBackdropFailed(SAMPLE_DECK[1].id)}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-surface-secondary" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
+                          <p className="font-semibold">2 seats per Screening Room</p>
+                          <p className="text-white/75 mt-0.5">Host & partner join with independent taste controls</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stage 3: Independent Swiping */}
+                {activeStep === 2 && (
+                  <div className="p-6 sm:p-8 space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-foreground">Viewer A screen</span>
+                          <span className="text-primary font-semibold">Recommended ♥</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 aspect-[2/3] rounded-md overflow-hidden border border-border shrink-0">
+                            <PosterArtwork
+                              film={SHAWSHANK_STILL}
+                              imgFailed={Boolean(failedImages[SHAWSHANK_STILL.id])}
+                              onImgError={() => markImageFailed(SHAWSHANK_STILL.id)}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-display font-bold text-sm text-foreground">
+                              {SHAWSHANK_STILL.title}
+                            </p>
+                            <p className="text-xs text-foreground-secondary">
+                              {SHAWSHANK_STILL.year} · ★ {SHAWSHANK_STILL.rating}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-foreground">Viewer B screen</span>
+                          <span className="text-foreground-secondary font-medium">Swiping independently</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 aspect-[2/3] rounded-md overflow-hidden border border-border shrink-0">
+                            <PosterArtwork
+                              film={SHAWSHANK_STILL}
+                              imgFailed={Boolean(failedImages[SHAWSHANK_STILL.id])}
+                              onImgError={() => markImageFailed(SHAWSHANK_STILL.id)}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-display font-bold text-sm text-foreground">
+                              {SHAWSHANK_STILL.title}
+                            </p>
+                            <p className="text-xs text-foreground-secondary">
+                              Passes remain private to each person
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-foreground-secondary leading-relaxed">
+                      Swipes are submitted independently on each device. You can also Super-Like a top pick or use Undo to recall your previous swipe.
+                    </p>
+                  </div>
+                )}
+
+                {/* Stage 4: Mutual Match Reveal */}
+                {activeStep === 3 && (
+                  <div className="relative p-6 sm:p-8 text-white overflow-hidden bg-zinc-950">
+                    {!failedBackdrops[SAMPLE_DECK[0].id] && (
+                      <img
+                        src={SAMPLE_DECK[0].backdropUrl}
+                        alt=""
+                        onError={() => markBackdropFailed(SAMPLE_DECK[0].id)}
+                        className="absolute inset-0 w-full h-full object-cover opacity-30"
+                      />
+                    )}
+                    <div className="relative z-10 flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+                      <div className="w-28 aspect-[2/3] rounded-xl overflow-hidden border border-white/20 shrink-0 shadow-xl">
+                        <PosterArtwork
+                          film={SAMPLE_DECK[0]}
+                          imgFailed={Boolean(failedImages[SAMPLE_DECK[0].id])}
+                          onImgError={() => markImageFailed(SAMPLE_DECK[0].id)}
+                        />
+                      </div>
+                      <div className="space-y-2.5">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+                          <span
+                            className="material-symbols-outlined text-[16px]"
+                            style={{ fontVariationSettings: "'FILL' 1" }}
+                          >
+                            verified
+                          </span>
+                          Mutual Match
+                        </span>
+                        <h3 className="font-display text-2xl font-bold text-white">
+                          {SAMPLE_DECK[0].title}
+                        </h3>
+                        <p className="text-xs text-white/80">
+                          {SAMPLE_DECK[0].year} · ★ {SAMPLE_DECK[0].rating} · {SAMPLE_DECK[0].genres.join(" · ")}
+                        </p>
+                        <p className="text-xs text-white/75 leading-relaxed max-w-md">
+                          {SAMPLE_DECK[0].synopsis}
+                        </p>
+                        <p className="text-xs text-white/85 pt-1">
+                          Save to shared Watchlist or check regional watch options.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ── Section: Ready to Decide CTA Banner ── */}
-        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="rounded-3xl bg-surface border border-border/80 p-8 sm:p-12 text-center shadow-xs flex flex-col items-center">
-            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-foreground mb-3">
-              Ready for film night?
-            </h2>
-            <p className="text-sm text-foreground-secondary max-w-md mx-auto mb-6">
-              Start immediately as a guest in one tap, or create your permanent cinema profile.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+        {/* ── Section 3: Account Flexibility (Tonal Ground Band, Zero Pricing Card Grid) ── */}
+        <section className="relative z-10 w-full bg-surface/55 border-y border-border/70">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            <div className="lg:col-span-5">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                Start right away, or save across devices
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-foreground-secondary leading-relaxed">
+                Guest sessions unlock every Screening Room feature without signup. Convert to an email account only when you want permanent multi-device sync.
+              </p>
+            </div>
+
+            <div className="lg:col-span-7 divide-y divide-border">
+              <div className="pb-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div className="max-w-md">
+                  <h3 className="font-display text-lg font-bold text-foreground">
+                    Instant guest access
+                  </h3>
+                  <p className="mt-1.5 text-sm text-foreground-secondary leading-relaxed">
+                    Launch a room in one tap and receive a 16-character recovery key to bring your history to another browser anytime.
+                  </p>
+                </div>
+                <div className="flex flex-wrap sm:flex-col items-start sm:items-end gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleStartExploring}
+                    disabled={loading}
+                    className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                  >
+                    <span>Start a Movie Night</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/recover")}
+                    className="text-xs font-medium text-foreground-secondary hover:text-foreground underline underline-offset-4 cursor-pointer whitespace-nowrap"
+                  >
+                    Restore with recovery key
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div className="max-w-md">
+                  <h3 className="font-display text-lg font-bold text-foreground">
+                    Permanent email account
+                  </h3>
+                  <p className="mt-1.5 text-sm text-foreground-secondary leading-relaxed">
+                    Keep your watchlist, taste profile, and past matches available from any phone or laptop with standard sign-in.
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/register")}
+                    className="text-sm font-semibold text-foreground hover:text-primary underline underline-offset-4 cursor-pointer whitespace-nowrap"
+                  >
+                    Sign Up
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    className="text-sm font-semibold text-foreground hover:text-primary underline underline-offset-4 cursor-pointer whitespace-nowrap"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 4: Questions (Open Hairline List, Asymmetric Layout) ── */}
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+            <div className="lg:col-span-4">
+              <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                Common questions
+              </h2>
+            </div>
+
+            <div className="lg:col-span-8 border-t border-border">
+              {FAQ_ITEMS.map((faq, index) => {
+                const isOpen = activeFaq === index;
+                return (
+                  <div key={faq.q} className="border-b border-border">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() => setActiveFaq(isOpen ? null : index)}
+                      className="w-full py-5 text-left flex items-center justify-between gap-4 cursor-pointer group"
+                    >
+                      <span className="text-sm sm:text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {faq.q}
+                      </span>
+                      <span
+                        className="material-symbols-outlined text-[20px] text-foreground-secondary shrink-0 transition-transform duration-200"
+                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                      >
+                        keyboard_arrow_down
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="pb-5 pr-8 text-sm text-foreground-secondary leading-relaxed">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 5: Unboxed Open Closing CTA + Footer ── */}
+        <section className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 border-t border-border/70">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="max-w-lg">
+              <h2 className="font-display text-2xl sm:text-4xl font-bold text-foreground tracking-tight">
+                Ready to pick tonight&apos;s film?
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-foreground-secondary leading-relaxed">
+                Open a Screening Room now as a guest, or create an account to save your list.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               <button
+                type="button"
                 onClick={handleStartExploring}
                 disabled={loading}
-                className="flex-1 h-12 px-6 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-60"
+                className="min-h-12 h-12 px-7 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60 whitespace-nowrap"
               >
                 <span>Start a Movie Night</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
               <button
+                type="button"
                 onClick={() => navigate("/register")}
-                className="flex-1 h-12 px-6 rounded-full bg-surface-secondary hover:bg-border text-foreground font-semibold text-xs sm:text-sm tracking-wide transition-colors active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                className="min-h-12 h-12 px-6 rounded-full bg-surface hover:bg-surface-secondary border border-border text-foreground font-semibold text-sm transition-colors active:scale-[0.99] flex items-center justify-center cursor-pointer whitespace-nowrap"
               >
                 Create Account
               </button>
@@ -654,22 +1082,25 @@ export default function EntryPage() {
         </section>
 
         {/* ── Footer ── */}
-        <footer className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-foreground-secondary">
-          <p>© Flick Cinema Journal. Independent Film Discovery.</p>
-          <div className="flex gap-6">
+        <footer className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-foreground-secondary">
+          <p>© Flick · Collaborative Movie Discovery</p>
+          <div className="flex flex-wrap items-center gap-6">
             <button
+              type="button"
               onClick={() => navigate("/discover")}
               className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
               Browse Movies
             </button>
             <button
+              type="button"
               onClick={() => navigate("/terms")}
               className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
               Terms
             </button>
             <button
+              type="button"
               onClick={() => navigate("/privacy")}
               className="hover:text-foreground transition-colors cursor-pointer min-h-11 sm:min-h-0 flex items-center"
             >
@@ -683,7 +1114,6 @@ export default function EntryPage() {
             </a>
           </div>
         </footer>
-
       </div>
 
       {/* Recovery Code Presentation Modal */}

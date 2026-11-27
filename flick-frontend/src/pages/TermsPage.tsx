@@ -29,11 +29,11 @@ export default function TermsPage() {
             </div>
             <div>
               <h2 className="font-editorial text-xl font-bold">Flick Terms of Engagement</h2>
-              <p className="text-[11px] text-foreground-secondary">Last updated: March 2026</p>
+              <p className="text-xs text-foreground-secondary">Last updated: March 2026</p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 text-xs text-foreground-secondary leading-relaxed">
+          <div className="flex flex-col gap-6 text-sm text-foreground-secondary leading-relaxed">
 
             <Section title="1. Acceptance of Terms">
               By creating a member account or accessing Flick, you agree to be bound by these Terms of Service. If you do not accept these terms in their entirety, please refrain from using the platform.

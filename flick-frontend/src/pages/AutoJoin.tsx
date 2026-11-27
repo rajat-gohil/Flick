@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import { trackEvent } from "../lib/analytics";
 import { useTheme } from "../context/ThemeContext";
+import AnimatedFlickLogo from "../components/AnimatedFlickLogo";
 
 /* ============================
    MOVIE FACTS
@@ -121,6 +122,7 @@ export default function AutoJoin() {
       {/* Top Header */}
       <div className="flex items-center justify-between pb-4">
         <button
+          type="button"
           onClick={() => navigate("/")}
           className="size-11 sm:size-9 rounded-full bg-surface border border-border flex items-center justify-center text-foreground-secondary hover:text-foreground transition-colors cursor-pointer"
           aria-label="Cancel"
@@ -128,19 +130,19 @@ export default function AutoJoin() {
           <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
         <img src={logoFull} alt="Flick" className="h-6 w-auto object-contain" />
-        <div className="size-9" />
+        <div className="size-11 sm:size-9" aria-hidden="true" />
       </div>
 
       {/* Center animation */}
       <div className="flex flex-col items-center gap-6 py-8">
         <div className="relative size-28 rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center shadow-sm">
-          <span className="material-symbols-outlined text-primary text-[44px]">movie_filter</span>
+          <AnimatedFlickLogo variant="badge" loop decorative className="size-20 rounded-2xl shadow-sm relative z-10" />
           <div className="absolute inset-0 rounded-full border border-primary/40 animate-ping" style={{ animationDuration: "2.5s" }} />
         </div>
 
         <div className="text-center">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-1 block">
-            Screening Handshake
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-1 block">
+            Screening Room
           </span>
           <h1 className="font-editorial text-2xl font-bold tracking-tight text-foreground mb-1">
             Entering Screening Deck
@@ -156,8 +158,8 @@ export default function AutoJoin() {
               ))}
             </span>
           </h1>
-          <p className="text-xs text-foreground-secondary max-w-xs mx-auto">
-            Synchronizing collaborative catalogue with your co-viewer.
+          <p className="text-sm text-foreground-secondary max-w-xs mx-auto">
+            Syncing the film lineup with your partner.
           </p>
         </div>
       </div>
@@ -172,18 +174,18 @@ export default function AutoJoin() {
             transition: "opacity 0.4s ease, transform 0.4s ease",
           }}
         >
-          <span className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1.5 block">
+          <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-1.5 block">
             Cinema Note
           </span>
-          <p className="text-xs text-foreground leading-relaxed">
+          <p className="text-sm text-foreground leading-relaxed">
             {MOVIE_FACTS[factIndex]}
           </p>
         </div>
       </div>
 
       <div className="text-center pb-4">
-        <p className="text-[10px] uppercase tracking-widest text-foreground-secondary/70">
-          Secured Session Exchange
+        <p className="text-xs uppercase tracking-widest text-foreground-secondary">
+          Secured Session
         </p>
       </div>
     </div>

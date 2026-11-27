@@ -28,7 +28,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
       aria-checked={on}
       aria-label={label || "Toggle notification preference"}
       onClick={() => onChange(!on)}
-      className="min-h-[44px] min-w-[44px] -my-2 flex items-center justify-end shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full p-1"
+      className="min-h-[44px] min-w-[44px] -my-2 flex items-center justify-end shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-focus rounded-full p-1"
     >
       <span
         className={`relative inline-block w-10 h-5 rounded-full transition-colors ${on ? "bg-primary" : "bg-surface-secondary border border-border"}`}
@@ -50,8 +50,8 @@ function NotifRow({
     <div className="flex items-center gap-3.5 px-5 py-3.5 border-b border-border/60 last:border-0">
       <span className="material-symbols-outlined text-[18px] text-foreground-secondary shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-foreground">{title}</p>
-        <p className="text-[11px] text-foreground-secondary mt-0.5 leading-snug">{subtitle}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-foreground-secondary mt-0.5 leading-snug">{subtitle}</p>
       </div>
       <Toggle on={value} onChange={onChange} label={`Toggle ${title}`} />
     </div>
@@ -64,7 +64,12 @@ export default function NotificationsSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [pushStatus, setPushStatus] = useState<"unsupported" | "denied" | "granted" | "default">("default");
+  const [pushStatus, setPushStatus] = useState<"unsupported" | "denied" | "granted" | "default">(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "unsupported";
+    }
+    return Notification.permission as "denied" | "granted" | "default";
+  });
 
   useEffect(() => {
     apiRequest("/api/users/notification-preferences/")
@@ -72,14 +77,8 @@ export default function NotificationsSettingsPage() {
         const r = res as { success?: boolean; preferences?: Partial<NotifPrefs> };
         if (r.success && r.preferences) setPrefs(p => ({ ...p, ...r.preferences }));
       })
-      .catch((_err: unknown) => {})
+      .catch(() => {})
       .finally(() => setLoading(false));
-
-    if (!("Notification" in window)) {
-      setPushStatus("unsupported");
-    } else {
-      setPushStatus(Notification.permission as "denied" | "granted" | "default");
-    }
   }, []);
 
   useEffect(() => {
@@ -90,15 +89,15 @@ export default function NotificationsSettingsPage() {
         method: "POST",
         body: JSON.stringify(prefs),
       })
-        .then((_res: unknown) => {
+        .then(() => {
           setSaved(true);
           setTimeout(() => setSaved(false), 1500);
         })
-        .catch((_err: unknown) => {})
+        .catch(() => {})
         .finally(() => setSaving(false));
     }, 600);
     return () => clearTimeout(t);
-  }, [prefs]);
+  }, [prefs, loading]);
 
   function update(key: keyof NotifPrefs, value: boolean) {
     setPrefs(p => ({ ...p, [key]: value }));
@@ -148,17 +147,18 @@ export default function NotificationsSettingsPage() {
             <div className="mb-5 p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3">
               <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">notifications_active</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-foreground">Enable Web Dispatch Notifications</p>
-                <p className="text-[11px] text-foreground-secondary mt-0.5 leading-snug">
+                <p className="text-sm font-semibold text-foreground">Enable Browser Notifications</p>
+                <p className="text-xs text-foreground-secondary mt-0.5 leading-snug">
                   {pushStatus === "denied"
-                    ? "Notifications are disallowed by your browser settings."
-                    : "Receive instant match cues when a co-viewer makes a selection."}
+                    ? "Notifications are blocked in your browser settings."
+                    : "Receive instant match alerts when your partner swipes."}
                 </p>
               </div>
               {pushStatus === "default" && (
                 <button
+                  type="button"
                   onClick={requestPushPermission}
-                  className="shrink-0 text-xs font-semibold uppercase tracking-wider text-surface bg-primary px-3 py-1.5 rounded-lg"
+                  className="shrink-0 min-h-11 sm:min-h-9 text-sm font-semibold uppercase tracking-wider text-primary-foreground bg-primary hover:bg-primary-hover px-4 rounded-lg cursor-pointer transition-colors"
                 >
                   Allow
                 </button>
@@ -166,21 +166,21 @@ export default function NotificationsSettingsPage() {
             </div>
           )}
 
-          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest px-1 mb-2 mt-2">
-            In-App Screening Alerts
+          <p className="text-xs font-semibold text-primary uppercase tracking-widest px-1 mb-2 mt-2">
+            Screening Alerts
           </p>
           <div className="rounded-xl bg-surface border border-border overflow-hidden divide-y divide-border/60 shadow-xs mb-5">
             <NotifRow
               icon="group_add"
               title="Session Invitations"
-              subtitle="When an invite passcode is directed to your attention"
+              subtitle="When a screening invite is shared with you"
               value={prefs.session_invites}
               onChange={(v) => update("session_invites", v)}
             />
             <NotifRow
               icon="favorite"
-              title="Consensus Matches"
-              subtitle="When mutual selection is recorded on a title"
+              title="Mutual Matches"
+              subtitle="When you and your partner agree on a film"
               value={prefs.match_alerts}
               onChange={(v) => update("match_alerts", v)}
             />
@@ -193,20 +193,20 @@ export default function NotificationsSettingsPage() {
             />
           </div>
 
-          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest px-1 mb-2">
-            Editorial Correspondence
+          <p className="text-xs font-semibold text-primary uppercase tracking-widest px-1 mb-2">
+            Email Digest
           </p>
           <div className="rounded-xl bg-surface border border-border overflow-hidden shadow-xs mb-5">
             <NotifRow
               icon="mail"
-              title="Weekly Dispatch"
-              subtitle="Curated digest of matched titles and cinema releases"
+              title="Weekly Digest"
+              subtitle="Curated roundup of matched titles and cinema picks"
               value={prefs.weekly_digest}
               onChange={(v) => update("weekly_digest", v)}
             />
           </div>
 
-          <p className="text-[10px] font-semibold text-primary uppercase tracking-widest px-1 mb-2">
+          <p className="text-xs font-semibold text-primary uppercase tracking-widest px-1 mb-2">
             Push Notifications
           </p>
           <div className="rounded-xl bg-surface border border-border overflow-hidden shadow-xs mb-6">
@@ -218,7 +218,7 @@ export default function NotificationsSettingsPage() {
                   ? "Blocked in browser permissions"
                   : pushStatus === "unsupported"
                   ? "Not supported in this environment"
-                  : "Receive alerts when the app is backgrounded"
+                  : "Receive alerts when the app is in the background"
               }
               value={prefs.push_enabled && pushStatus === "granted"}
               onChange={(v) => {
@@ -231,8 +231,8 @@ export default function NotificationsSettingsPage() {
             />
           </div>
 
-          <p className="text-[11px] text-foreground-secondary text-center px-4 leading-relaxed">
-            Preferences save automatically to your member profile.
+          <p className="text-xs text-foreground-secondary text-center px-4 leading-relaxed">
+            Preferences save automatically to your account.
           </p>
         </main>
       </div>

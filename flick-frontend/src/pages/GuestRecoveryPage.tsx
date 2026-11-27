@@ -100,13 +100,13 @@ export default function GuestRecoveryPage() {
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="flex flex-col gap-1.5 text-center">
-            <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">
+            <span className="text-xs font-semibold text-primary uppercase tracking-widest">
               Account Restoration
             </span>
             <h1 className="font-editorial text-2xl sm:text-3xl font-normal tracking-tight text-foreground">
               Restore Guest Account
             </h1>
-            <p className="text-xs sm:text-sm text-foreground-secondary leading-relaxed font-sans max-w-sm mx-auto">
+            <p className="text-sm text-foreground-secondary leading-relaxed font-sans max-w-sm mx-auto">
               Enter the 16-character recovery code issued when you created your guest journal.
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function GuestRecoveryPage() {
                   autoCorrect="off"
                   spellCheck="false"
                   disabled={loading}
-                  className="flex w-full rounded-xl text-foreground font-mono focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/50 placeholder:font-sans pl-11 pr-4 text-sm tracking-wider uppercase transition-all"
+                  className="flex w-full rounded-xl text-foreground font-mono focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 placeholder:font-sans pl-11 pr-4 text-sm tracking-wider uppercase transition-all"
                 />
               </div>
             </label>

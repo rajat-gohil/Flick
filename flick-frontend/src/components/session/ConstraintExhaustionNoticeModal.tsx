@@ -7,24 +7,12 @@ import {
   updateGenreCache,
 } from "../../lib/formatConstraints";
 
-export {
-  CANONICAL_GENRES,
-  CANONICAL_LANGUAGES,
-  CANONICAL_ERAS,
-  resolveGenreName,
-  formatLanguageName,
-  formatEraName,
-  formatConstraintLabel,
-  formatConstraintValue,
-  updateGenreCache,
-} from "../../lib/formatConstraints";
-
 export interface DecisionInfo {
   decision: "approve" | "approved" | "decline" | "declined" | "pending";
   decided_at?: string | null;
 }
 
-export function parseDecision(dec: string | DecisionInfo | null | undefined): "approved" | "declined" | "pending" {
+function parseDecision(dec: string | DecisionInfo | null | undefined): "approved" | "declined" | "pending" {
   if (!dec) return "pending";
   const val = typeof dec === "object" ? dec.decision : dec;
   if (!val) return "pending";
@@ -49,8 +37,8 @@ export interface ConstraintProposalData {
     | "superseded";
   initiated_by_user_id: number;
   initiated_by_username: string;
-  original_constraints: Record<string, any>;
-  proposed_constraints: Record<string, any>;
+  original_constraints: Record<string, unknown>;
+  proposed_constraints: Record<string, unknown>;
   host_decision: string | DecisionInfo;
   guest_decision: string | DecisionInfo;
   created_at: string;
@@ -97,7 +85,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
           onReplenished();
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("[ConstraintModal] Failed to fetch proposal:", err);
     } finally {
       setLoading(false);
@@ -138,8 +126,9 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
       });
       trackEvent("constraint_expansion_proposed", { session_id: Number(sessionId) });
       await fetchProposal();
-    } catch (err: any) {
-      setErrorMessage(err?.data?.error || err?.message || "Failed to submit proposal");
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { error?: string }; message?: string };
+      setErrorMessage(apiErr?.data?.error || apiErr?.message || "Failed to submit proposal");
     } finally {
       setActionLoading(false);
     }
@@ -163,8 +152,9 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
         { session_id: Number(sessionId), proposal_id: proposal.id }
       );
       await fetchProposal();
-    } catch (err: any) {
-      setErrorMessage(err?.data?.error || err?.message || "Failed to record response");
+    } catch (err: unknown) {
+      const apiErr = err as { data?: { error?: string }; message?: string };
+      setErrorMessage(apiErr?.data?.error || apiErr?.message || "Failed to record response");
     } finally {
       setActionLoading(false);
     }
@@ -300,6 +290,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
               </div>
               {onAdjustPreferences && (
                 <button
+                  type="button"
                   onClick={onAdjustPreferences}
                   data-testid="adjust-taste-params-btn"
                   className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -315,6 +306,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
                 {proposal?.error_message || "Replenishment failed due to a temporary service error."}
               </div>
               <button
+                type="button"
                 onClick={handlePropose}
                 disabled={actionLoading || loading}
                 data-testid="retry-proposal-btn"
@@ -326,6 +318,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
             </div>
           ) : !proposal || proposal.status === "declined" || proposal.status === "expired" || proposal.status === "superseded" ? (
             <button
+              type="button"
               onClick={handlePropose}
               disabled={actionLoading || loading}
               className="w-full h-11 rounded-xl bg-primary hover:bg-primary-hover text-surface font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
@@ -342,6 +335,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
           ) : isPending && !hasVoted ? (
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={() => handleRespond("approve")}
                 disabled={actionLoading}
                 className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
@@ -350,6 +344,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
                 Approve
               </button>
               <button
+                type="button"
                 onClick={() => handleRespond("decline")}
                 disabled={actionLoading}
                 className="flex-1 h-11 rounded-xl border border-destructive/40 bg-destructive/10 hover:bg-destructive/20 text-destructive font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
@@ -371,6 +366,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
 
           {onConcludeSession && (
             <button
+              type="button"
               onClick={onConcludeSession}
               className="w-full h-10 rounded-xl border border-border bg-surface hover:bg-surface-secondary text-foreground-secondary hover:text-foreground text-xs font-semibold uppercase tracking-wider transition-colors"
             >
@@ -380,6 +376,7 @@ export const ConstraintExhaustionNoticeModal: React.FC<ConstraintExhaustionNotic
 
           {onClose && (
             <button
+              type="button"
               onClick={onClose}
               className="w-full text-center py-1 text-xs text-foreground-secondary/70 hover:text-foreground transition-colors"
             >

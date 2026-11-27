@@ -72,10 +72,10 @@ export default function UsernamePage() {
                 }
                 placeholder="e.g. moviebuff_42"
                 maxLength={20}
-                className="flex w-full rounded-xl text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/60 pl-10 pr-4 text-sm font-normal transition-all"
+                className="flex w-full rounded-xl text-foreground focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary border border-border bg-surface h-12 placeholder:text-foreground-secondary/75 pl-10 pr-4 text-sm font-normal transition-all"
               />
             </div>
-            <p className="text-[11px] text-foreground-secondary mt-1 ml-0.5">
+            <p className="text-xs text-foreground-secondary mt-1 ml-0.5">
               Only lowercase letters, numbers, and underscores
             </p>
           </label>
@@ -90,7 +90,7 @@ export default function UsernamePage() {
                     key={s}
                     type="button"
                     onClick={() => setUsername(s)}
-                    className={`rounded-xl border px-3 py-2 text-xs text-left transition-all ${
+                    className={`rounded-xl border px-3 min-h-11 sm:min-h-9 py-2 text-sm text-left transition-all cursor-pointer ${
                       username === s
                         ? "border-primary bg-primary/10 text-primary font-semibold"
                         : "border-border bg-surface text-foreground-secondary hover:border-primary/50 hover:text-foreground"

@@ -18,6 +18,8 @@ class MovieSerializer(serializers.ModelSerializer):
     backdrop_url = serializers.SerializerMethodField()
     release_year = serializers.SerializerMethodField()
     trailer_url = serializers.SerializerMethodField()
+    genres = serializers.SerializerMethodField()
+    runtime = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -34,7 +36,22 @@ class MovieSerializer(serializers.ModelSerializer):
             "backdrop_url",
             "poster_url",
             "trailer_url",
+            "genres",
+            "runtime",
         ]
+
+    def get_genres(self, obj):
+        genres = [g.name for g in obj.genres.all() if g.name]
+        if not genres and getattr(obj, "tmdb_genre_ids", None):
+            from .services.recommendation_engine import TMDB_GENRE_MAP
+            genres = [TMDB_GENRE_MAP[gid] for gid in obj.tmdb_genre_ids if gid in TMDB_GENRE_MAP]
+        return genres
+
+    def get_runtime(self, obj):
+        val = getattr(obj, "runtime", None)
+        if isinstance(val, (int, float)) and not isinstance(val, bool) and int(val) > 0:
+            return int(val)
+        return None
     
     def get_backdrop_url(self, obj):
         if obj.backdrop_path:

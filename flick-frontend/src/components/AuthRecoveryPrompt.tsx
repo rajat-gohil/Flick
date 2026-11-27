@@ -58,7 +58,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
         if (onSuccess) onSuccess();
         window.location.reload();
       }
-    } catch (err: any) {
+    } catch {
       setErrorMessage("Failed to start a new session. Please try again.");
     } finally {
       setLoading(false);
@@ -88,11 +88,12 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
       } else {
         setErrorMessage("Invalid recovery code. Please check the code and try again.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Per spec: Generic 400 error message handling
+      const apiErr = err as { data?: { error?: string }; message?: string };
       const message =
-        err?.data?.error ||
-        err?.message ||
+        apiErr?.data?.error ||
+        apiErr?.message ||
         "Invalid recovery code. Please check the code and try again.";
       setErrorMessage(message);
     } finally {
@@ -112,7 +113,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-4 right-4 text-foreground-secondary hover:text-foreground size-8 flex items-center justify-center rounded-full hover:bg-surface-secondary transition-colors"
+            className="absolute top-4 right-4 text-foreground-secondary hover:text-foreground size-11 sm:size-9 flex items-center justify-center rounded-full hover:bg-surface-secondary transition-colors cursor-pointer"
             aria-label="Close"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -164,7 +165,7 @@ export const AuthRecoveryPrompt: React.FC<AuthRecoveryPromptProps> = ({
                 value={recoveryCode}
                 onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
                 placeholder="FLICK-XXXX-XXXX-XXXX"
-                className="w-full h-12 rounded-xl bg-surface-secondary border border-border px-3.5 text-sm text-foreground placeholder:text-foreground-secondary/40 font-mono tracking-wider focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full h-12 rounded-xl bg-surface-secondary border border-border px-3.5 text-sm text-foreground placeholder:text-foreground-secondary/75 font-mono tracking-wider focus-visible:outline-2 focus-visible:outline-focus focus:ring-2 focus:ring-primary"
                 autoFocus
               />
             </div>

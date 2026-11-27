@@ -24,17 +24,18 @@ export default function BottomNav({ current }: BottomNavProps) {
     <nav
       aria-label="Mobile Navigation"
       data-tour="nav-mobile"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border/60 bg-background/95 backdrop-blur-md px-3 pt-2 pb-[max(1.25rem,calc(0.5rem+env(safe-area-inset-bottom)))] transition-colors"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border/60 bg-background/95 backdrop-blur-md px-2 pt-1.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-colors"
     >
       {tabs.map((tab) => {
         const isActive = current === tab.id;
         return (
           <motion.button
             key={tab.id}
+            type="button"
             onClick={() => !isActive && navigate(tab.path)}
             aria-current={isActive ? "page" : undefined}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.94 }}
-            className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-1 rounded-xl transition-colors cursor-pointer select-none ${
+            className={`relative flex flex-1 min-h-11 flex-col items-center justify-center gap-1 py-1.5 rounded-xl transition-colors cursor-pointer select-none touch-manipulation ${
               isActive ? "text-primary" : "text-foreground-secondary hover:text-foreground"
             }`}
           >
@@ -61,7 +62,7 @@ export default function BottomNav({ current }: BottomNavProps) {
               {tab.icon}
             </motion.span>
             <span
-              className={`text-[10px] leading-none uppercase tracking-wider ${
+              className={`text-xs leading-none tracking-normal ${
                 isActive ? "font-semibold text-primary" : "font-medium"
               }`}
             >

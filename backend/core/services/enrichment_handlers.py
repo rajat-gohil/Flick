@@ -409,10 +409,19 @@ def handle_catalogue_enrichment(
         for c in crew_list
         if c.get("job") == "Director"
     ]
+
+    existing_credits = movie.credits_summary if isinstance(movie.credits_summary, dict) else {}
     credits_summary = {
+        **existing_credits,
         "cast": top_cast,
         "directors": directors,
     }
+    raw_runtime = tmdb_data.get("runtime")
+    parsed_runtime = None
+    if isinstance(raw_runtime, (int, float)) and not isinstance(raw_runtime, bool) and int(raw_runtime) > 0:
+        parsed_runtime = int(raw_runtime)
+    if parsed_runtime is not None:
+        credits_summary["runtime"] = parsed_runtime
 
     updates = {
         "title": title,

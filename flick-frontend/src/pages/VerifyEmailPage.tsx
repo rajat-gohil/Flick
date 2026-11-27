@@ -81,6 +81,7 @@ export default function VerifyEmailPage() {
               </p>
             </div>
             <button
+              type="button"
               onClick={() => navigate("/home", { replace: true })}
               className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors shadow-xs mt-2"
             >
@@ -102,6 +103,7 @@ export default function VerifyEmailPage() {
               </p>
             </div>
             <button
+              type="button"
               onClick={handleResend}
               disabled={resending || resent}
               className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors disabled:opacity-60 shadow-xs mt-2"
@@ -109,6 +111,7 @@ export default function VerifyEmailPage() {
               {resent ? "Email Dispatched!" : resending ? "Sending..." : "Request New Link"}
             </button>
             <button
+              type="button"
               onClick={() => navigate("/home")}
               className="text-xs text-foreground-secondary hover:text-foreground font-medium py-1"
             >
@@ -131,6 +134,7 @@ export default function VerifyEmailPage() {
             </div>
             <div className="w-full flex flex-col gap-2.5 mt-2">
               <button
+                type="button"
                 onClick={handleResend}
                 disabled={resending || resent}
                 className="w-full h-12 rounded-full border border-border hover:bg-surface-secondary text-foreground font-semibold text-sm transition-colors disabled:opacity-60"
@@ -138,6 +142,7 @@ export default function VerifyEmailPage() {
                 {resent ? "Link Sent!" : resending ? "Sending..." : "Resend Verification Email"}
               </button>
               <button
+                type="button"
                 onClick={() => navigate("/home")}
                 className="w-full h-12 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-semibold text-sm tracking-wide transition-colors shadow-xs"
               >

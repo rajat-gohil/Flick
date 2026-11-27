@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import {
   CurtainCallMatchModal,
-  resolveMatchStyle,
   type MatchMovie,
   type CurtainCallMatchModalProps,
 } from "../CurtainCallMatchModal";
+import { resolveMatchStyle } from "../../../lib/matchPresentation";
 
 // Filter out Framer Motion DOM attributes to prevent React DOM warnings in jsdom
 const MOTION_PROPS = new Set([
@@ -34,6 +34,7 @@ vi.mock("framer-motion", () => ({
       <button {...stripMotionProps(props)}>{children as React.ReactNode}</button>
     ),
   },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("../../StreamingOptions", () => ({
